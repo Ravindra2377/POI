@@ -663,3 +663,15 @@ after those gates pass or are explicitly accepted as documented deployment risks
   Git credential helper or author identity was present before repository initialization.
 - **Stage 1 acceptance impact:** None. Publishing source does not satisfy database operational or
   visual acceptance and does not authorize Stage 2.
+
+## Development entry — GitHub publication result
+
+- **Publication date:** 11 August 2026
+- **Repository:** `https://github.com/Ravindra2377/POI`
+- **Branch:** `main`
+- **Initial published commit:** `475d350e4aca264809a5968b92759346b85cb58a`
+- **Push result:** Successful. The remote `main` branch contains the complete reviewed Stage 0 and
+  Stage 1 source tree, documentation, tests, seed manifest, Alembic migration, and Render Blueprint.
+- **Upstream:** Local `main` tracks `origin/main`.
+- **Acceptance impact:** Source publication is complete but does not change the pending database
+  operational, visual, or overall Stage 1 acceptance states.
