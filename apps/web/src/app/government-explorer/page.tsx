@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GovernmentExplorer } from "./GovernmentExplorer";
 
 export const metadata: Metadata = {
-  title: "Government Explorer · AP Public Ledger",
+  title: "Government Explorer · Viksit Bharat??",
   description:
     "Browse sourced Andhra Pradesh district and government department records.",
 };

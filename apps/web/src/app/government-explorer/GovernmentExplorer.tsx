@@ -118,8 +118,8 @@ export function GovernmentExplorer() {
     <main className={styles.page}>
       <nav className={styles.nav} aria-label="Government Explorer navigation">
         <Link className={styles.brand} href="/">
-          <span className={styles.brandMark}>AP</span>
-          <span>Public Ledger</span>
+          <span className={styles.brandMark}>VB</span>
+          <span>Viksit Bharat??</span>
         </Link>
         <div className={styles.language} aria-label="Language">
           <button
@@ -144,6 +144,10 @@ export function GovernmentExplorer() {
         <p className={styles.eyebrow}>{labels.eyebrow}</p>
         <h1>{labels.title}</h1>
         <p>{labels.intro}</p>
+        <p>
+          Independent civic platform · Not affiliated with the Government of
+          India
+        </p>
       </header>
 
       <section className={styles.workspace} aria-labelledby="catalog-heading">

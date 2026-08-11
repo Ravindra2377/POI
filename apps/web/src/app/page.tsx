@@ -25,9 +25,9 @@ export default function Home() {
   return (
     <main>
       <nav className="nav" aria-label="Primary navigation">
-        <a className="brand" href="#top" aria-label="AP Civic Platform home">
-          <span className="brandMark">AP</span>
-          <span>Public Ledger</span>
+        <a className="brand" href="#top" aria-label="Viksit Bharat?? home">
+          <span className="brandMark">VB</span>
+          <span>Viksit Bharat??</span>
         </a>
         <a href="/government-explorer">Government Explorer</a>
         <span className="stagePill">Geography foundation · Stage 1</span>
@@ -104,7 +104,11 @@ export default function Home() {
       </section>
 
       <footer>
-        <p>AP Civic Platform · Public-interest infrastructure in development</p>
+        <p>Viksit Bharat?? · Public-interest infrastructure in development</p>
+        <p>
+          Independent civic platform · Not affiliated with the Government of
+          India
+        </p>
         <p lang="te">ఆంధ్రప్రదేశ్ ప్రజా సమాచార వేదిక</p>
       </footer>
     </main>

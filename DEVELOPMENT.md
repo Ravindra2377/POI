@@ -1,4 +1,4 @@
-# AP Civic Platform — Development Record
+# Viksit Bharat?? — Development Record
 
 **Product:** Andhra Pradesh public intelligence and civic participation platform
 **Analysis date:** 11 August 2026
@@ -274,7 +274,7 @@ The remaining sections preserve the complete Stage 1 implementation analysis.
 
 # Stage 1 Development Completion Analysis
 
-**Project:** AP Civic Platform
+**Project:** Viksit Bharat??
 **Stage:** 1 — Andhra Pradesh geography and government-entity foundation
 **Analysis date:** 11 August 2026
 **Status:** Implementation complete; operational acceptance pending a live PostgreSQL/PostGIS migration test and manual browser visual review.
@@ -675,3 +675,18 @@ after those gates pass or are explicitly accepted as documented deployment risks
 - **Upstream:** Local `main` tracks `origin/main`.
 - **Acceptance impact:** Source publication is complete but does not change the pending database
   operational, visual, or overall Stage 1 acceptance states.
+
+## Development entry — Public brand renamed to Viksit Bharat??
+
+- **Date:** 11 August 2026
+- **Goal:** Rename the public website and API presentation to the exact name `Viksit Bharat??`,
+  including both question marks.
+- **Public changes:** Updated document metadata, homepage navigation and footer, Government Explorer
+  navigation and metadata, API documentation title, repository headings, and accessibility label.
+- **Trust disclosure:** Added a visible statement that the product is an independent civic platform
+  and is not affiliated with the Government of India.
+- **Deployment stability:** Kept internal npm package names, Python package paths, database names, and
+  Render service identifiers unchanged.
+- **Data and schema impact:** None.
+- **Acceptance impact:** Requires a fresh frontend build and API deployment. Stage 1 database
+  operational and visual acceptance remain pending.

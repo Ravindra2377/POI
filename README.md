@@ -1,4 +1,4 @@
-# AP Civic Platform
+# Viksit Bharat??
 
 A civic intelligence and participation platform for Andhra Pradesh. The product will connect
 official records, platform calculations, and structured community experience while keeping

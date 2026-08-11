@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "AP Civic Platform",
+  title: "Viksit Bharat??",
   description:
-    "Where Andhra Pradesh's public money goes—and what was delivered.",
+    "An independent civic platform showing where Andhra Pradesh's public money goes—and what was delivered.",
 };
 
 export default function RootLayout({

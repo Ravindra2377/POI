@@ -50,6 +50,7 @@ describe("GovernmentExplorer", () => {
 
     render(<GovernmentExplorer />);
 
+    expect(screen.getByText("Viksit Bharat??")).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent(
       "Loading official records",
     );

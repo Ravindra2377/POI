@@ -23,7 +23,7 @@ def get_readiness_checker() -> ReadinessChecker:
 def create_app() -> FastAPI:
     settings = load_settings()
     application = FastAPI(
-        title="AP Civic Platform API",
+        title="Viksit Bharat?? API",
         description="Public API foundation for Andhra Pradesh civic intelligence.",
         version="0.2.0",
     )
@@ -69,7 +69,7 @@ app = create_app()
 
 @app.get("/", include_in_schema=False)
 def root() -> dict[str, str]:
-    return {"name": "AP Civic Platform API", "documentation": "/docs"}
+    return {"name": "Viksit Bharat?? API", "documentation": "/docs"}
 
 
 @app.get("/health", response_model=LiveHealth, tags=["operations"])
