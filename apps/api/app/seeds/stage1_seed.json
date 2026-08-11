@@ -1,0 +1,304 @@
+{
+  "stage": "stage-01/geography",
+  "reviewed_on": "2026-08-10",
+  "baseline_effective_date": "2022-04-04",
+  "state": {
+    "slug": "andhra-pradesh",
+    "name_en": "Andhra Pradesh",
+    "name_te": "ఆంధ్ర ప్రదేశ్",
+    "code": "28",
+    "code_scheme": "LGD state code",
+    "source_url": "https://lgdirectory.gov.in/webservices/lgdws/stateList"
+  },
+  "districts": [
+    {
+      "slug": "alluri-sitharama-raju",
+      "name_en": "Alluri Sitharama Raju",
+      "name_te": "అల్లూరి సీతారామ రాజు",
+      "lgd_code": "745",
+      "ap_portal_code": "524",
+      "telugu_source_url": "https://allurisitharamaraju.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "anakapalli",
+      "name_en": "Anakapalli",
+      "name_te": "అనకాపల్లి",
+      "lgd_code": "744",
+      "ap_portal_code": "525",
+      "telugu_source_url": "https://anakapalli.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "ananthapuramu",
+      "name_en": "Ananthapuramu",
+      "name_te": "అనంతపురము",
+      "lgd_code": "502",
+      "ap_portal_code": "502",
+      "telugu_source_url": "https://ananthapuramu.ap.gov.in/te/",
+      "aliases": ["Anantapur", "Ananthapur"],
+      "is_pilot": true
+    },
+    {
+      "slug": "annamayya",
+      "name_en": "Annamayya",
+      "name_te": "అన్నమయ్య",
+      "lgd_code": "753",
+      "ap_portal_code": "526",
+      "telugu_source_url": "https://annamayya.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "bapatla",
+      "name_en": "Bapatla",
+      "name_te": "బాపట్ల",
+      "lgd_code": "750",
+      "ap_portal_code": "527",
+      "telugu_source_url": "https://bapatla.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "chittoor",
+      "name_en": "Chittoor",
+      "name_te": "చిత్తూరు",
+      "lgd_code": "503",
+      "ap_portal_code": "503",
+      "telugu_source_url": "https://chittoor.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "dr-br-ambedkar-konaseema",
+      "name_en": "Dr. B.R. Ambedkar Konaseema",
+      "name_te": "డా. బి.ఆర్. అంబేడ్కర్ కోనసీమ",
+      "lgd_code": "747",
+      "ap_portal_code": "530",
+      "telugu_source_url": "https://konaseema.ap.gov.in/te/",
+      "aliases": ["Konaseema"],
+      "is_pilot": false
+    },
+    {
+      "slug": "east-godavari",
+      "name_en": "East Godavari",
+      "name_te": "తూర్పు గోదావరి",
+      "lgd_code": "505",
+      "ap_portal_code": "505",
+      "telugu_source_url": "https://eastgodavari.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "eluru",
+      "name_en": "Eluru",
+      "name_te": "ఏలూరు",
+      "lgd_code": "748",
+      "ap_portal_code": "528",
+      "telugu_source_url": "https://eluru.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "guntur",
+      "name_en": "Guntur",
+      "name_te": "గుంటూరు",
+      "lgd_code": "506",
+      "ap_portal_code": "506",
+      "telugu_source_url": "https://guntur.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": true
+    },
+    {
+      "slug": "kakinada",
+      "name_en": "Kakinada",
+      "name_te": "కాకినాడ",
+      "lgd_code": "746",
+      "ap_portal_code": "529",
+      "telugu_source_url": "https://kakinada.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "krishna",
+      "name_en": "Krishna",
+      "name_te": "కృష్ణా",
+      "lgd_code": "510",
+      "ap_portal_code": "510",
+      "telugu_source_url": "https://krishna.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "kurnool",
+      "name_en": "Kurnool",
+      "name_te": "కర్నూలు",
+      "lgd_code": "511",
+      "ap_portal_code": "511",
+      "telugu_source_url": "https://kurnool.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "nandyal",
+      "name_en": "Nandyal",
+      "name_te": "నంద్యాల",
+      "lgd_code": "755",
+      "ap_portal_code": "532",
+      "telugu_source_url": "https://nandyal.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "ntr",
+      "name_en": "NTR",
+      "name_te": "ఎన్టీఆర్",
+      "lgd_code": "749",
+      "ap_portal_code": "533",
+      "telugu_source_url": "https://ntr.ap.gov.in/te/",
+      "aliases": ["Ntr"],
+      "is_pilot": false
+    },
+    {
+      "slug": "palnadu",
+      "name_en": "Palnadu",
+      "name_te": "పల్నాడు",
+      "lgd_code": "751",
+      "ap_portal_code": "534",
+      "telugu_source_url": "https://palnadu.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "parvathipuram-manyam",
+      "name_en": "Parvathipuram Manyam",
+      "name_te": "పార్వతీపురం మన్యం",
+      "lgd_code": "743",
+      "ap_portal_code": "531",
+      "telugu_source_url": "https://parvathipurammanyam.ap.gov.in/te/",
+      "aliases": ["Manyam"],
+      "is_pilot": false
+    },
+    {
+      "slug": "prakasam",
+      "name_en": "Prakasam",
+      "name_te": "ప్రకాశం",
+      "lgd_code": "517",
+      "ap_portal_code": "517",
+      "telugu_source_url": "https://prakasam.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "sri-potti-sriramulu-nellore",
+      "name_en": "Sri Potti Sriramulu Nellore",
+      "name_te": "శ్రీ పొట్టి శ్రీరాములు నెల్లూరు",
+      "lgd_code": "515",
+      "ap_portal_code": "515",
+      "telugu_source_url": "https://spsnellore.ap.gov.in/te/",
+      "aliases": ["SPSR Nellore", "SPS Nellore"],
+      "is_pilot": false
+    },
+    {
+      "slug": "sri-sathya-sai",
+      "name_en": "Sri Sathya Sai",
+      "name_te": "శ్రీ సత్యసాయి",
+      "lgd_code": "754",
+      "ap_portal_code": "536",
+      "telugu_source_url": "https://srisathyasai.ap.gov.in/te/",
+      "aliases": ["Sri Satyasai"],
+      "is_pilot": false
+    },
+    {
+      "slug": "srikakulam",
+      "name_en": "Srikakulam",
+      "name_te": "శ్రీకాకుళం",
+      "lgd_code": "519",
+      "ap_portal_code": "519",
+      "telugu_source_url": "https://srikakulam.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "tirupati",
+      "name_en": "Tirupati",
+      "name_te": "తిరుపతి",
+      "lgd_code": "752",
+      "ap_portal_code": "535",
+      "telugu_source_url": "https://tirupati.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "visakhapatnam",
+      "name_en": "Visakhapatnam",
+      "name_te": "విశాఖపట్నం",
+      "lgd_code": "520",
+      "ap_portal_code": "520",
+      "telugu_source_url": "https://visakhapatnam.ap.gov.in/te/",
+      "aliases": ["Vizag"],
+      "is_pilot": true
+    },
+    {
+      "slug": "vizianagaram",
+      "name_en": "Vizianagaram",
+      "name_te": "విజయనగరం",
+      "lgd_code": "521",
+      "ap_portal_code": "521",
+      "telugu_source_url": "https://vizianagaram.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "west-godavari",
+      "name_en": "West Godavari",
+      "name_te": "పశ్చిమ గోదావరి",
+      "lgd_code": "523",
+      "ap_portal_code": "523",
+      "telugu_source_url": "https://westgodavari.ap.gov.in/te/",
+      "aliases": [],
+      "is_pilot": false
+    },
+    {
+      "slug": "ysr-kadapa",
+      "name_en": "Y.S.R. Kadapa",
+      "name_te": "వై.ఎస్.ఆర్. కడప",
+      "lgd_code": "504",
+      "ap_portal_code": "504",
+      "telugu_source_url": "https://kadapa.ap.gov.in/te/",
+      "aliases": ["YSR Kadapa", "Kadapa"],
+      "is_pilot": false
+    }
+  ],
+  "departments": [
+    {
+      "slug": "transport-roads-buildings",
+      "name_en": "Transport, Roads and Buildings",
+      "name_te": "రవాణా, రోడ్లు మరియు భవనాల శాఖ",
+      "official_code": "AP-ORG-30",
+      "sector": "roads",
+      "portal_id": 30,
+      "aliases": ["Roads and Buildings Department", "R&B Department"]
+    },
+    {
+      "slug": "health-medical-family-welfare",
+      "name_en": "Health, Medical & Family Welfare",
+      "name_te": "ఆరోగ్య, వైద్య మరియు కుటుంబ సంక్షేమ శాఖ",
+      "official_code": "AP-ORG-22",
+      "sector": "healthcare",
+      "portal_id": 22,
+      "aliases": ["HM&FW Department", "Health Department"]
+    },
+    {
+      "slug": "school-education",
+      "name_en": "School Education",
+      "name_te": "పాఠశాల విద్యా శాఖ",
+      "official_code": "AP-ORG-32",
+      "sector": "education",
+      "portal_id": 32,
+      "aliases": ["School Education Department"]
+    }
+  ]
+}

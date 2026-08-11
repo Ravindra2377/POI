@@ -1,0 +1,122 @@
+# AP Civic Platform
+
+A civic intelligence and participation platform for Andhra Pradesh. The product will connect
+official records, platform calculations, and structured community experience while keeping
+those evidence classes visibly and technically separate.
+
+Stage 1 adds the PostgreSQL/PostGIS geography and government-entity foundation, versioned read-only
+APIs, and a bilingual Government Explorer. Projects, financial observations, citizen reports,
+polls, eligibility decisions, and production ingestion remain outside this stage.
+
+## Prerequisites
+
+- Node.js 22+ and npm 12+
+- Python 3.12+ with pip
+- PostgreSQL with permission to enable the PostGIS extension
+- A Render account for deployment
+
+## Run locally
+
+Install and start the web application:
+
+```bash
+npm install
+npm run dev:web
+```
+
+In another shell, install and start the API:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e './apps/api[dev]'
+cd apps/api
+../../.venv/bin/uvicorn app.main:app --reload --port 8000
+```
+
+Open the web app at <http://localhost:3000>, the API at <http://localhost:8000>, and API
+documentation at <http://localhost:8000/docs>.
+
+Set `DATABASE_URL` before database operations. Check PostGIS privileges, migrate, then seed the
+reviewed Stage 1 baseline separately:
+
+```bash
+cd apps/api
+../../.venv/bin/python -m app.commands.preflight
+../../.venv/bin/alembic upgrade head
+../../.venv/bin/python -m app.commands.seed
+```
+
+The seed is deterministic, idempotent, and safe to rerun. It is intentionally not part of an
+Alembic revision or application startup. To exercise empty-database migration and seed reruns, set
+`TEST_DATABASE_URL` to a disposable PostgreSQL/PostGIS database whose name contains `_test`, then
+run Pytest.
+
+## Quality commands
+
+Install JavaScript dependencies once for host-side checks:
+
+```bash
+npm install
+```
+
+Then run:
+
+```bash
+npm run format:check
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+Run API checks from `apps/api` after installing the development extra:
+
+```bash
+ruff check --no-cache .
+mypy --no-incremental app tests
+pytest -p no:cacheprovider
+```
+
+With both services running, verify their public health endpoints using `npm run healthcheck`.
+
+## Deploy to Render
+
+`render.yaml` defines two native web services and one managed PostgreSQL database. Create a new
+Render Blueprint from the repository, then provide the two prompted values:
+
+- `NEXT_PUBLIC_API_URL`: the public HTTPS URL Render assigns to `ap-civic-api`
+- `CORS_ORIGINS`: the public HTTPS origin Render assigns to `ap-civic-web`
+
+The API uses Render's `starter` plan because Blueprint pre-deploy commands are not available on a
+free web service. `alembic upgrade head` runs as a pre-deploy command, so a failed migration blocks
+the release. The service health check uses `/health/ready`; `/health/live` remains a process-only
+probe. `DATABASE_URL` comes from the managed database and is never committed. Run the seed manually
+after a successful deployment; do not add it to the start or pre-deploy command.
+
+For a failed migration, preserve the database, inspect `alembic current` and Render's pre-deploy
+logs, and fix forward with a reviewed revision. Restore a managed backup before any destructive
+recovery. Use `alembic downgrade` only when that revision's downgrade has been tested on a copy.
+
+## Repository map
+
+- `apps/web`: Next.js citizen-facing application
+- `apps/api`: FastAPI service
+- `workers`: future ingestion, extraction, and verification workers
+- `packages`: shared database, types, UI, and localization packages
+- `data`: non-production fixtures and schema contracts
+- `infrastructure`: deployment documentation
+- `docs`: product, architecture, governance, moderation, security, sources, and roadmap
+- `tests`: future cross-service integration and end-to-end suites
+
+## Current limitations
+
+- No authoritative boundary geometry has been loaded; geography records deliberately allow null
+  geometry and the explorer says so.
+- The requested baseline has 26 districts. Current LGD results also list Markapuram and Polavaram;
+  those two records are withheld pending separate review.
+- No mandals, villages, constituencies, representatives, projects, or public offices are seeded.
+- No personal-data processing or community features exist.
+- Telugu copy and names need professional language review before public release.
+
+See the [complete cumulative development record](DEVELOPMENT.md),
+[entity relationships](docs/entity-relationships.md), and [roadmap](docs/roadmap.md).

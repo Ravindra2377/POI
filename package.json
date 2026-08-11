@@ -1,0 +1,25 @@
+{
+  "name": "ap-civic-platform",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=@ap-civic/web",
+    "dev:web": "npm run dev --workspace=@ap-civic/web",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "npm run lint --workspace=@ap-civic/web",
+    "test": "npm run test --workspace=@ap-civic/web",
+    "typecheck": "npm run typecheck --workspace=@ap-civic/web",
+    "healthcheck": "node scripts/healthcheck.mjs"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
