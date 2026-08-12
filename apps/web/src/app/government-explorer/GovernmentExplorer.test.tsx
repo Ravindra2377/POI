@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { LocaleProvider } from "@/components/LocaleProvider";
 import { GovernmentExplorer } from "./GovernmentExplorer";
 
 const district = {
@@ -48,11 +49,17 @@ describe("GovernmentExplorer", () => {
   it("renders loading, reviewed data, provenance and coverage disclosure", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response([district])));
 
-    render(<GovernmentExplorer />);
+    render(
+      <LocaleProvider>
+        <GovernmentExplorer />
+      </LocaleProvider>,
+    );
 
-    expect(screen.getByText("Viksit Bharat??")).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Viksit Bharat?? home" }),
+    ).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent(
-      "Loading official records",
+      "Loading reviewed public records",
     );
     expect(
       await screen.findByRole("heading", { name: "Visakhapatnam" }),
@@ -69,7 +76,11 @@ describe("GovernmentExplorer", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response([district])));
     const user = userEvent.setup();
 
-    render(<GovernmentExplorer />);
+    render(
+      <LocaleProvider>
+        <GovernmentExplorer />
+      </LocaleProvider>,
+    );
     await screen.findByRole("heading", { name: "Visakhapatnam" });
     await user.click(screen.getByRole("button", { name: "తెలుగు" }));
 
@@ -88,17 +99,25 @@ describe("GovernmentExplorer", () => {
       .mockRejectedValueOnce(new Error("offline"));
     vi.stubGlobal("fetch", fetchMock);
 
-    const { unmount } = render(<GovernmentExplorer />);
+    const { unmount } = render(
+      <LocaleProvider>
+        <GovernmentExplorer />
+      </LocaleProvider>,
+    );
     expect(
       await screen.findByText("No reviewed records match this search."),
     ).toBeVisible();
     unmount();
 
-    render(<GovernmentExplorer />);
+    render(
+      <LocaleProvider>
+        <GovernmentExplorer />
+      </LocaleProvider>,
+    );
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "The official-record API could not be reached.",
     );
-    expect(screen.getByRole("button", { name: "Try again" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
   });
 
   it("submits alias searches to the versioned API", async () => {
@@ -106,7 +125,11 @@ describe("GovernmentExplorer", () => {
     vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
 
-    render(<GovernmentExplorer />);
+    render(
+      <LocaleProvider>
+        <GovernmentExplorer />
+      </LocaleProvider>,
+    );
     await screen.findByRole("heading", { name: "Visakhapatnam" });
     await user.type(screen.getByRole("searchbox"), "Vizag");
     await user.click(screen.getByRole("button", { name: "Search" }));

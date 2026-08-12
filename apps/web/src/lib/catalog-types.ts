@@ -33,6 +33,9 @@ export interface GeographyRecord {
   aliases: AliasSummary[];
   has_point: boolean;
   has_boundary: boolean;
+  boundary_precision?: string | null;
+  boundary_valid_from?: string | null;
+  boundary_valid_to?: string | null;
   coverage_note: string | null;
   provenance: ProvenanceSummary;
 }
@@ -50,6 +53,32 @@ export interface GovernmentBodyRecord {
   is_active: boolean;
   aliases: AliasSummary[];
   sector: string | null;
+  provenance: ProvenanceSummary;
+}
+
+export interface PublicOfficeRecord {
+  id: string;
+  slug: string;
+  name_en: string;
+  name_te: string | null;
+  office_type: string;
+  official_code: string | null;
+  government_body_id: string;
+  valid_from: string | null;
+  valid_to: string | null;
+  is_active: boolean;
+  has_point: boolean;
+  provenance: ProvenanceSummary;
+}
+
+export interface RepresentativeRecord {
+  id: string;
+  slug: string;
+  name_en: string;
+  name_te: string | null;
+  valid_from: string | null;
+  valid_to: string | null;
+  is_active: boolean;
   provenance: ProvenanceSummary;
 }
 

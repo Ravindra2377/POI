@@ -2,6 +2,8 @@ import type {
   GeographyRecord,
   GovernmentBodyRecord,
   PageResponse,
+  PublicOfficeRecord,
+  RepresentativeRecord,
 } from "./catalog-types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -39,4 +41,31 @@ export function getDepartments(
   });
   if (query) params.set("q", query);
   return request(`/api/v1/government-bodies?${params.toString()}`, signal);
+}
+
+export function getGovernmentBodies(
+  query = "",
+  signal?: AbortSignal,
+): Promise<PageResponse<GovernmentBodyRecord>> {
+  const params = new URLSearchParams({ page_size: "100" });
+  if (query) params.set("q", query);
+  return request(`/api/v1/government-bodies?${params.toString()}`, signal);
+}
+
+export function getPublicOffices(
+  query = "",
+  signal?: AbortSignal,
+): Promise<PageResponse<PublicOfficeRecord>> {
+  const params = new URLSearchParams({ page_size: "100" });
+  if (query) params.set("q", query);
+  return request(`/api/v1/public-offices?${params.toString()}`, signal);
+}
+
+export function getRepresentatives(
+  query = "",
+  signal?: AbortSignal,
+): Promise<PageResponse<RepresentativeRecord>> {
+  const params = new URLSearchParams({ page_size: "100" });
+  if (query) params.set("q", query);
+  return request(`/api/v1/representatives?${params.toString()}`, signal);
 }

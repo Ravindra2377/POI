@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { LocaleProvider } from "@/components/LocaleProvider";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "Viksit Bharat??",
+  title: {
+    default: "Viksit Bharat??",
+    template: "%s",
+  },
   description:
-    "An independent civic platform showing where Andhra Pradesh's public money goes—and what was delivered.",
+    "An independent India-wide civic platform for inspecting sourced government records, with Andhra Pradesh as the first reviewed dataset.",
 };
 
 export default function RootLayout({
@@ -13,7 +17,9 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <LocaleProvider>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

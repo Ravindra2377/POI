@@ -690,3 +690,81 @@ after those gates pass or are explicitly accepted as documented deployment risks
 - **Data and schema impact:** None.
 - **Acceptance impact:** Requires a fresh frontend build and API deployment. Stage 1 database
   operational and visual acceptance remain pending.
+
+## Development entry — Clean white public-utility frontend
+
+- **Completion date:** 12 August 2026
+- **Goal and scope:** Replace the experimental frontend direction with the approved clean white
+  public-utility interface. This was a frontend-only material implementation; no migration,
+  ingestion, seed, database schema, finance record, minister record, or Stage 2 provenance work was
+  introduced.
+- **Product hierarchy:** Reframed the public interface as an India-wide platform with Andhra Pradesh
+  explicitly identified as the first reviewed/live state dataset. A platform-owned coverage
+  configuration contains all 36 states and Union Territories and nine sector-directory headings;
+  these are labelled as platform structure, not official records or government-performance facts.
+- **Routes implemented or redesigned:** Homepage (/), Explore Data (/explore-data), Andhra Pradesh
+  Government Explorer (/government-explorer), Government (/government), Public Money
+  (/public-money), Sources and Methodology (/sources), and the prepared Community route
+  (/community).
+- **Reusable interface:** Added the shared coverage notice, horizontal SiteHeader, mobile menu,
+  English/Telugu control, footer, universal record search, coverage facts, latest record updates,
+  review/source summaries, accessible empty/error states, financial-stage selector, and directory
+  presentations.
+- **API integration:** Reused only Stage 1 GET endpoints for districts, government bodies,
+  departments, public offices, and representatives. The homepage update table and Sources view are
+  API-backed. Universal search queries reviewed Andhra Pradesh districts and departments where
+  supported and states its current limitation.
+- **Integrity decisions:** No mock data from the visual study was copied. Non-AP jurisdictions and
+  unimplemented sectors are marked planned. Missing officeholders, public offices, finance,
+  procurement, CAG ingestion, and community participation render honest prepared or empty states.
+  Existing provenance links, review status, fixture status, aliases, Telugu names, pilot labels,
+  missing-boundary labels, and the 26-versus-28 district disclosure remain visible.
+- **Financial vocabulary:** Expanded the presentation contract from five abbreviated steps to all
+  eleven required stages: announcement, budget estimate, revised estimate, funds released,
+  utilisation, actual expenditure, tender estimate, contract award, revised project cost, physical
+  progress, and public outcome. The Public Money route explicitly states that announcement is not
+  expenditure and contract value is not outcome.
+- **Visual direction:** Replaced gradients, oversized editorial typography, rounded score-like
+  elements, and card-heavy layouts with a white surface, charcoal/navy text, neutral dividers,
+  restrained blue actions, compact directories/tables, semantic forms, and responsive stacked
+  records. No UI framework or container deployment was added.
+- **Tests added or updated:** Header navigation and language selection; universal search with state
+  and sector selection; India-wide state/UT coverage; sector directory; Government Explorer
+  loading, reviewed provenance, fixture/review state, coverage disclosure, Telugu, alias search,
+  empty/error/retry; minister empty state; and all eleven public-money stages.
+- **Web commands and results:** npm run format and npm run format:check passed; npm run lint passed;
+  npm run typecheck passed; npm test passed with 12 tests across 4 files; npm run build passed and
+  prerendered all six public content routes plus the homepage.
+- **API regression checks:** Ruff lint passed, Ruff format check reported 38 files formatted, strict
+  MyPy passed for 36 source files, and Pytest passed 21 tests with the disposable PostgreSQL
+  integration test skipped because TEST_DATABASE_URL was not supplied. No backend code changed.
+- **Visual inspection evidence:** Started the production Next.js build locally and captured six
+  headless-browser screenshots: homepage at 1440 x 900 and 390 x 844, Explore Data at 768 x 1024,
+  Government at 1440 x 900, Public Money at 390 x 844, and Sources at 1440 x 900. Browser DOM checks
+  covered all public routes at the narrow responsive breakpoint and found no document-level
+  horizontal overflow. Heading order, native labelled controls, mobile stacked records, and actual
+  Tab focus order were inspected; focus proceeded through the coverage link, wordmark, menu,
+  language controls, search inputs/selectors, action button, and quick links. Reduced-motion CSS is
+  retained. Local API-backed sections intentionally showed accessible error/retry states because
+  the visual run was not connected to production.
+- **Reference limitation:** The approved visual-reference URL returned HTTP 401 from the development
+  environment, so the implementation followed the complete written visual specification and did
+  not claim a pixel-perfect comparison against that protected page.
+- **Accessibility observations:** Semantic global and footer navigation, a real mobile-menu button,
+  native inputs/selects/tabs, visible focus outlines, aria-live loading areas, role=alert failures,
+  mobile table-to-record conversion, Telugu lang attributes, and document-language switching are
+  present. English/Telugu switching translates the reviewed Government Explorer; full-site Telugu
+  copy remains future localization work and requires professional review.
+- **Security and privacy:** The change adds no authentication, personal information, precise user
+  location, uploads, community evidence, writes, or new public API fields beyond typed projections
+  already exposed by Stage 1. External source links use noreferrer. No secret or database
+  configuration changed.
+- **Limitations:** No live Render deployment or real-data visual review was authorized. The protected
+  visual reference was inaccessible. Finance, projects, schemes, officeholder terms, and community
+  records remain unavailable by design. The visual review does not satisfy the outstanding Stage 1
+  database migration, PostGIS readiness, or seed-idempotency gates.
+- **Acceptance decision:** Frontend implementation and local quality gates passed. Database
+  operational acceptance remains pending. Stage 1 visual acceptance remains pending a live,
+  real-data human review at the required widths. Overall Stage 1 acceptance remains pending.
+- **Recommended next action:** Complete the existing Render migration, PostGIS readiness, double-seed,
+  live English/Telugu/alias search, and live responsive/keyboard acceptance procedure; append that
