@@ -1,4 +1,5 @@
 from app.models.enums import ReviewStatus
+from app.models.source import SourceReference
 from app.seeds.seed_stage1 import (
     AP_DISTRICT_URL,
     LGD_DISTRICT_URL,
@@ -35,3 +36,9 @@ def test_seed_sources_are_official_and_not_fixture_placeholders() -> None:
     assert AP_DISTRICT_URL.startswith("https://www.ap.gov.in/")
     assert ReviewStatus.REVIEWED.value == "reviewed"
     assert all(".ap.gov.in/" in item.telugu_source_url for item in manifest.districts)
+
+
+def test_review_status_orm_uses_database_enum_values() -> None:
+    enum_type = SourceReference.__table__.c.review_status.type
+
+    assert getattr(enum_type, "enums", None) == ["pending", "reviewed", "rejected"]

@@ -18,7 +18,13 @@ class SourceReference(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     publication_date: Mapped[date | None] = mapped_column(Date)
     effective_date: Mapped[date | None] = mapped_column(Date)
     review_status: Mapped[ReviewStatus] = mapped_column(
-        Enum(ReviewStatus, native_enum=False, length=32), nullable=False
+        Enum(
+            ReviewStatus,
+            values_callable=lambda enum: [item.value for item in enum],
+            native_enum=False,
+            length=32,
+        ),
+        nullable=False,
     )
     is_fixture: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     citation_metadata: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
