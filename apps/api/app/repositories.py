@@ -8,7 +8,7 @@ from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import InstrumentedAttribute, Session, selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
-from app.models.enums import GeographyType, GovernmentBodyType
+from app.models.enums import GeographyType, GovernmentBodyType, ReviewStatus
 from app.models.geography import Geography, GeographyAlias
 from app.models.government import (
     Department,
@@ -108,6 +108,21 @@ def _active_clause(
     )
 
 
+def _reviewed_source_clause(
+    source_id: InstrumentedAttribute[UUID],
+) -> ColumnElement[bool]:
+    return source_id.in_(
+        select(SourceReference.id).where(SourceReference.review_status == ReviewStatus.REVIEWED)
+    )
+
+
+def _search_pattern(query: str | None) -> str | None:
+    if query is None or not (normalized := query.strip()):
+        return None
+    escaped = normalized.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
 def _page_meta(total: int, page: int, page_size: int) -> PageMeta:
     return PageMeta(
         page=page,
@@ -188,7 +203,7 @@ class SQLCatalogRepository:
         predicate = Geography.id == parsed if parsed else Geography.slug == identifier
         item = self.session.scalar(
             select(Geography)
-            .where(predicate)
+            .where(predicate, _reviewed_source_clause(Geography.source_id))
             .options(
                 selectinload(Geography.aliases),
                 selectinload(Geography.source),
@@ -203,7 +218,7 @@ class SQLCatalogRepository:
         predicate = GovernmentBody.id == parsed if parsed else GovernmentBody.slug == identifier
         item = self.session.scalar(
             select(GovernmentBody)
-            .where(predicate)
+            .where(predicate, _reviewed_source_clause(GovernmentBody.source_id))
             .options(
                 selectinload(GovernmentBody.aliases),
                 selectinload(GovernmentBody.source),
@@ -223,7 +238,9 @@ class SQLCatalogRepository:
         page: int,
         page_size: int,
     ) -> CatalogPage[GeographyOut]:
-        statement: Select[tuple[Geography]] = select(Geography)
+        statement: Select[tuple[Geography]] = select(Geography).where(
+            _reviewed_source_clause(Geography.source_id)
+        )
         if entity_type is not None:
             statement = statement.where(Geography.entity_type == entity_type)
         if parent is not None:
@@ -232,13 +249,12 @@ class SQLCatalogRepository:
             statement = statement.where(
                 *_active_clause(Geography.valid_from, Geography.valid_to, active_on)
             )
-        if query:
-            pattern = f"%{query.strip()}%"
+        if pattern := _search_pattern(query):
             statement = statement.where(
                 or_(
-                    Geography.name_en.ilike(pattern),
-                    Geography.name_te.ilike(pattern),
-                    Geography.aliases.any(GeographyAlias.alias.ilike(pattern)),
+                    Geography.name_en.ilike(pattern, escape="\\"),
+                    Geography.name_te.ilike(pattern, escape="\\"),
+                    Geography.aliases.any(GeographyAlias.alias.ilike(pattern, escape="\\")),
                 )
             )
         return self._geography_page(statement, page, page_size)
@@ -274,7 +290,12 @@ class SQLCatalogRepository:
     ) -> CatalogPage[GeographyOut]:
         parent = self._resolve_geography(identifier)
         return self._geography_page(
-            select(Geography).where(Geography.parent_id == parent.id), page, page_size
+            select(Geography).where(
+                Geography.parent_id == parent.id,
+                _reviewed_source_clause(Geography.source_id),
+            ),
+            page,
+            page_size,
         )
 
     def list_government_bodies(
@@ -287,8 +308,10 @@ class SQLCatalogRepository:
         page: int,
         page_size: int,
     ) -> CatalogPage[GovernmentBodyOut]:
-        statement = select(GovernmentBody, Department.sector).outerjoin(
-            Department, Department.government_body_id == GovernmentBody.id
+        statement = (
+            select(GovernmentBody, Department.sector)
+            .outerjoin(Department, Department.government_body_id == GovernmentBody.id)
+            .where(_reviewed_source_clause(GovernmentBody.source_id))
         )
         if body_type is not None:
             statement = statement.where(GovernmentBody.body_type == body_type)
@@ -298,13 +321,14 @@ class SQLCatalogRepository:
             statement = statement.where(
                 *_active_clause(GovernmentBody.valid_from, GovernmentBody.valid_to, active_on)
             )
-        if query:
-            pattern = f"%{query.strip()}%"
+        if pattern := _search_pattern(query):
             statement = statement.where(
                 or_(
-                    GovernmentBody.name_en.ilike(pattern),
-                    GovernmentBody.name_te.ilike(pattern),
-                    GovernmentBody.aliases.any(GovernmentBodyAlias.alias.ilike(pattern)),
+                    GovernmentBody.name_en.ilike(pattern, escape="\\"),
+                    GovernmentBody.name_te.ilike(pattern, escape="\\"),
+                    GovernmentBody.aliases.any(
+                        GovernmentBodyAlias.alias.ilike(pattern, escape="\\")
+                    ),
                 )
             )
         total = (
@@ -342,18 +366,17 @@ class SQLCatalogRepository:
         page: int,
         page_size: int,
     ) -> CatalogPage[PublicOfficeOut]:
-        statement = select(PublicOffice)
+        statement = select(PublicOffice).where(_reviewed_source_clause(PublicOffice.source_id))
         if active_on is not None:
             statement = statement.where(
                 *_active_clause(PublicOffice.valid_from, PublicOffice.valid_to, active_on)
             )
-        if query:
-            pattern = f"%{query.strip()}%"
+        if pattern := _search_pattern(query):
             statement = statement.where(
                 or_(
-                    PublicOffice.name_en.ilike(pattern),
-                    PublicOffice.name_te.ilike(pattern),
-                    PublicOffice.aliases.any(PublicOfficeAlias.alias.ilike(pattern)),
+                    PublicOffice.name_en.ilike(pattern, escape="\\"),
+                    PublicOffice.name_te.ilike(pattern, escape="\\"),
+                    PublicOffice.aliases.any(PublicOfficeAlias.alias.ilike(pattern, escape="\\")),
                 )
             )
         total = (
@@ -397,17 +420,16 @@ class SQLCatalogRepository:
         page: int,
         page_size: int,
     ) -> CatalogPage[RepresentativeOut]:
-        statement = select(Representative)
+        statement = select(Representative).where(_reviewed_source_clause(Representative.source_id))
         if active_on is not None:
             statement = statement.where(
                 *_active_clause(Representative.valid_from, Representative.valid_to, active_on)
             )
-        if query:
-            pattern = f"%{query.strip()}%"
+        if pattern := _search_pattern(query):
             statement = statement.where(
                 or_(
-                    Representative.name_en.ilike(pattern),
-                    Representative.name_te.ilike(pattern),
+                    Representative.name_en.ilike(pattern, escape="\\"),
+                    Representative.name_te.ilike(pattern, escape="\\"),
                 )
             )
         total = (
