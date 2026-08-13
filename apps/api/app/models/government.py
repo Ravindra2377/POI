@@ -23,6 +23,7 @@ from app.models.enums import (
     GovernmentBodyType,
     GovernmentRelationshipType,
     LanguageCode,
+    enum_values,
 )
 from app.models.source import SourceReference
 
@@ -38,7 +39,7 @@ class GovernmentBody(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     slug: Mapped[str] = mapped_column(String(160), unique=True, nullable=False)
     body_type: Mapped[GovernmentBodyType] = mapped_column(
-        Enum(GovernmentBodyType, native_enum=False, length=40),
+        Enum(GovernmentBodyType, values_callable=enum_values, native_enum=False, length=40),
         nullable=False,
         index=True,
     )
@@ -92,10 +93,10 @@ class GovernmentBodyAlias(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     alias: Mapped[str] = mapped_column(String(240), nullable=False, index=True)
     language_code: Mapped[LanguageCode] = mapped_column(
-        Enum(LanguageCode, native_enum=False, length=8), nullable=False
+        Enum(LanguageCode, values_callable=enum_values, native_enum=False, length=8), nullable=False
     )
     alias_type: Mapped[AliasType] = mapped_column(
-        Enum(AliasType, native_enum=False, length=24), nullable=False
+        Enum(AliasType, values_callable=enum_values, native_enum=False, length=24), nullable=False
     )
     source_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
@@ -151,7 +152,8 @@ class GovernmentBodyRelationship(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=False,
     )
     relationship_type: Mapped[GovernmentRelationshipType] = mapped_column(
-        Enum(GovernmentRelationshipType, native_enum=False, length=32), nullable=False
+        Enum(GovernmentRelationshipType, values_callable=enum_values, native_enum=False, length=32),
+        nullable=False,
     )
     valid_from: Mapped[date | None] = mapped_column(Date)
     valid_to: Mapped[date | None] = mapped_column(Date)
@@ -312,7 +314,8 @@ class RepresentativeTerm(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("government_bodies.id", ondelete="RESTRICT"),
     )
     appointment_type: Mapped[AppointmentType] = mapped_column(
-        Enum(AppointmentType, native_enum=False, length=24), nullable=False
+        Enum(AppointmentType, values_callable=enum_values, native_enum=False, length=24),
+        nullable=False,
     )
     valid_from: Mapped[date] = mapped_column(Date, nullable=False)
     valid_to: Mapped[date | None] = mapped_column(Date)
@@ -338,10 +341,10 @@ class PublicOfficeAlias(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     alias: Mapped[str] = mapped_column(String(240), nullable=False, index=True)
     language_code: Mapped[LanguageCode] = mapped_column(
-        Enum(LanguageCode, native_enum=False, length=8), nullable=False
+        Enum(LanguageCode, values_callable=enum_values, native_enum=False, length=8), nullable=False
     )
     alias_type: Mapped[AliasType] = mapped_column(
-        Enum(AliasType, native_enum=False, length=24), nullable=False
+        Enum(AliasType, values_callable=enum_values, native_enum=False, length=24), nullable=False
     )
     source_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),

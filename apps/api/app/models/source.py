@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
-from app.models.enums import ReviewStatus
+from app.models.enums import ReviewStatus, enum_values
 
 
 class SourceReference(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -20,7 +20,7 @@ class SourceReference(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     review_status: Mapped[ReviewStatus] = mapped_column(
         Enum(
             ReviewStatus,
-            values_callable=lambda enum: [item.value for item in enum],
+            values_callable=enum_values,
             native_enum=False,
             length=32,
         ),

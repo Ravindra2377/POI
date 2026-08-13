@@ -26,6 +26,7 @@ from app.models.enums import (
     GeographyRelationshipType,
     GeographyType,
     LanguageCode,
+    enum_values,
 )
 from app.models.source import SourceReference
 
@@ -48,7 +49,9 @@ class Geography(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     slug: Mapped[str] = mapped_column(String(160), unique=True, nullable=False)
     entity_type: Mapped[GeographyType] = mapped_column(
-        Enum(GeographyType, native_enum=False, length=40), index=True, nullable=False
+        Enum(GeographyType, values_callable=enum_values, native_enum=False, length=40),
+        index=True,
+        nullable=False,
     )
     name_en: Mapped[str] = mapped_column(String(240), index=True, nullable=False)
     name_te: Mapped[str | None] = mapped_column(String(240), index=True)
@@ -129,10 +132,10 @@ class GeographyAlias(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     alias: Mapped[str] = mapped_column(String(240), nullable=False, index=True)
     language_code: Mapped[LanguageCode] = mapped_column(
-        Enum(LanguageCode, native_enum=False, length=8), nullable=False
+        Enum(LanguageCode, values_callable=enum_values, native_enum=False, length=8), nullable=False
     )
     alias_type: Mapped[AliasType] = mapped_column(
-        Enum(AliasType, native_enum=False, length=24), nullable=False
+        Enum(AliasType, values_callable=enum_values, native_enum=False, length=24), nullable=False
     )
     valid_from: Mapped[date | None] = mapped_column(Date)
     valid_to: Mapped[date | None] = mapped_column(Date)
@@ -176,7 +179,8 @@ class GeographyRelationship(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         index=True,
     )
     relationship_type: Mapped[GeographyRelationshipType] = mapped_column(
-        Enum(GeographyRelationshipType, native_enum=False, length=40), nullable=False
+        Enum(GeographyRelationshipType, values_callable=enum_values, native_enum=False, length=40),
+        nullable=False,
     )
     valid_from: Mapped[date | None] = mapped_column(Date)
     valid_to: Mapped[date | None] = mapped_column(Date)

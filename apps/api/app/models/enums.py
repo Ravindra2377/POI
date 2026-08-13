@@ -1,6 +1,11 @@
 from enum import StrEnum
 
 
+def enum_values(enum_class: type[StrEnum]) -> list[str]:
+    """Persist public enum values rather than Python member names."""
+    return [member.value for member in enum_class]
+
+
 class ReviewStatus(StrEnum):
     PENDING = "pending"
     REVIEWED = "reviewed"

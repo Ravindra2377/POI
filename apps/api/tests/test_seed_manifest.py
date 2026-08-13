@@ -1,5 +1,7 @@
+from sqlalchemy import Enum
+
+from app.models.base import Base
 from app.models.enums import ReviewStatus
-from app.models.source import SourceReference
 from app.seeds.seed_stage1 import (
     AP_DISTRICT_URL,
     LGD_DISTRICT_URL,
@@ -38,7 +40,16 @@ def test_seed_sources_are_official_and_not_fixture_placeholders() -> None:
     assert all(".ap.gov.in/" in item.telugu_source_url for item in manifest.districts)
 
 
-def test_review_status_orm_uses_database_enum_values() -> None:
-    enum_type = SourceReference.__table__.c.review_status.type
+def test_all_orm_enums_use_database_values() -> None:
+    enum_types = [
+        column.type
+        for table in Base.metadata.tables.values()
+        for column in table.columns
+        if isinstance(column.type, Enum)
+    ]
 
-    assert getattr(enum_type, "enums", None) == ["pending", "reviewed", "rejected"]
+    assert enum_types
+    for enum_type in enum_types:
+        enum_class = enum_type.enum_class
+        assert enum_class is not None
+        assert enum_type.enums == [member.value for member in enum_class]
