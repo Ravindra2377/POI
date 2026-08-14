@@ -13,9 +13,13 @@ export function PageFooter() {
           <Link href="/sources#coverage">Coverage</Link>
           <Link href="/government-explorer">Andhra Pradesh data</Link>
         </nav>
-        <p className="site-footer__legal">
-          Not affiliated with the Government of India.
-        </p>
+        <div className="site-footer__legal">
+          <Link className="footer-legal-button" href="/legal-basis">
+            Legal &amp; constitutional basis
+            <span aria-hidden="true">→</span>
+          </Link>
+          <p>Not affiliated with the Government of India.</p>
+        </div>
       </div>
     </footer>
   );
