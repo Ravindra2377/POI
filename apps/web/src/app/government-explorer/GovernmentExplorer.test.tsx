@@ -82,7 +82,7 @@ describe("GovernmentExplorer", () => {
       </LocaleProvider>,
     );
     await screen.findByRole("heading", { name: "Visakhapatnam" });
-    await user.click(screen.getByRole("button", { name: "తెలుగు" }));
+    await user.selectOptions(screen.getByLabelText("Select language"), "te");
 
     expect(screen.getByRole("heading", { name: "విశాఖపట్నం" })).toBeVisible();
     expect(screen.getByRole("search")).toBeVisible();

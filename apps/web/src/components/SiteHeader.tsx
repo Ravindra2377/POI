@@ -57,23 +57,23 @@ export function SiteHeader() {
               </Link>
             ))}
           </nav>
-          <div className="language-control" aria-label="Language selection">
-            <button
-              aria-pressed={locale === "en"}
-              onClick={() => setLocale("en")}
-              type="button"
+          <div className="language-control">
+            <span className="language-control__icon" aria-hidden="true">
+              🌐
+            </span>
+            <label className="sr-only" htmlFor="site-language">
+              Select language
+            </label>
+            <select
+              id="site-language"
+              value={locale}
+              onChange={(event) =>
+                setLocale(event.currentTarget.value === "te" ? "te" : "en")
+              }
             >
-              EN
-            </button>
-            <span aria-hidden="true">/</span>
-            <button
-              aria-pressed={locale === "te"}
-              lang="te"
-              onClick={() => setLocale("te")}
-              type="button"
-            >
-              తెలుగు
-            </button>
+              <option value="en">English</option>
+              <option value="te">తెలుగు</option>
+            </select>
           </div>
         </div>
       </header>

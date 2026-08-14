@@ -56,9 +56,9 @@ describe("public utility interface", () => {
       ),
     ).toBeVisible();
 
-    const telugu = screen.getByRole("button", { name: "తెలుగు" });
-    await user.click(telugu);
-    expect(telugu).toHaveAttribute("aria-pressed", "true");
+    const language = screen.getByLabelText("Select language");
+    await user.selectOptions(language, "te");
+    expect(language).toHaveValue("te");
     expect(document.documentElement).toHaveAttribute("lang", "te");
   });
 

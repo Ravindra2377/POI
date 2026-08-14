@@ -141,22 +141,24 @@ a:hover {
 }
 .language-control {
   align-items: center;
+  border: 1px solid var(--line-dark);
   display: flex;
-  gap: 5px;
+  min-height: 38px;
+  padding-left: 9px;
 }
-.language-control button {
-  background: none;
+.language-control__icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+.language-control select {
+  background-color: white;
   border: 0;
-  color: var(--muted);
+  color: var(--ink-soft);
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  padding: 8px 3px;
-}
-.language-control button[aria-pressed="true"] {
-  color: var(--blue);
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  min-height: 36px;
+  padding: 6px 8px;
 }
 .menu-button {
   align-items: center;
