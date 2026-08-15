@@ -101,6 +101,11 @@ Stage 2 network ingestion must not begin until the disposable database check pas
 passes, private object storage and its cost limits are approved, and the LGD access review is
 recorded. Schema development and local contract tests may proceed before these external gates.
 
+The `python -m app.commands.ingest_districts` command is the first network-ingestion surface. It is
+an explicit, manual operator action (never a request path) and currently writes raw snapshots to a
+local `storage/` directory; production use remains gated on the criteria above and on private object
+storage being configured for `SourceSnapshot.object_storage_key`.
+
 ## Controlled Stage 2A/2B deployment worksheet
 
 Before migration, record the exact database name/ID, instance and workspace plan/region, backup or
@@ -115,8 +120,11 @@ migration, restore into separate PostgreSQL/PostGIS, and compare Stage 1 counts 
 Do not migrate until the named rollback authority accepts this operational risk.
 
 Before and after deployment retain read-only output for database/PostgreSQL/PostGIS versions, size,
-connections, Alembic revision, 26 districts, three departments, 28 source references, and exact UUID
-arrays. Afterward require revision `20260814_0002`, unchanged Stage 1 UUIDs/counts, 28 compatibility
-chains, 28 `unavailable_legacy_source_reference` labels, zero snapshots/extraction runs/corrections,
-no private columns in `published_source_observations`, and HTTP evidence for health, both language
-searches, `Vizag`, frontend routes, and public absence of storage keys/reviewer identities.
+connections, Alembic revision, 26 seeded districts plus the two ingested via the district feed (28 in
+total), three departments, 30 district source references, and exact UUID arrays. Afterward require
+revision `20260814_0002`, unchanged Stage 1 UUIDs/counts, 28 compatibility chains, 28
+`unavailable_legacy_source_reference` labels, district-feed snapshots/extraction runs matching the
+recorded run, no private columns in `published_source_observations`, and HTTP evidence for health,
+both language searches, `Vizag`, frontend routes, and public absence of storage keys/reviewer
+identities. If the district feed has not been run, the four zero-count checks for
+snapshots/extraction runs/corrections/review candidates still apply.

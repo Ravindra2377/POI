@@ -451,8 +451,8 @@ def seed_stage1(session: Session) -> SeedResult:
         parent_id=None,
         valid_from=None,
         coverage_note=(
-            "Stage 1 includes the requested 26-district baseline. The current LGD response "
-            "also lists Markapuram and Polavaram; those two districts await a separate review."
+            "Stage 1 includes the requested 26-district baseline. Markapuram and "
+            "Polavaram are published separately by the network-ingestion district feed."
         ),
     )
     result.geographies_created += int(created)

@@ -68,7 +68,7 @@ describe("GovernmentExplorer", () => {
       screen.getByRole("link", { name: "Local Government Directory" }),
     ).toHaveAttribute("href", "https://lgdirectory.gov.in/");
     expect(
-      screen.getByText(/LGD now lists Markapuram and Polavaram/),
+      screen.getByText(/published from the live LGD district feed/),
     ).toBeVisible();
   });
 

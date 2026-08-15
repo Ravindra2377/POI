@@ -34,9 +34,9 @@ const copy = {
     loading: "Loading reviewed public records…",
     empty: "No reviewed records match this search.",
     error: "The official-record API could not be reached.",
-    incomplete: "District coverage disclosure",
+    incomplete: "District coverage note",
     incompleteText:
-      "This Stage 1 baseline contains 26 reviewed district records. LGD now lists Markapuram and Polavaram as additional districts; both await separate review.",
+      "This reviewed baseline contains 28 district records. Markapuram and Polavaram were published from the live LGD district feed; district boundaries are not yet reviewed.",
     noBoundary: "Boundary not reviewed or unavailable",
     pilot: "Pilot district",
   },
@@ -53,9 +53,9 @@ const copy = {
     loading: "సమీక్షించిన ప్రజా రికార్డులు లోడ్ అవుతున్నాయి…",
     empty: "ఈ శోధనకు సరిపోలే సమీక్షించిన రికార్డులు లేవు.",
     error: "అధికారిక రికార్డు API అందుబాటులో లేదు.",
-    incomplete: "జిల్లా కవరేజ్ వెల్లడి",
+    incomplete: "జిల్లా కవరేజ్ గమనిక",
     incompleteText:
-      "ఈ దశలో 26 సమీక్షించిన జిల్లా రికార్డులు ఉన్నాయి. LGD ఇప్పుడు మార్కాపురం, పోలవరం జిల్లాలను కూడా చూపుతోంది; వాటి ప్రత్యేక సమీక్ష ఇంకా పూర్తి కాలేదు.",
+      "ఈ సమీక్షించిన ప్రాతిపదికలో 28 జిల్లా రికార్డులు ఉన్నాయి. మార్కాపురం, పోలవరం ప్రత్యక్ష LGD ఫీడ్ నుండి ప్రచురించబడ్డాయి; జిల్లా సరిహద్దులు ఇంకా సమీక్షించబడలేదు.",
     noBoundary: "సరిహద్దు సమీక్షించబడలేదు లేదా అందుబాటులో లేదు",
     pilot: "పైలట్ జిల్లా",
   },

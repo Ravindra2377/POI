@@ -1,0 +1,226 @@
+[
+  {
+    "sscode": "",
+    "districtCode": 745,
+    "districtNameEnglish": "Alluri Sitharama Raju",
+    "districtNameLocal": "Alluri Sitharama Raju",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": null,
+    "districtCode": 744,
+    "districtNameEnglish": "Anakapalli",
+    "districtNameLocal": "Anakapalli",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": "",
+    "districtCode": 502,
+    "districtNameEnglish": "Ananthapuramu",
+    "districtNameLocal": "అనంతపురము",
+    "census2001Code": "22",
+    "census2011Code": "553"
+  },
+  {
+    "sscode": "",
+    "districtCode": 753,
+    "districtNameEnglish": "Annamayya",
+    "districtNameLocal": "Annamayya",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": null,
+    "districtCode": 750,
+    "districtNameEnglish": "Bapatla",
+    "districtNameLocal": "Bapatla",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": "",
+    "districtCode": 503,
+    "districtNameEnglish": "Chittoor",
+    "districtNameLocal": "CHITTOOR                                          ",
+    "census2001Code": "23",
+    "census2011Code": "554"
+  },
+  {
+    "sscode": null,
+    "districtCode": 747,
+    "districtNameEnglish": "Dr. B.R. Ambedkar Konaseema",
+    "districtNameLocal": "డా బి ఆర్  అంబేడ్కర్ కోనసీమ",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": "",
+    "districtCode": 505,
+    "districtNameEnglish": "East Godavari",
+    "districtNameLocal": "EAST GODAVARI                                     ",
+    "census2001Code": "14",
+    "census2011Code": "545"
+  },
+  {
+    "sscode": null,
+    "districtCode": 748,
+    "districtNameEnglish": "Eluru",
+    "districtNameLocal": "Eluru",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": "",
+    "districtCode": 506,
+    "districtNameEnglish": "Guntur",
+    "districtNameLocal": "GUNTUR                                            ",
+    "census2001Code": "17",
+    "census2011Code": "548"
+  },
+  {
+    "sscode": null,
+    "districtCode": 746,
+    "districtNameEnglish": "Kakinada",
+    "districtNameLocal": "Kakinada",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": "",
+    "districtCode": 510,
+    "districtNameEnglish": "Krishna",
+    "districtNameLocal": "KRISHNA                                           ",
+    "census2001Code": "16",
+    "census2011Code": "547"
+  },
+  {
+    "sscode": "",
+    "districtCode": 511,
+    "districtNameEnglish": "Kurnool",
+    "districtNameLocal": "KURNOOL                                           ",
+    "census2001Code": "21",
+    "census2011Code": "552"
+  },
+  {
+    "sscode": null,
+    "districtCode": 790,
+    "districtNameEnglish": "Markapuram",
+    "districtNameLocal": "Markapuram",
+    "census2001Code": null,
+    "census2011Code": null
+  },
+  {
+    "sscode": null,
+    "districtCode": 755,
+    "districtNameEnglish": "Nandyal",
+    "districtNameLocal": "Nandyal",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": null,
+    "districtCode": 749,
+    "districtNameEnglish": "Ntr",
+    "districtNameLocal": "NTR",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": null,
+    "districtCode": 751,
+    "districtNameEnglish": "Palnadu",
+    "districtNameLocal": "Palnadu",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": null,
+    "districtCode": 743,
+    "districtNameEnglish": "Parvathipuram Manyam",
+    "districtNameLocal": "Parvathipuram Manyam",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": null,
+    "districtCode": 791,
+    "districtNameEnglish": "Polavaram",
+    "districtNameLocal": "Polavaram",
+    "census2001Code": null,
+    "census2011Code": null
+  },
+  {
+    "sscode": "",
+    "districtCode": 517,
+    "districtNameEnglish": "Prakasam",
+    "districtNameLocal": "PRAKASAM                                          ",
+    "census2001Code": "18",
+    "census2011Code": "549"
+  },
+  {
+    "sscode": "",
+    "districtCode": 519,
+    "districtNameEnglish": "Srikakulam",
+    "districtNameLocal": "SRIKAKULAM                                        ",
+    "census2001Code": "11",
+    "census2011Code": "542"
+  },
+  {
+    "sscode": "",
+    "districtCode": 515,
+    "districtNameEnglish": "Sri Potti Sriramulu Nellore",
+    "districtNameLocal": "శ్రీ పొట్టి శ్రీరాములు నెల్లూరు",
+    "census2001Code": "19",
+    "census2011Code": "550"
+  },
+  {
+    "sscode": null,
+    "districtCode": 754,
+    "districtNameEnglish": "Sri Sathya Sai",
+    "districtNameLocal": "Sri Sathya Sai",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": null,
+    "districtCode": 752,
+    "districtNameEnglish": "Tirupati",
+    "districtNameLocal": "Tirupati",
+    "census2001Code": null,
+    "census2011Code": "000"
+  },
+  {
+    "sscode": "",
+    "districtCode": 520,
+    "districtNameEnglish": "Visakhapatnam",
+    "districtNameLocal": "విశాఖపట్నం",
+    "census2001Code": "13",
+    "census2011Code": "544"
+  },
+  {
+    "sscode": "",
+    "districtCode": 521,
+    "districtNameEnglish": "Vizianagaram",
+    "districtNameLocal": "VIZIANAGARAM                                      ",
+    "census2001Code": "12",
+    "census2011Code": "543"
+  },
+  {
+    "sscode": "",
+    "districtCode": 523,
+    "districtNameEnglish": "West Godavari",
+    "districtNameLocal": "పశ్చిమగోదావరి                                     ",
+    "census2001Code": "15",
+    "census2011Code": "546"
+  },
+  {
+    "sscode": "",
+    "districtCode": 504,
+    "districtNameEnglish": "Y.S.R. Kadapa",
+    "districtNameLocal": "వై.ఎస్.ఆర్. కడప",
+    "census2001Code": "20",
+    "census2011Code": "551"
+  }
+]

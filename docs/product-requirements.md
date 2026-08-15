@@ -23,7 +23,9 @@ released, spent, and delivered—and which official source supports each figure?
 ## Pilot scope
 
 - Andhra Pradesh as the first implementation of the India-wide schema and public experience
-- All 26 districts in the directory; controlled content rollout may start with selected districts
+- All 26 districts in the directory from the reviewed Stage 1 baseline, with Markapuram and
+  Polavaram published via the audited network-ingestion district feed (28 in total); controlled
+  content rollout may start with selected districts
 - District and mandal navigation without precise user GPS
 - Roads and infrastructure, healthcare, and education
 - 30–50 curated schemes and 100–200 manually reviewed projects before public beta

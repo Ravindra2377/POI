@@ -58,8 +58,10 @@ interfaces must be reviewed individually before implementation.
 
 The requested seed baseline contains 26 districts. The live LGD response retrieved during review
 listed 28, including Markapuram (LGD 790) and Polavaram (LGD 791). The two newer entries are not
-silently merged into the requested baseline; the state record, explorer, and seed citation metadata
-disclose the gap pending a separate source review. No boundary dataset has been approved.
+silently merged into the requested baseline; the network-ingestion district feed records the live
+response and publishes them only through an explicit, audited review action (see
+`app/ingestion/districts.py` and the `ingest_districts` command). No boundary dataset has been
+approved.
 
 ## Stage 2 first-adapter decision
 
