@@ -9,6 +9,7 @@ export interface OfficeholderSourceRecord {
   source_record_id: string;
   source_name: string;
   official_source_url: string;
+  public_source_url?: string | null;
   retrieval_date: string;
   review_status: "reviewed";
 }

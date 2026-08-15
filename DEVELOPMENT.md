@@ -1951,3 +1951,19 @@ supported`; department cards opened the AP State Portal `ApOrganizations` JSON e
   - Web (`apps/web`): `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (34 test files, 105 tests passed).
   - API (`apps/api`): `ruff check --no-cache .` (all clean), `mypy --cache-dir /tmp/mypy_cache app tests` (58 files clean), `pytest -p no:cacheprovider` (57 passed).
 
+### Stage 2.3 — Datasets Ingestion Expansion: Legislative Assembly Officeholders, Infrastructure Projects, and e-Procurement Tenders (2026-08-16)
+
+- **FastAPI Schemas & Catalog Repositories:**
+  - Built FastAPI models in `apps/api/app/schemas/` (`officeholders.py`, `projects.py`, `procurement.py`) with per-claim provenance and bilingual support.
+  - Expanded `CatalogRepository` protocol and `SQLCatalogRepository` in `apps/api/app/repositories.py` (`list_officeholders`, `list_projects`, `list_procurement`).
+  - Registered `/api/v1/officeholders`, `/api/v1/projects`, and `/api/v1/procurement` endpoints in `apps/api/app/api/v1/router.py`.
+- **Ingestion Pipeline & Audit Traces:**
+  - Created automated operators in `apps/api/app/ingestion/` (`officeholders.py`, `projects.py`, `procurement.py`) storing raw snapshots, extracting typed observations, and recording audit decisions.
+- **Web Frontend Proxies & Provenance Display:**
+  - Connected Next.js proxies (`/api/officeholders`, `/api/projects`, `/api/procurement`) to backend API endpoints with prepared-empty fallbacks.
+  - Integrated `formatUrlDisplay` and `public_source_url` provenance rendering across directory and detail views (`OfficialOfficeholderClaim`, `OfficialProjectClaim`, `OfficialProcurementClaim`).
+- **Verification Evidence:**
+  - Web (`apps/web`): `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (34 test files, 105 tests passed).
+  - API (`apps/api`): `ruff check --no-cache .` (0 errors), `mypy --cache-dir /tmp/mypy_cache app tests` (67 files clean), `pytest -p no:cacheprovider` (57 passed, 7 skipped).
+
+

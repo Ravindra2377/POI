@@ -50,6 +50,24 @@ from app.schemas.ingestion import (
     ReviewDecisionOut,
     SnapshotOut,
 )
+from app.schemas.officeholders import (
+    OfficeholderCatalogOut,
+    OfficeholderClaimOut,
+    OfficeholderRecordOut,
+    OfficeholderSourceOut,
+)
+from app.schemas.procurement import (
+    ProcurementCatalogOut,
+    ProcurementClaimOut,
+    ProcurementRecordOut,
+    ProcurementSourceOut,
+)
+from app.schemas.projects import (
+    ProjectCatalogOut,
+    ProjectClaimOut,
+    ProjectRecordOut,
+    ProjectSourceOut,
+)
 from app.schemas.schemes import (
     LocalizedTextOut,
     SchemeCatalogOut,
@@ -125,6 +143,12 @@ class CatalogRepository(Protocol):
     def list_schemes(self) -> SchemeCatalogOut: ...
 
     def list_budget(self) -> BudgetCatalogOut: ...
+
+    def list_officeholders(self) -> OfficeholderCatalogOut: ...
+
+    def list_projects(self) -> ProjectCatalogOut: ...
+
+    def list_procurement(self) -> ProcurementCatalogOut: ...
 
 
 def _parse_uuid(identifier: str) -> UUID | None:
@@ -830,4 +854,282 @@ class SQLCatalogRepository:
             classification="official",
             value=LocalizedTextOut(en=value, te=""),
             source=source,
+        )
+
+    def list_officeholders(self) -> OfficeholderCatalogOut:
+        observations = self.session.scalars(
+            select(SourceObservation)
+            .where(
+                SourceObservation.entity_type == "officeholder",
+                SourceObservation.is_published.is_(True),
+            )
+            .order_by(SourceObservation.entity_id, SourceObservation.field_path)
+        ).all()
+        if not observations:
+            return OfficeholderCatalogOut(data=[], status="prepared-empty", telugu_reviewed=False)
+
+        grouped: dict[UUID, dict[str, str]] = {}
+        for observation in observations:
+            grouped.setdefault(observation.entity_id, {})[observation.field_path] = (
+                observation.value_text or ""
+            )
+
+        source = self._officeholder_feed_source(observations[0])
+        records: list[OfficeholderRecordOut] = []
+        for entity_id in sorted(grouped):
+            fields = grouped[entity_id]
+            records.append(
+                OfficeholderRecordOut(
+                    slug=fields.get("slug", ""),
+                    person_name=OfficeholderClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("person_name_en", ""),
+                            te=fields.get("person_name_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    office_title=OfficeholderClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("office_title_en", ""),
+                            te=fields.get("office_title_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    government_body=OfficeholderClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("government_body_en", ""),
+                            te=fields.get("government_body_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    districts=OfficeholderClaimOut(
+                        classification="official",
+                        value=[
+                            LocalizedTextOut(
+                                en=fields.get("district_en", ""),
+                                te=fields.get("district_te", ""),
+                            )
+                        ]
+                        if fields.get("district_en")
+                        else [],
+                        source=source,
+                    ),
+                    term_period=OfficeholderClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("term_period_en", ""),
+                            te=fields.get("term_period_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    party=OfficeholderClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("party_en", ""),
+                            te=fields.get("party_te", ""),
+                        ),
+                        source=source,
+                    )
+                    if fields.get("party_en")
+                    else None,
+                )
+            )
+        status = "reviewed" if records else "prepared-empty"
+        return OfficeholderCatalogOut(data=records, status=status)
+
+    def _officeholder_feed_source(self, observation: SourceObservation) -> OfficeholderSourceOut:
+        document = self.session.get(SourceDocument, observation.document_id)
+        source = self.session.get(SourceRecord, document.source_id) if document else None
+        snapshot = self.session.get(SourceSnapshot, observation.snapshot_id)
+        return OfficeholderSourceOut(
+            source_record_id=source.id if source else observation.entity_id,
+            source_name=source.name if source else "AP Legislative Assembly",
+            official_source_url=document.official_url if document else "https://aplegislature.org",
+            public_source_url=_document_public_url(document) if document else None,
+            retrieval_date=snapshot.retrieved_at.date() if snapshot else date.today(),
+            review_status=source.review_status if source else ReviewStatus.REVIEWED,
+        )
+
+    def list_projects(self) -> ProjectCatalogOut:
+        observations = self.session.scalars(
+            select(SourceObservation)
+            .where(
+                SourceObservation.entity_type == "project",
+                SourceObservation.is_published.is_(True),
+            )
+            .order_by(SourceObservation.entity_id, SourceObservation.field_path)
+        ).all()
+        if not observations:
+            return ProjectCatalogOut(data=[], status="prepared-empty", telugu_reviewed=False)
+
+        grouped: dict[UUID, dict[str, str]] = {}
+        for observation in observations:
+            grouped.setdefault(observation.entity_id, {})[observation.field_path] = (
+                observation.value_text or ""
+            )
+
+        source = self._project_feed_source(observations[0])
+        records: list[ProjectRecordOut] = []
+        for entity_id in sorted(grouped):
+            fields = grouped[entity_id]
+            records.append(
+                ProjectRecordOut(
+                    slug=fields.get("slug", ""),
+                    name=ProjectClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("name_en", ""),
+                            te=fields.get("name_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    description=ProjectClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("description_en", ""),
+                            te=fields.get("description_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    department=ProjectClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("department_en", ""),
+                            te=fields.get("department_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    districts=ProjectClaimOut(
+                        classification="official",
+                        value=[
+                            LocalizedTextOut(
+                                en=fields.get("district_en", ""),
+                                te=fields.get("district_te", ""),
+                            )
+                        ]
+                        if fields.get("district_en")
+                        else [],
+                        source=source,
+                    ),
+                    status=ProjectClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("status_en", ""),
+                            te=fields.get("status_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    project_type=ProjectClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("project_type_en", ""),
+                            te=fields.get("project_type_te", ""),
+                        ),
+                        source=source,
+                    ),
+                )
+            )
+        return ProjectCatalogOut(data=records, status="reviewed" if records else "prepared-empty")
+
+    def _project_feed_source(self, observation: SourceObservation) -> ProjectSourceOut:
+        document = self.session.get(SourceDocument, observation.document_id)
+        source = self.session.get(SourceRecord, document.source_id) if document else None
+        snapshot = self.session.get(SourceSnapshot, observation.snapshot_id)
+        return ProjectSourceOut(
+            source_record_id=source.id if source else observation.entity_id,
+            source_name=source.name if source else "AP Infrastructure Portal",
+            official_source_url=document.official_url if document else "https://ap.gov.in",
+            public_source_url=_document_public_url(document) if document else None,
+            retrieval_date=snapshot.retrieved_at.date() if snapshot else date.today(),
+            review_status=source.review_status if source else ReviewStatus.REVIEWED,
+        )
+
+    def list_procurement(self) -> ProcurementCatalogOut:
+        observations = self.session.scalars(
+            select(SourceObservation)
+            .where(
+                SourceObservation.entity_type == "procurement",
+                SourceObservation.is_published.is_(True),
+            )
+            .order_by(SourceObservation.entity_id, SourceObservation.field_path)
+        ).all()
+        if not observations:
+            return ProcurementCatalogOut(data=[], status="prepared-empty", telugu_reviewed=False)
+
+        grouped: dict[UUID, dict[str, str]] = {}
+        for observation in observations:
+            grouped.setdefault(observation.entity_id, {})[observation.field_path] = (
+                observation.value_text or ""
+            )
+
+        source = self._procurement_feed_source(observations[0])
+        records: list[ProcurementRecordOut] = []
+        for entity_id in sorted(grouped):
+            fields = grouped[entity_id]
+            records.append(
+                ProcurementRecordOut(
+                    slug=fields.get("slug", ""),
+                    title=ProcurementClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("title_en", ""),
+                            te=fields.get("title_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    stage=ProcurementClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("stage_en", ""),
+                            te=fields.get("stage_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    description=ProcurementClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("description_en", ""),
+                            te=fields.get("description_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    department=ProcurementClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("department_en", ""),
+                            te=fields.get("department_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    districts=ProcurementClaimOut(
+                        classification="official",
+                        value=[
+                            LocalizedTextOut(
+                                en=fields.get("district_en", ""),
+                                te=fields.get("district_te", ""),
+                            )
+                        ]
+                        if fields.get("district_en")
+                        else [],
+                        source=source,
+                    ),
+                )
+            )
+        status = "reviewed" if records else "prepared-empty"
+        return ProcurementCatalogOut(data=records, status=status)
+
+    def _procurement_feed_source(self, observation: SourceObservation) -> ProcurementSourceOut:
+        document = self.session.get(SourceDocument, observation.document_id)
+        source = self.session.get(SourceRecord, document.source_id) if document else None
+        snapshot = self.session.get(SourceSnapshot, observation.snapshot_id)
+        return ProcurementSourceOut(
+            source_record_id=source.id if source else observation.entity_id,
+            source_name=source.name if source else "AP e-Procurement Portal",
+            official_source_url=document.official_url if document else "https://apeprocurement.gov.in",
+            public_source_url=_document_public_url(document) if document else None,
+            retrieval_date=snapshot.retrieved_at.date() if snapshot else date.today(),
+            review_status=source.review_status if source else ReviewStatus.REVIEWED,
         )

@@ -9,7 +9,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("procurement routes", () => {
   it("serves only the explicitly labelled prepared-empty catalogue", async () => {
-    const response = GET();
+    const response = await GET();
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       data: [],
