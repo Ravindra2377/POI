@@ -1569,10 +1569,12 @@ after those gates pass or are explicitly accepted as documented deployment risks
   phone, or precise location is collected or stored, and there is no saved preference. This keeps
   the non-negotiable privacy rule (no precise user locations) and the consent rule (explicit and
   reversible) visible as future requirements rather than implying they exist.
-- **Prepared consent model:** Three planned consent choices are shown as pending status-labeled
-  items: area alerts, language preference, and submitted-evidence visibility. The copy explains that
-  no consent choice can be made or stored yet, so the page does not fake an interactive consent
-  flow.
+- **Prepared consent model:** Two planned consent choices are shown as pending status-labeled
+  items: area alerts and submitted-evidence visibility. The copy explains that no consent choice can
+  be made or stored yet, so the page does not fake an interactive consent flow. A follow-up removed
+  the earlier "language preference" consent choice because it overlapped with the always-available
+  header language selector; the page now notes that language is already available from the header
+  and needs no account.
 - **Prepared structured reports:** Five panels mirror the prepared directory domains (schemes,
   projects, public money, procurement, officeholders) as the structured reports an account would
   deliver, each pending and linked to its prepared directory. Nothing is demonstrated.
@@ -1670,3 +1672,243 @@ after those gates pass or are explicitly accepted as documented deployment risks
   acceptance requires identity, consent, moderation, and audit infrastructure plus governed review.
   Additional states using the proven Andhra Pradesh pipeline are the next website slice; they remain
   out of scope until network ingestion and data acceptance are operational.
+
+## Network ingestion: AP district feed (completed 2026-08-15)
+
+- **Purpose:** Makes live official district data visible while honoring the provenance rules. The
+  command `python -m app.commands.ingest_districts --reviewer <operator>` fetches the live LGD
+  district list and the Andhra Pradesh State Portal district directory, stores the raw responses as
+  immutable `source_snapshots`, extracts typed official `source_observations`, reviews and publishes
+  them, and publishes Markapuram (LGD 790) and Polavaram (LGD 791) — the two districts the Stage 1
+  baseline deliberately deferred — with audited review decisions.
+- **Correct request shape:** LGD `districtList` requires POST with `Content-Type:
+application/x-www-form-urlencoded` and body `stateCode=28`; a GET returns HTTP 400 with the 434
+  `Request method 'GET' not supported` error. The AP State Portal `Districts` endpoint works over
+  GET. Both were verified live on 2026-08-15 (28 districts in each feed; AP codes Markapuram 538,
+  Polavaram 537).
+- **Provenance flow (new module `app/ingestion/districts.py`):** `SourceRecord` (api_endpoint,
+  reviewed) → `SourceDocument` (api_response) → `SourceSnapshot` (sha256 + raw bytes under
+  `storage/snapshots/`, idempotent on `(document_id, sha256)`) → `ExtractionRun` (adapter
+  `*-adapter` 1.0.0) → pending official observations (name_en, name_local, lgd_code,
+  ap_portal_code; AP portal code/name) → `ReviewDecision` approvals recorded under the operator
+  identity → reviewed + published. Feed observations attach to the LGD/AP feed documents, so no
+  legacy raw-unavailable labels are created.
+- **Deferred-district publication:** Each new district gets a reviewed `SourceReference`
+  (same pattern as the 26 baseline districts) plus a `Geography` row whose provenance points at the
+  LGD feed URL, an `administrative_contains` relationship to the state, and an audit
+  observation/decision (approve) keyed to the LGD snapshot sha256. The state geography's coverage
+  note was updated to record that these are published by the district feed.
+- **Visibility:** After ingestion the geographies API serves 28 reviewed districts (26 baseline +
+  2 ingested), and the Government Explorer coverage note now reads "This reviewed baseline contains
+  28 district records." Boundaries are still not reviewed; the two Telugu labels are provisional
+  transliterations and are flagged in the coverage note.
+- **Test coverage:** `tests/test_ingest_districts.py` (7 unit tests) validates parsing of the live
+  payload fixtures, the manifest+portal code mapping covering all 28 districts, and the fetch
+  contract (POST for LGD, GET for AP, error on non-200) via a monkeypatched `urlopen`.
+  `tests/integration/test_ingest_districts_postgres.py` (skipped without `TEST_DATABASE_URL`) runs
+  seed + store + review + publish against a disposable PostGIS database and asserts 28 districts,
+  idempotent reruns, written snapshots, and published-observation counts.
+- **Verification evidence:** API Ruff clean; strict MyPy clean (44 files); Pytest 37 passed, 5
+  skipped. Web format:check/lint/typecheck clean; 91 tests across 32 files; `npm run build`
+  clean. `git diff --check` clean.
+- **Limitations and unresolved risks:** The command writes snapshots to a local `storage/` directory,
+  not private object storage; production network-ingestion release gates (disposable database run,
+  restore drill, storage budget approval, LGD access review) remain unsatisfied, so the command is
+  for local/contract use only and is never invoked from a request path. The two Telugu district
+  labels and the AP portal name spellings await official-portal confirmation. The 26-district
+  baseline was never modified; Markapuram and Polavaram were added, not overwritten.
+
+## Ingestion status page (completed 2026-08-15)
+
+- **Purpose:** A public `/ingestion` page plus a real FastAPI endpoint that surfaces the live
+  provenance status of every registered network feed, so ingested official data is both visible in
+  the Government Explorer and auditable as a process. It follows the Government Explorer pattern:
+  the page fetches the real API through `lib/catalog-api.ts`; there is no mock directory slice and
+  no mocked data anywhere on the page.
+- **API (`GET /api/v1/ingestion/feeds`):** New `app/schemas/ingestion.py` response models and a
+  `list_feed_statuses()` method on the `CatalogRepository` protocol plus `SQLCatalogRepository`.
+  For each `SourceRecord` with `source_type = api_endpoint`, the repository returns the latest
+  `SourceSnapshot` (sha256, retrieved_at, HTTP status, content type, byte size), its `ExtractionRun`
+  (adapter, version, status, record count, software revision), published/total `SourceObservation`
+  counts, and the latest `ReviewDecision`. `tests/conftest.py` FakeCatalog gained a matching method
+  so the endpoint and API contract are covered by `tests/test_api.py`.
+- **Privacy:** The public payload deliberately omits reviewer identities (the operations-and-recovery
+  contract requires their public absence) and never serves raw snapshot contents — only status
+  metadata. The page copy states this explicitly in both languages.
+- **Page (`apps/web/src/app/ingestion/`):** `page.tsx` (metadata) + client `IngestionContent.tsx` +
+  `ingestion.module.css`. Renders one card per feed with snapshot/extraction/observation/review
+  tiles, a "prepared" disclosure note, an honest empty state ("No network ingestion runs recorded
+  yet…") before the first operator run, loading and `ErrorState` retry states, and full EN/TE copy.
+  Wired into the primary navigation (after Sources), a home quick-link, and a cross-link from the
+  Government Explorer district coverage note.
+- **Verification evidence:** API Ruff clean; strict MyPy clean (46 files); Pytest 38 passed, 5
+  skipped. Web format:check/lint/typecheck clean; 96 tests across 34 files (incl. the new
+  `Ingestion.test.tsx` and `IngestionResponsive.test.ts`); `npm run build` emits `/ingestion` as a
+  static route; `git diff --check` clean.
+- **Limitations:** The page reports only feeds whose `SourceRecord` is marked `api_endpoint`, so it
+  intentionally does not show the 26 legacy Stage 1 district sources (those remain visible in the
+  Government Explorer provenance). It reflects whatever ingestion has been run locally; production
+  gates for network ingestion still apply before real deployments.
+
+## Human-readable source links (completed 2026-08-15)
+
+- **Problem reported:** Clicking "Official source" on Government Explorer district cards opened the LGD
+  `districtList` web service, which requires POST and returned HTTP 434 `Request method 'GET' not
+supported`; department cards opened the AP State Portal `ApOrganizations` JSON endpoint, dumping raw
+  JSON. The recorded URLs were correct machine evidence but not browseable pages for citizens.
+- **Fix:** Provenance now carries two URLs. `official_source_url` remains the exact endpoint where the
+  value was recorded (evidence), and a new optional `public_source_url` points at a human-readable
+  official page of the same authority, recorded in `SourceReference.citation_metadata` /
+  `SourceDocument.document_metadata` (no schema migration). All URLs were verified live on
+  2026-08-15: LGD portal `https://lgdirectory.gov.in/`, AP State Portal `https://www.ap.gov.in/`,
+  Markapuram `https://markapuram.ap.gov.in/`, Polavaram `https://polavaram.ap.gov.in/`, and the
+  26 baseline district portals already in `stage1_seed.json` (`telugu_source_url`).
+- **Where it applies:** the 26 baseline district sources and the AP organisation source (seeded with
+  `public_source_url`), the LGD/AP feed sources and deferred districts (recorded by
+  `app/ingestion/districts.py`), and the ingested Markapuram/Polavaram sources. The public API now
+  exposes `public_source_url` on `ProvenanceSummary` and `FeedSourceOut`.
+- **UI:** `SourceSummary` links to `public_source_url ?? official_source_url` and, when they differ,
+  shows `Recorded from: <endpoint>` as non-clickable evidence text. The ingestion page's "Open the
+  official source" link does the same and prints the exact endpoint beneath the card title. Raw API
+  endpoints are never presented as browseable links to citizens.
+- **Verification evidence:** API Ruff clean; strict MyPy clean (46 files); Pytest 38 passed, 5
+  skipped (integration test asserts Markapuram provenance now includes the verified portal URL).
+  Web format:check/lint/typecheck clean; 97 tests across 34 files; `npm run build` clean;
+  `git diff --check` clean.
+- **Limitations:** If a source has no verified human-readable page, `public_source_url` stays null
+  and the link falls back to the recorded URL as before; no URL is guessed. The LGD citizen district
+  browse page requires a per-session CSRF token, so the stable LGD portal homepage is used as the
+  public page instead.
+
+## Network ingestion: Andhra Pradesh schemes from myScheme (completed 2026-08-15)
+
+- **Purpose:** Replace the prepared-empty schemes slice with real, reviewed Andhra Pradesh scheme
+  records pulled over the network from the official myScheme API (Govt. of India / MeitY), following
+  the established district-feed pattern: fetch an immutable snapshot, extract typed official
+  observations, review with an audit record, publish, and reconstruct the public catalogue from
+  published observations. The web slice then serves live data with an honest fallback.
+- **Source verification (live, 2026-08-15):** The AP State Portal API has no schemes endpoint
+  (`Schemes`/`SchemesList`/`WelfareSchemes`/`Programs` all return 404; only `Districts` and
+  `ApOrganizations` work). The working official endpoint is
+  `GET https://api.myscheme.gov.in/search/v3/schemes?lang=en&q=<urlencoded JSON>&keyword=&sort=multiple_sort&from=0&size=N`
+  with header `x-api-key` (a public client key shipped inside myScheme's own browser bundle, not a
+  credential). The state filter uses the `q` parameter as a URL-encoded JSON array of
+  `{"identifier": "beneficiaryState", "value": "Andhra Pradesh"}` plus
+  `{"identifier": "level", "value": "State"}`. This returns exactly 20 Andhra Pradesh state-level
+  schemes (21 without the `level` filter). Query-param and POST filter variants do not work, and
+  `search/v6` returns `{"message": "Unauthorized"}`.
+- **Source limitations (recorded, not hidden):** myScheme carries no Telugu content (`lang=te`
+  returns English), no Andhra Pradesh nodal department for state schemes (`nodalMinistryName` is
+  null), no district-level coverage (`beneficiaryState` is state-level only), and its detail API
+  (eligibility criteria) is gated for public clients. Per the reviewed decision the platform ingests
+  English values only, marks Telugu as "not yet reviewed" in the UI, and leaves department,
+  districts, and eligibility unpublished rather than fabricating them.
+- **API:** New `app/ingestion/schemes.py` (`fetch_ap_schemes`, `parse_ap_schemes`,
+  `store_scheme_feed`, `review_scheme_observations`) stores the raw snapshot plus observations
+  (`entity_type = "scheme"`) for `slug`, `name_en`, `description_en`, `category_en`, and
+  `public_url` (the verified per-scheme page `https://www.myscheme.gov.in/schemes/{slug}`). New
+  `app/commands/ingest_schemes.py` runs the operator flow with `--reviewer`. New
+  `app/schemas/schemes.py` (LocalizedTextOut/SchemeSourceOut/SchemeClaimOut/SchemeRecordOut/
+  SchemeCatalogOut) and `list_schemes()` on the `CatalogRepository` protocol plus
+  `SQLCatalogRepository` reconstruct each reviewed scheme from published observations with
+  per-claim provenance resolved from the stored document/snapshot/source. Exposed as
+  `GET /api/v1/schemes`; the response carries `telugu_reviewed` so the UI can label unreviewed
+  Telugu. `tests/conftest.py` FakeCatalog gained `list_schemes()`.
+- **Web:** `lib/schemes.ts` now models nullable `department`/`districts`/`eligibility` claims,
+  `public_source_url` on each claim source, a `telugu_reviewed` catalogue flag, and a `localized()`
+  fallback to English when a Telugu label is absent. The `/api/schemes` route proxies the FastAPI
+  catalogue server-side with an explicit `prepared-empty` fallback when unreachable; the
+  `/schemes/[slug]` page fetches the catalogue server-side and renders a published record or the
+  honest "unavailable" state. `SchemesDirectory` and `SchemeDetail` render unpublished department /
+  district / eligibility claims as "Not published in this reviewed record", show a bilingual
+  "Telugu labels not yet reviewed" notice when `telugu_reviewed` is false, and `OfficialClaim` now
+  links to `public_source_url ?? official_source_url` with the exact recorded endpoint shown as
+  non-clickable evidence text, matching the source-link design.
+- **Verification evidence:** API Ruff clean; strict MyPy clean (52 files); Pytest 45 passed, 6
+  skipped (new `test_ingest_schemes.py` reads the live 20-scheme fixture
+  `myscheme_ap_schemes_live.json`, and the postgres-gated `test_ingest_schemes_postgres.py` asserts
+  all 20 schemes publish with correct provenance and honest null fields). Web format:check / lint /
+  typecheck clean; 105 tests across 34 files (scheme tests updated for nullable claims, Telugu
+  notices, and the proxy route); `npm run build` clean (`/schemes` static, `/schemes/[slug]`
+  dynamic); `git diff --check` clean.
+- **Limitations:** The published catalogue is state-level only; department, district, and
+  eligibility fields remain null because the verified source provides no such data. Telugu labels
+  are intentionally empty until a reviewed Telugu source is ingested. Production deployment of
+  network ingestion still requires the outstanding production gates (private object storage,
+  restore drill, and LGD access review) before real runs against production databases.
+
+## AP AFS budget parser (2026-08-15)
+
+- **Component:** `apps/api/app/ingestion/budget.py` — read-only network ingestion for the AP Finance
+  Annual Financial Statement (Volume-I-1), crawling the official budget manifest
+  (`https://apfinance.gov.in/budget.html`) for every budget year, storing each raw PDF as an immutable
+  snapshot, extracting typed official observations for every major-head row of every statement
+  (A Revenue Receipts, B Capital Receipts, C Public Account Receipts, D Revenue Expenditure,
+  E Capital Expenditure, F Public Debt, G Public Account Disbursements), reviewing and publishing them.
+  Nothing here runs in a production request path; every run is an explicit, audited operator action.
+- **Layout parser (`parse_afs_layout`):** consumes `pdftotext -layout` output. A major head is a
+  4-digit code with optional English name and up to four value columns
+  (Accounts <t-2> / Budget <t-1> / Revised <t-1> / Budget <t>, or legacy Non-Plan/Plan/Total).
+  Robust against: Telugu/English name interleaving (strips Telugu, joins hyphen-wrapped words),
+  names wrapped around a code placed on its own line (2020-21/2022-23 layouts buffer a pre-name when
+  the next code-bearing line is a bare code row), wrapped names split across continuation lines,
+  statement/section markers, page numbers, subtotal rows (excluded by name), blank `..` cells
+  (skipped), and narrative prose that mimics codes (rows with more than 6 value tokens are rejected).
+  Values are comma-stripped Decimals scaled by the statement's declared unit (Thousands/Lakhs/Crores)
+  into rupees; e.g. `9625,53,80` Thousands → `96255380000` rupees.
+- **Canonical head-name reconciliation:** major-head codes and their official names are stable across
+  budget years, so `canonical_head_names()` derives the corpus-canonical English name per
+  (statement, code) — the longest name among the near-leading clean spellings — and
+  `reconcile_head_names()` replaces only empty or spliced (double head-prefix) names. This resolves
+  the genuinely ambiguous wrapped-name cases (e.g. 2022-23 `6216` → "Loans for Housing",
+  `6801` → "Loans for Power Projects") without touching cleanly-parsed rows.
+- **Validation corpus:** all 14 available AFS text dumps (2013-14 through 2026-27) parse with zero
+  merged, empty, or comma-artifact head names; per-year major-head row counts 223–259 and average
+  2.9–3.8 values per row (legacy years legitimately show 2-value rows for blank Plan/Accounts cells).
+- **Tests:** `tests/test_ingest_budget.py` (11 tests) plus hermetic layout-text fixtures
+  `tests/fixtures/ap_afs_layout_snippet.txt` and `ap_afs_layout_wrapped.txt` cover major-head reads,
+  rupee decoding, wrapped-name joining, the bare-code layout, subtotal/blank-cell skipping, garbled-name
+  detection, canonical-name derivation, and reconciliation.
+- **Verification evidence:** API Ruff clean; strict MyPy clean (54 files); Pytest 56 passed, 6 skipped
+  (postgres-gated integration tests skip locally because `TEST_DATABASE_URL` is unset).
+- **Remaining work:** the operator CLI (`ingest_budget`), the review/publish store path
+  (`store_budget_afs`), the `list_budget` repository method, the `GET /api/v1/budget` endpoint, and the
+  web catalogue slice for budget records — these follow the proven schemes pattern. Elections
+  ingestion from the official AP Legislature term PDFs remains on the roadmap.
+
+## AP AFS budget catalogue vertical (2026-08-15)
+
+- **Component:** the budget store/review path now runs end to end, mirroring the proven schemes
+  pattern: `app/commands/ingest_budget.py` is the operator CLI, `app/schemas/budget.py` is the typed
+  catalogue schema, `app/api/v1/budget.py` exposes `GET /api/v1/budget`, and the
+  `SQLCatalogRepository.list_budget()` method reconstructs reviewed major heads from published
+  `SourceObservation` rows (entity type `budget_line`) with per-claim provenance.
+- **Store path (`store_budget_afs`):** persists each year's raw AFS PDF as an immutable snapshot, an
+  `ExtractionRun` (`ap-afs-adapter`), and official observations per major head (fiscal_year,
+  statement, code, name_en, unit, ordered `value_N`/`value_N_text` columns, and the headline
+  `amount`/`amount_text` — the current-year estimate). The observation now also records the `slug`
+  so the catalogue can reconstruct stable record identifiers. `review_budget_observations` approves
+  and publishes every pending observation with an audited `ReviewDecision`.
+- **CLI (`python -m app.commands.ingest_budget --reviewer <name>`):** fetches the budget manifest,
+  discovers every AFS Volume-I-1 year, downloads each PDF, converts it with `pdftotext -layout`
+  (requires poppler-utils), parses every statement, builds corpus-canonical head names across all
+  years, reconciles each year, stores snapshots, and reviews/publishes observations. A `--years`
+  filter allows targeted runs.
+- **Catalogue (`GET /api/v1/budget`):** returns `BudgetCatalogOut` with a `reviewed` or
+  `prepared-empty` status. Each `BudgetLineOut` carries the official head name claim, the ordered
+  amount columns (raw token + rupees decoded by the statement's declared unit), and a `budget_estimate`
+  claim for the current-year figure. Column labels are only asserted when the row's column count
+  matches a known layout (modern 4-column Accounts/Budget/Revised/Budget for 2017-18+, or legacy
+  Non-Plan/Plan/Total expenditure), otherwise they fall back to positional `column_N` labels so the
+  catalogue never claims a column meaning it cannot verify (blank source cells are dropped).
+- **Tests:** `tests/test_api.py` asserts the endpoint contract against the `FakeCatalog`
+  (`tests/conftest.py` now provides `budget_catalog()`), and the postgres-gated
+  `tests/integration/test_ingest_budget_postgres.py` stores/publishes the layout snippet, verifies
+  record reconstruction (`0049 Interest Receipts`, `9625,53,80` → `96255380000` rupees), and asserts
+  the rerun is idempotent (zero new snapshots/observations).
+- **Verification evidence:** API Ruff clean; strict MyPy clean (58 files); Pytest 57 passed, 7 skipped
+  (postgres-gated integration tests skip locally because `TEST_DATABASE_URL` is unset); `git diff
+  --check` clean.
+- **Remaining work:** elections ingestion from the official AP Legislature term PDFs
+  (14th/15th/16th terms) remains on the roadmap, as does upgrading the web budget catalogue slice to
+  consume `GET /api/v1/budget`.

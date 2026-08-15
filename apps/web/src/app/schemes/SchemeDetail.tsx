@@ -16,6 +16,8 @@ const copy = {
     unavailableText:
       "No reviewed, source-backed scheme record is published at this address. The address alone does not establish that a scheme exists or does not exist.",
     prepared: "Prepared-data status",
+    teluguNotice:
+      "Telugu labels are not yet reviewed for this record; English values are shown.",
     overview: "Official overview",
     details: "Official details",
     name: "Scheme name",
@@ -26,6 +28,7 @@ const copy = {
     eligibility: "Eligibility criteria",
     eligibilityUnavailable:
       "Eligibility criteria are unavailable in this reviewed record. This page cannot determine personal eligibility.",
+    notPublished: "Not published in this reviewed record",
   },
   te: {
     back: "← అన్ని ఆంధ్రప్రదేశ్ పథకాలు",
@@ -34,6 +37,8 @@ const copy = {
     unavailableText:
       "ఈ చిరునామాలో సమీక్షించిన, మూలాధారంతో కూడిన పథకం రికార్డు ప్రచురించబడలేదు. ఈ చిరునామా మాత్రమే పథకం ఉందని లేదా లేదని నిర్ధారించదు.",
     prepared: "సిద్ధం చేసిన డేటా స్థితి",
+    teluguNotice:
+      "ఈ రికార్డుకు తెలుగు లేబుళ్లు ఇంకా సమీక్షించబడలేదు; ఇంగ్లీషు విలువలు చూపబడతాయి.",
     overview: "అధికారిక అవలోకనం",
     details: "అధికారిక వివరాలు",
     name: "పథకం పేరు",
@@ -44,15 +49,18 @@ const copy = {
     eligibility: "అర్హత ప్రమాణాలు",
     eligibilityUnavailable:
       "ఈ సమీక్షించిన రికార్డులో అర్హత ప్రమాణాలు అందుబాటులో లేవు. ఈ పేజీ వ్యక్తిగత అర్హతను నిర్ణయించదు.",
+    notPublished: "ఈ సమీక్షించిన రికార్డులో ప్రచురించబడలేదు",
   },
 } as const;
 
 export function SchemeDetail({
   scheme,
   requestedSlug,
+  teluguReviewed = false,
 }: {
   scheme: SchemeRecord | null;
   requestedSlug: string;
+  teluguReviewed?: boolean;
 }) {
   const { locale } = useLocale();
   const labels = copy[locale];
@@ -83,6 +91,11 @@ export function SchemeDetail({
 
         {scheme && (
           <section className="section shell">
+            {!teluguReviewed && (
+              <aside className={styles.notice} aria-label={labels.teluguNotice}>
+                <strong>{labels.teluguNotice}</strong>
+              </aside>
+            )}
             <div className={styles.detailGrid}>
               <div>
                 <h2>{labels.overview}</h2>
@@ -98,20 +111,42 @@ export function SchemeDetail({
               <div>
                 <h2>{labels.details}</h2>
                 <div className={styles.detailClaims}>
-                  <OfficialClaim
-                    label={labels.department}
-                    source={scheme.department.source}
-                  >
-                    {localized(scheme.department.value, locale)}
-                  </OfficialClaim>
-                  <OfficialClaim
-                    label={labels.districts}
-                    source={scheme.districts.source}
-                  >
-                    {scheme.districts.value
-                      .map((district) => localized(district, locale))
-                      .join(", ")}
-                  </OfficialClaim>
+                  {scheme.department !== null ? (
+                    <OfficialClaim
+                      label={labels.department}
+                      source={scheme.department.source}
+                    >
+                      {localized(scheme.department.value, locale)}
+                    </OfficialClaim>
+                  ) : (
+                    <div className={styles.claim}>
+                      <span className={styles.claimLabel}>
+                        {labels.department}
+                      </span>
+                      <div className={styles.claimValue}>
+                        {labels.notPublished}
+                      </div>
+                    </div>
+                  )}
+                  {scheme.districts !== null ? (
+                    <OfficialClaim
+                      label={labels.districts}
+                      source={scheme.districts.source}
+                    >
+                      {scheme.districts.value
+                        .map((district) => localized(district, locale))
+                        .join(", ")}
+                    </OfficialClaim>
+                  ) : (
+                    <div className={styles.claim}>
+                      <span className={styles.claimLabel}>
+                        {labels.districts}
+                      </span>
+                      <div className={styles.claimValue}>
+                        {labels.notPublished}
+                      </div>
+                    </div>
+                  )}
                   <OfficialClaim
                     label={labels.category}
                     source={scheme.category.source}

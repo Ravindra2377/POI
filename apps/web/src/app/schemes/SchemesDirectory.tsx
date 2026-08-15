@@ -18,13 +18,15 @@ import styles from "./schemes.module.css";
 
 const copy = {
   en: {
-    eyebrow: "ANDHRA PRADESH · PREPARED DIRECTORY",
+    eyebrow: "ANDHRA PRADESH · REVIEWED DIRECTORY",
     title: "AP Schemes",
     intro:
       "A source-first directory for reviewed government scheme names, descriptions and eligibility rules.",
     prepared: "Prepared directory · No reviewed scheme records",
     preparedText:
       "The routes and filters are ready, but no scheme names, descriptions or eligibility rules are published until source and bilingual review is complete.",
+    teluguNotice:
+      "Telugu labels are not yet reviewed for these records; English values are shown.",
     filters: "Filter reviewed schemes",
     department: "Department",
     district: "District",
@@ -48,18 +50,22 @@ const copy = {
     retry: "Retry",
     name: "Scheme name",
     description: "Description",
+    departments: "Department coverage",
     districts: "District coverage",
+    categoryLabel: "Category",
     criteria: "Eligibility criteria",
     criteriaUnavailable: "Not published in this reviewed record",
   },
   te: {
-    eyebrow: "ఆంధ్రప్రదేశ్ · సిద్ధం చేసిన డైరెక్టరీ",
+    eyebrow: "ఆంధ్రప్రదేశ్ · సమీక్షించిన డైరెక్టరీ",
     title: "ఆంధ్రప్రదేశ్ పథకాలు",
     intro:
       "సమీక్షించిన ప్రభుత్వ పథకాల పేర్లు, వివరణలు, అర్హత నియమాల కోసం మూలాధార-కేంద్రీకృత డైరెక్టరీ.",
     prepared: "సిద్ధం చేసిన డైరెక్టరీ · సమీక్షించిన పథక రికార్డులు లేవు",
     preparedText:
       "మార్గాలు, ఫిల్టర్లు సిద్ధంగా ఉన్నాయి. మూలం మరియు ద్విభాషా సమీక్ష పూర్తయ్యే వరకు పథకాల పేర్లు, వివరణలు లేదా అర్హత నియమాలు ప్రచురించబడవు.",
+    teluguNotice:
+      "ఈ రికార్డులకు తెలుగు లేబుళ్లు ఇంకా సమీక్షించబడలేదు; ఇంగ్లీషు విలువలు చూపబడతాయి.",
     filters: "సమీక్షించిన పథకాలను ఫిల్టర్ చేయండి",
     department: "శాఖ",
     district: "జిల్లా",
@@ -83,7 +89,9 @@ const copy = {
     retry: "మళ్లీ ప్రయత్నించండి",
     name: "పథకం పేరు",
     description: "వివరణ",
+    departments: "శాఖ పరిధి",
     districts: "జిల్లా పరిధి",
+    categoryLabel: "వర్గం",
     criteria: "అర్హత ప్రమాణాలు",
     criteriaUnavailable: "ఈ సమీక్షించిన రికార్డులో ప్రచురించబడలేదు",
   },
@@ -98,12 +106,14 @@ const initialFilters: SchemeFilters = {
 
 function uniqueClaims(
   records: SchemeRecord[],
-  select: (record: SchemeRecord) => LocalizedText[],
+  select: (record: SchemeRecord) => LocalizedText[] | null,
 ): LocalizedText[] {
   const values = new Map<string, LocalizedText>();
-  records.forEach((record) =>
-    select(record).forEach((value) => values.set(value.en, value)),
-  );
+  records.forEach((record) => {
+    const selected = select(record);
+    if (selected === null) return;
+    selected.forEach((value) => values.set(value.en, value));
+  });
   return [...values.values()].sort((a, b) => a.en.localeCompare(b.en));
 }
 
@@ -111,6 +121,7 @@ export function SchemesDirectory() {
   const { locale } = useLocale();
   const labels = copy[locale];
   const [records, setRecords] = useState<SchemeRecord[]>([]);
+  const [teluguReviewed, setTeluguReviewed] = useState(false);
   const [filters, setFilters] = useState<SchemeFilters>(initialFilters);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
 
@@ -119,10 +130,12 @@ export function SchemesDirectory() {
     try {
       const response = await getSchemes(signal);
       setRecords(response.data);
+      setTeluguReviewed(response.telugu_reviewed);
       setState("ready");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
       setRecords([]);
+      setTeluguReviewed(false);
       setState("error");
     }
   }
@@ -136,10 +149,13 @@ export function SchemesDirectory() {
     };
   }, []);
 
-  const departments = uniqueClaims(records, (record) => [
-    record.department.value,
-  ]);
-  const districts = uniqueClaims(records, (record) => record.districts.value);
+  const departments = uniqueClaims(records, (record) =>
+    record.department === null ? null : [record.department.value],
+  );
+  const districts = uniqueClaims(
+    records,
+    (record) => record.districts?.value ?? null,
+  );
   const categories = uniqueClaims(records, (record) => [record.category.value]);
   const filtered = filterSchemes(records, filters);
 
@@ -150,6 +166,8 @@ export function SchemesDirectory() {
     setFilters((current) => ({ ...current, [key]: value }));
   }
 
+  const showPrepared = state === "ready" && records.length === 0;
+
   return (
     <>
       <SiteHeader />
@@ -158,10 +176,18 @@ export function SchemesDirectory() {
           <p className="eyebrow">{labels.eyebrow}</p>
           <h1>{labels.title}</h1>
           <p className="lede">{labels.intro}</p>
-          <aside className={styles.notice} aria-label={labels.prepared}>
-            <strong>{labels.prepared}</strong>
-            <p>{labels.preparedText}</p>
-          </aside>
+          {showPrepared ? (
+            <aside className={styles.notice} aria-label={labels.prepared}>
+              <strong>{labels.prepared}</strong>
+              <p>{labels.preparedText}</p>
+            </aside>
+          ) : (
+            !teluguReviewed && (
+              <aside className={styles.notice} aria-label={labels.teluguNotice}>
+                <strong>{labels.teluguNotice}</strong>
+              </aside>
+            )
+          )}
         </header>
 
         <section className="section shell" aria-labelledby="scheme-results">
@@ -300,22 +326,44 @@ export function SchemesDirectory() {
                       </OfficialClaim>
                     </div>
                     <div className={styles.claimGrid}>
+                      {scheme.department !== null ? (
+                        <OfficialClaim
+                          label={labels.departments}
+                          source={scheme.department.source}
+                        >
+                          {localized(scheme.department.value, locale)}
+                        </OfficialClaim>
+                      ) : (
+                        <div className={styles.claim}>
+                          <span className={styles.claimLabel}>
+                            {labels.departments}
+                          </span>
+                          <div className={styles.claimValue}>
+                            {labels.criteriaUnavailable}
+                          </div>
+                        </div>
+                      )}
+                      {scheme.districts !== null ? (
+                        <OfficialClaim
+                          label={labels.districts}
+                          source={scheme.districts.source}
+                        >
+                          {scheme.districts.value
+                            .map((district) => localized(district, locale))
+                            .join(", ")}
+                        </OfficialClaim>
+                      ) : (
+                        <div className={styles.claim}>
+                          <span className={styles.claimLabel}>
+                            {labels.districts}
+                          </span>
+                          <div className={styles.claimValue}>
+                            {labels.criteriaUnavailable}
+                          </div>
+                        </div>
+                      )}
                       <OfficialClaim
-                        label={labels.department}
-                        source={scheme.department.source}
-                      >
-                        {localized(scheme.department.value, locale)}
-                      </OfficialClaim>
-                      <OfficialClaim
-                        label={labels.districts}
-                        source={scheme.districts.source}
-                      >
-                        {scheme.districts.value
-                          .map((district) => localized(district, locale))
-                          .join(", ")}
-                      </OfficialClaim>
-                      <OfficialClaim
-                        label={labels.category}
+                        label={labels.categoryLabel}
                         source={scheme.category.source}
                       >
                         {localized(scheme.category.value, locale)}

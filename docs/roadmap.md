@@ -53,7 +53,9 @@ while retaining every Stage 1 source link and UUID.
 - Stage 1 is accepted under the documented seed-rerun evidence waiver.
 - Stage 2A/2B implementation and disposable PostgreSQL/PostGIS integration are complete locally.
 - Production restore and deployment evidence remain required for Stage 2A/2B operational acceptance.
-- Network ingestion, object-storage provisioning, review UI, and public provenance UI have not begun.
+- Network ingestion started with the district-feed command (see below). The public provenance UI
+  started with the `/ingestion` status page, which surfaces snapshot, extraction, and review state
+  for every registered feed; object-storage provisioning and the review UI have not begun.
 - A disposable PostGIS run, backup/restore drill, storage budget approval, and LGD access review
   remain release gates.
 
@@ -102,7 +104,8 @@ demonstrated for any district until reviewed records exist.
 The AP Accounts and structured reports website slice is prepared at `/account` as an honest shell. It
 states plainly that no account exists: no email, password, phone, or precise location is collected or
 stored, and there is no sign-up, sign-in, or saved preference. It previews the planned consent model
-(area alerts, language preference, and submitted-evidence visibility, each marked planned), a
+(area alerts and submitted-evidence visibility, each marked planned; language choice stays with the
+always-available header selector, which needs no account), a
 prepared view of the five structured reports that would aggregate published reviewed records, and the
 review-controls boundary (identity, moderation, appeals, abuse, and audit controls must be built
 before any account exists). This is not Stage 9 data acceptance: no consent choice can be made or
@@ -127,6 +130,38 @@ back to the readiness gates. The `/api/community` route serves the explicitly la
 `prepared-closed` participation state and is intentionally empty.
 
 This is not Stage 10 data acceptance: nothing can be submitted, no poll is open, no result is
-published, and no moderation action has ever occurred. Additional states using the proven Andhra
-Pradesh pipeline are the next website slice; they remain out of scope until network ingestion and
-data acceptance are operational.
+published, and no moderation action has ever occurred. Network ingestion started with the
+`ingest_districts` command: it stores the raw LGD and AP State Portal district responses as immutable
+snapshots, extracts typed official observations, and publishes Markapuram and Polavaram with audited
+review decisions, bringing the reviewed district directory to 28. The `/ingestion` page then exposes
+`GET /api/v1/ingestion/feeds` so the public can see each feed's snapshot, extraction, and review
+status without seeing reviewer identities or raw snapshot contents. Source links throughout the
+public UI point at human-readable official pages (district portals, LGD portal, AP State Portal) and
+show the exact recorded API endpoint as non-clickable evidence text, so machine endpoints are never
+presented as browseable links. Additional states using the proven Andhra Pradesh pipeline remain out
+of scope until production network-ingestion gates (private object storage, restore drill, LGD access
+review) and data acceptance are operational.
+
+Network ingestion then extended to Andhra Pradesh government schemes: the `ingest_schemes` command
+fetches the official myScheme search (Govt. of India / MeitY), stores the raw response as an
+immutable snapshot, extracts typed official observations, and publishes 20 Andhra Pradesh
+state-level schemes (YSR Rythu Bharosa, Jagananna Amma Vodi, Dr. YSR Aarogyasri, Pedalandariki Illu,
+and others) with audited review decisions. Because myScheme provides no Telugu, no AP nodal
+department, no district-level coverage, and no public eligibility detail, those fields are honestly
+left unpublished and the UI labels Telugu as "not yet reviewed" rather than fabricating values. The
+`/schemes` directory and `/schemes/[slug]` detail pages now serve this reviewed catalogue through
+`GET /api/v1/schemes` with an explicit prepared-empty fallback. Additional states, department
+coverage, Telugu review, and eligibility detail remain out of scope until the same production
+network-ingestion gates and data acceptance are operational.
+
+The Andhra Pradesh budget pipeline now has a production-grade layout parser for the official AP Finance
+Annual Financial Statement (Volume-I-1): all 14 available years (2013-14 through 2026-27) parse with
+zero merged, empty, or comma-artifact head names across every statement (A Revenue Receipts,
+B Capital Receipts, C Public Account Receipts, D Revenue Expenditure, E Capital Expenditure,
+F Public Debt, G Public Account Disbursements). Values are decoded to rupees using each statement's
+declared unit, and corpus-canonical head-name reconciliation resolves the wrapped-name ambiguities that
+a per-year parser cannot. The operator CLI (`python -m app.commands.ingest_budget --reviewer <name>`),
+the review/publish store path, and the `GET /api/v1/budget` catalogue endpoint are implemented,
+mirroring the proven schemes pattern; the web budget catalogue slice remains to be upgraded to consume
+that endpoint. Elections ingestion from the official AP Legislature term PDFs (14th/15th/16th terms)
+remains on the roadmap.

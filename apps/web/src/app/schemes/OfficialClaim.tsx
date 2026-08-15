@@ -11,15 +11,22 @@ export function OfficialClaim({
   source: SchemeSourceRecord;
   children: ReactNode;
 }) {
+  const linkUrl = source.public_source_url ?? source.official_source_url;
+  const showsRecordedEndpoint =
+    source.public_source_url &&
+    source.public_source_url !== source.official_source_url;
   return (
     <div className={styles.claim}>
       <span className={styles.claimLabel}>{label}</span>
       <div className={styles.claimValue}>{children}</div>
       <div className={styles.provenance}>
         <span>Official · Reviewed</span>
-        <a href={source.official_source_url} target="_blank" rel="noreferrer">
+        <a href={linkUrl} target="_blank" rel="noreferrer">
           {source.source_name}
         </a>
+        {showsRecordedEndpoint && (
+          <small>Recorded from: {source.official_source_url}</small>
+        )}
         <small>SourceRecord · retrieved {source.retrieval_date}</small>
       </div>
     </div>

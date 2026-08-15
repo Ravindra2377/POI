@@ -131,10 +131,14 @@ recovery. Use `alembic downgrade` only when that revision's downgrade has been t
 
 - No authoritative boundary geometry has been loaded; geography records deliberately allow null
   geometry and the explorer says so.
-- The requested baseline has 26 districts. Current LGD results also list Markapuram and Polavaram;
-  those two records are withheld pending separate review.
+- The requested baseline has 26 districts. Markapuram and Polavaram are published separately by the
+  network-ingestion district feed, which stores the raw LGD and AP State Portal responses as
+  immutable snapshots and records every review as an audit decision.
 - No mandals, villages, constituencies, representatives, projects, or public offices are seeded.
 - No personal-data processing or community features exist.
+- The `/ingestion` page reports only feeds whose source is marked `api_endpoint`; it is a public
+  status view of the district feed pipeline and does not serve raw snapshot contents or disclose
+  reviewer identities.
 - Telugu copy and names need professional language review before public release.
 - Stage 2 raw ingestion is blocked until the disposable database run, restore drill, private
   object-storage choice and cost limits, and LGD access review are recorded.

@@ -72,6 +72,40 @@ describe("GovernmentExplorer", () => {
     ).toBeVisible();
   });
 
+  it("links to the human-readable official page and shows the recorded endpoint", async () => {
+    const portalDistrict = {
+      ...district,
+      provenance: {
+        ...district.provenance,
+        official_source_url:
+          "https://lgdirectory.gov.in/webservices/lgdws/districtList",
+        public_source_url: "https://ananthapuramu.ap.gov.in/te/",
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(response([portalDistrict])),
+    );
+
+    render(
+      <LocaleProvider>
+        <GovernmentExplorer />
+      </LocaleProvider>,
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "Visakhapatnam" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Local Government Directory" }),
+    ).toHaveAttribute("href", "https://ananthapuramu.ap.gov.in/te/");
+    expect(
+      screen.getByText(
+        "Recorded from: https://lgdirectory.gov.in/webservices/lgdws/districtList",
+      ),
+    ).toBeVisible();
+  });
+
   it("supports Telugu rendering and native keyboard controls", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response([district])));
     const user = userEvent.setup();

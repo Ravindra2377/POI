@@ -21,12 +21,20 @@ export function SourceSummary({
 }: {
   provenance: ProvenanceSummary;
 }) {
+  const linkUrl =
+    provenance.public_source_url ?? provenance.official_source_url;
+  const showsRecordedEndpoint =
+    provenance.public_source_url &&
+    provenance.public_source_url !== provenance.official_source_url;
   return (
     <div className="source-summary">
       <span>Official source</span>
-      <a href={provenance.official_source_url} target="_blank" rel="noreferrer">
+      <a href={linkUrl} target="_blank" rel="noreferrer">
         {provenance.source_name}
       </a>
+      {showsRecordedEndpoint && (
+        <small>Recorded from: {provenance.official_source_url}</small>
+      )}
       <small>Retrieved {provenance.retrieval_date}</small>
     </div>
   );

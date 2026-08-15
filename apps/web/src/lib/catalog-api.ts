@@ -1,4 +1,5 @@
 import type {
+  FeedStatus,
   GeographyRecord,
   GovernmentBodyRecord,
   PageResponse,
@@ -68,4 +69,8 @@ export function getRepresentatives(
   const params = new URLSearchParams({ page_size: "100" });
   if (query) params.set("q", query);
   return request(`/api/v1/representatives?${params.toString()}`, signal);
+}
+
+export function getIngestionFeeds(signal?: AbortSignal): Promise<FeedStatus[]> {
+  return request(`/api/v1/ingestion/feeds`, signal);
 }

@@ -23,6 +23,7 @@ class ProvenanceSummary(APIModel):
     source_id: UUID
     source_name: str
     official_source_url: HttpUrl
+    public_source_url: HttpUrl | None = None
     retrieval_date: date
     publication_date: date | None = None
     effective_date: date | None = None

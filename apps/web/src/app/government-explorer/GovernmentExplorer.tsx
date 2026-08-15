@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { PageFooter } from "@/components/PageFooter";
 import {
   ErrorState,
@@ -37,6 +38,7 @@ const copy = {
     incomplete: "District coverage note",
     incompleteText:
       "This reviewed baseline contains 28 district records. Markapuram and Polavaram were published from the live LGD district feed; district boundaries are not yet reviewed.",
+    ingestionLink: "Open the ingestion status page",
     noBoundary: "Boundary not reviewed or unavailable",
     pilot: "Pilot district",
   },
@@ -56,6 +58,7 @@ const copy = {
     incomplete: "జిల్లా కవరేజ్ గమనిక",
     incompleteText:
       "ఈ సమీక్షించిన ప్రాతిపదికలో 28 జిల్లా రికార్డులు ఉన్నాయి. మార్కాపురం, పోలవరం ప్రత్యక్ష LGD ఫీడ్ నుండి ప్రచురించబడ్డాయి; జిల్లా సరిహద్దులు ఇంకా సమీక్షించబడలేదు.",
+    ingestionLink: "ఇన్‌జెస్టెన్ స్థితి పేజీని తెరవండి",
     noBoundary: "సరిహద్దు సమీక్షించబడలేదు లేదా అందుబాటులో లేదు",
     pilot: "పైలట్ జిల్లా",
   },
@@ -166,6 +169,7 @@ export function GovernmentExplorer() {
             <aside className={styles.coverage} aria-label={labels.incomplete}>
               <strong>{labels.incomplete}</strong>
               <span>{labels.incompleteText}</span>
+              <Link href="/ingestion">{labels.ingestionLink}</Link>
             </aside>
           )}
 

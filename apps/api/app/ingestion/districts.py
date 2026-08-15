@@ -57,6 +57,17 @@ LGD_REQUEST_BODY = "stateCode=28"
 ADAPTER_VERSION = "1.0.0"
 SOFTWARE_REVISION = "district-feed-1.0.0"
 
+# Human-readable official pages for the feeds themselves; the recorded evidence
+# URL remains the machine endpoint in FeedSnapshot.url.
+LGD_PUBLIC_URL = "https://lgdirectory.gov.in/"
+AP_PORTAL_PUBLIC_URL = "https://www.ap.gov.in/"
+
+# Verified official district-portal pages for the two deferred districts.
+DEFERRED_DISTRICT_PUBLIC_URLS = {
+    "markapuram": "https://markapuram.ap.gov.in/",
+    "polavaram": "https://polavaram.ap.gov.in/",
+}
+
 # The two districts recorded by the live LGD feed that the reviewed Stage 1
 # baseline deliberately deferred; ingestion publishes them with audited review.
 DEFERRED_DISTRICTS: tuple[dict[str, str], ...] = (
@@ -96,6 +107,7 @@ class FeedSnapshot:
     name: str
     publisher: str
     url: str
+    public_url: str | None
     request_method: str
     request_body: str | None
     content_type: str
@@ -159,6 +171,7 @@ def fetch_district_sources(timeout: float = 25.0) -> tuple[FeedSnapshot, FeedSna
             name="Local Government Directory district list",
             publisher="Local Government Directory (LGD)",
             url=LGD_DISTRICT_URL,
+            public_url=LGD_PUBLIC_URL,
             request_method="POST",
             request_body=LGD_REQUEST_BODY,
             content_type=lgd_content_type,
@@ -170,6 +183,7 @@ def fetch_district_sources(timeout: float = 25.0) -> tuple[FeedSnapshot, FeedSna
             name="Andhra Pradesh State Portal district directory",
             publisher="Andhra Pradesh State Portal",
             url=AP_DISTRICT_URL,
+            public_url=AP_PORTAL_PUBLIC_URL,
             request_method="GET",
             request_body=None,
             content_type=ap_content_type,
@@ -307,6 +321,7 @@ def _ensure_document(
             "request_method": snapshot.request_method,
             "request_body": snapshot.request_body,
             "adapter": "district-feed",
+            **({"public_source_url": snapshot.public_url} if snapshot.public_url else {}),
         },
     )
     session.add(document)
@@ -571,6 +586,7 @@ def _ensure_deferred_source(
             "request_body": LGD_REQUEST_BODY,
             "lgd_code": lgd_code,
             "snapshot_sha256": snapshot_sha256,
+            "public_source_url": DEFERRED_DISTRICT_PUBLIC_URLS[slug],
         },
         notes=(
             "Published from the live LGD district feed after the Stage 1 baseline "

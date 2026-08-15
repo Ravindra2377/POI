@@ -223,11 +223,14 @@ def _ensure_source(
     key: str,
     source_name: str,
     source_url: str,
+    public_source_url: str | None = None,
     retrieval_date: date,
     effective_date: date | None,
     citation_metadata: dict[str, object],
     notes: str,
 ) -> tuple[SourceReference, bool]:
+    if public_source_url:
+        citation_metadata = {**citation_metadata, "public_source_url": public_source_url}
     source_id = stable_id(f"source:{key}")
     existing = session.get(SourceReference, source_id)
     if existing is not None:
@@ -437,6 +440,7 @@ def seed_stage1(session: Session) -> SeedResult:
         key="andhra-pradesh",
         source_name="Local Government Directory state list",
         source_url=manifest.state.source_url,
+        public_source_url="https://lgdirectory.gov.in/",
         retrieval_date=manifest.reviewed_on,
         effective_date=None,
         citation_metadata={"state_code": manifest.state.code},
@@ -463,6 +467,7 @@ def seed_stage1(session: Session) -> SeedResult:
             key=f"district:{district_seed.slug}",
             source_name=f"LGD district list and {district_seed.name_en} official portal",
             source_url=LGD_DISTRICT_URL,
+            public_source_url=district_seed.telugu_source_url,
             retrieval_date=manifest.reviewed_on,
             effective_date=manifest.baseline_effective_date,
             citation_metadata={
@@ -509,6 +514,7 @@ def seed_stage1(session: Session) -> SeedResult:
         key="ap-organisations",
         source_name="Andhra Pradesh State Portal organisation directory",
         source_url=AP_ORGANISATION_URL,
+        public_source_url="https://www.ap.gov.in/",
         retrieval_date=manifest.reviewed_on,
         effective_date=None,
         citation_metadata={

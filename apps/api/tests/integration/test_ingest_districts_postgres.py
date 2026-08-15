@@ -61,6 +61,7 @@ def _lgd_snapshot(retrieved_at: datetime) -> FeedSnapshot:
         name="Local Government Directory district list",
         publisher="Local Government Directory (LGD)",
         url="https://lgdirectory.gov.in/webservices/lgdws/districtList",
+        public_url="https://lgdirectory.gov.in/",
         request_method="POST",
         request_body="stateCode=28",
         content_type="application/json",
@@ -75,6 +76,7 @@ def _ap_snapshot(retrieved_at: datetime) -> FeedSnapshot:
         name="Andhra Pradesh State Portal district directory",
         publisher="Andhra Pradesh State Portal",
         url="https://www.ap.gov.in/api/api/Districts",
+        public_url="https://www.ap.gov.in/",
         request_method="GET",
         request_body=None,
         content_type="application/json",
@@ -144,6 +146,7 @@ def test_district_feed_ingestion_publishes_all_28_districts(tmp_path: Path) -> N
         assert markapuram.provenance.official_source_url == (
             "https://lgdirectory.gov.in/webservices/lgdws/districtList"
         )
+        assert markapuram.provenance.public_source_url == "https://markapuram.ap.gov.in/"
         assert not markapuram.has_boundary
 
         published_observations = session.scalar(

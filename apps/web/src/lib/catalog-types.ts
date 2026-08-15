@@ -4,6 +4,7 @@ export interface ProvenanceSummary {
   source_id: string;
   source_name: string;
   official_source_url: string;
+  public_source_url?: string | null;
   retrieval_date: string;
   publication_date: string | null;
   effective_date: string | null;
@@ -90,4 +91,42 @@ export interface PageResponse<T> {
     total: number;
     total_pages: number;
   };
+}
+
+export interface FeedSourceSummary {
+  name: string;
+  publisher: string;
+  official_source_url: string;
+  public_source_url?: string | null;
+  access_method: string;
+  review_status: "pending" | "reviewed" | "rejected";
+}
+
+export interface FeedSnapshotSummary {
+  sha256: string;
+  retrieved_at: string;
+  http_status: number;
+  content_type: string;
+  file_size_bytes: number;
+}
+
+export interface FeedExtractionSummary {
+  adapter_name: string;
+  adapter_version: string;
+  status: string;
+  extracted_record_count: number;
+  software_revision: string;
+}
+
+export interface FeedReviewSummary {
+  decision: string;
+  decided_at: string;
+}
+
+export interface FeedStatus {
+  source: FeedSourceSummary;
+  latest_snapshot: FeedSnapshotSummary | null;
+  latest_extraction: FeedExtractionSummary | null;
+  observation_counts: { total: number; published: number };
+  latest_review: FeedReviewSummary | null;
 }

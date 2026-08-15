@@ -56,6 +56,11 @@ const quickLinks = [
     href: "/sources#future-sources",
     note: "Source queue",
   },
+  {
+    label: "Data Ingestion",
+    href: "/ingestion",
+    note: "Feed status live",
+  },
 ];
 
 export default function Home() {

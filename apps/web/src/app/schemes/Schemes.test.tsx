@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import {
   filterSchemes,
+  localized,
   type SchemeRecord,
   type SchemeSourceRecord,
 } from "@/lib/schemes";
@@ -14,6 +15,7 @@ const source: SchemeSourceRecord = {
   source_record_id: "test-source-record",
   source_name: "Test Gazette Source",
   official_source_url: "https://example.gov.in/test-scheme",
+  public_source_url: "https://example.gov.in/test-scheme",
   retrieval_date: "2026-08-14",
   review_status: "reviewed",
 };
@@ -55,13 +57,14 @@ const testScheme: SchemeRecord = {
   },
 };
 
-function response(data: SchemeRecord[]) {
+function response(data: SchemeRecord[], teluguReviewed = false) {
   return {
     ok: true,
     status: 200,
     json: async () => ({
       data,
       status: data.length ? "reviewed" : "prepared-empty",
+      telugu_reviewed: teluguReviewed,
     }),
   };
 }
@@ -94,6 +97,51 @@ describe("scheme filtering", () => {
         eligibility: "unavailable",
       }),
     ).toHaveLength(1);
+  });
+
+  it("does not match unpublished department or district filters", () => {
+    const partial = {
+      ...testScheme,
+      department: null,
+      districts: null,
+    };
+    expect(
+      filterSchemes([partial], {
+        department: "",
+        district: "",
+        category: "",
+        eligibility: "all",
+      }),
+    ).toHaveLength(1);
+    expect(
+      filterSchemes([partial], {
+        department: "Health Department",
+        district: "",
+        category: "",
+        eligibility: "all",
+      }),
+    ).toEqual([]);
+    expect(
+      filterSchemes([partial], {
+        department: "",
+        district: "Test District",
+        category: "",
+        eligibility: "all",
+      }),
+    ).toEqual([]);
+  });
+
+  it("falls back to English when a Telugu label is missing", () => {
+    const te = "te";
+    const partial = {
+      ...testScheme,
+      name: {
+        ...testScheme.name,
+        value: { en: "English Name", te: "" },
+      },
+    };
+    expect(partial.name.value.en).toBe("English Name");
+    expect(localized(partial.name.value, te)).toBe("English Name");
   });
 });
 
@@ -194,6 +242,54 @@ describe("SchemesDirectory", () => {
       await screen.findByText("No reviewed scheme records are published yet"),
     ).toBeVisible();
   });
+
+  it("flags records whose Telugu labels are not yet reviewed", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(response([testScheme], false)),
+    );
+
+    render(
+      <LocaleProvider>
+        <SchemesDirectory />
+      </LocaleProvider>,
+    );
+
+    expect(
+      await screen.findByLabelText(
+        "Telugu labels are not yet reviewed for these records; English values are shown.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("renders unpublished department and district claims honestly", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        response([
+          {
+            ...testScheme,
+            department: null,
+            districts: null,
+            eligibility: null,
+          },
+        ]),
+      ),
+    );
+
+    render(
+      <LocaleProvider>
+        <SchemesDirectory />
+      </LocaleProvider>,
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "Test Health Support" }),
+    ).toBeVisible();
+    expect(
+      screen.getAllByText("Not published in this reviewed record"),
+    ).toHaveLength(3);
+  });
 });
 
 describe("SchemeDetail", () => {
@@ -216,7 +312,11 @@ describe("SchemeDetail", () => {
   it("places provenance beside every official detail claim", () => {
     render(
       <LocaleProvider>
-        <SchemeDetail scheme={testScheme} requestedSlug={testScheme.slug} />
+        <SchemeDetail
+          scheme={testScheme}
+          requestedSlug={testScheme.slug}
+          teluguReviewed={false}
+        />
       </LocaleProvider>,
     );
 
@@ -225,5 +325,52 @@ describe("SchemeDetail", () => {
       screen.getAllByRole("link", { name: "Test Gazette Source" }),
     ).toHaveLength(6);
     expect(screen.getByText("Test criterion")).toBeVisible();
+  });
+
+  it("shows a Telugu-unreviewed notice and unpublished claims honestly", () => {
+    render(
+      <LocaleProvider>
+        <SchemeDetail
+          scheme={{
+            ...testScheme,
+            department: null,
+            districts: null,
+            eligibility: null,
+          }}
+          requestedSlug={testScheme.slug}
+          teluguReviewed={false}
+        />
+      </LocaleProvider>,
+    );
+
+    expect(
+      screen.getByLabelText(
+        "Telugu labels are not yet reviewed for this record; English values are shown.",
+      ),
+    ).toBeVisible();
+    expect(
+      screen.getAllByText("Not published in this reviewed record"),
+    ).toHaveLength(2);
+    expect(
+      screen.getByText(
+        "Eligibility criteria are unavailable in this reviewed record. This page cannot determine personal eligibility.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("omits the Telugu notice once Telugu review is complete", () => {
+    render(
+      <LocaleProvider>
+        <SchemeDetail
+          scheme={testScheme}
+          requestedSlug={testScheme.slug}
+          teluguReviewed={true}
+        />
+      </LocaleProvider>,
+    );
+
+    expect(
+      screen.queryByLabelText(/Telugu labels are not yet reviewed/),
+    ).not.toBeInTheDocument();
   });
 });

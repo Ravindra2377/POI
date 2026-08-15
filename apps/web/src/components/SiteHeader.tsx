@@ -16,6 +16,7 @@ const navigation = [
   { href: "/my-area", label: "My Area" },
   { href: "/government", label: "Government" },
   { href: "/sources", label: "Sources" },
+  { href: "/ingestion", label: "Ingestion" },
   { href: "/community", label: "Community" },
   { href: "/account", label: "Account" },
 ];

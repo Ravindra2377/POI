@@ -9,6 +9,7 @@ export interface SchemeSourceRecord {
   source_record_id: string;
   source_name: string;
   official_source_url: string;
+  public_source_url: string | null;
   retrieval_date: string;
   review_status: "reviewed";
 }
@@ -23,8 +24,8 @@ export interface SchemeRecord {
   slug: string;
   name: OfficialSchemeClaim<LocalizedText>;
   description: OfficialSchemeClaim<LocalizedText>;
-  department: OfficialSchemeClaim<LocalizedText>;
-  districts: OfficialSchemeClaim<LocalizedText[]>;
+  department: OfficialSchemeClaim<LocalizedText> | null;
+  districts: OfficialSchemeClaim<LocalizedText[]> | null;
   category: OfficialSchemeClaim<LocalizedText>;
   eligibility: OfficialSchemeClaim<LocalizedText[]> | null;
 }
@@ -39,13 +40,15 @@ export interface SchemeFilters {
 export interface SchemeCatalogResponse {
   data: SchemeRecord[];
   status: "prepared-empty" | "reviewed";
+  telugu_reviewed: boolean;
 }
 
 // Production remains empty until records complete source and bilingual review.
 export const preparedSchemes: readonly SchemeRecord[] = [];
 
 export function localized(value: LocalizedText, locale: Locale): string {
-  return locale === "te" ? value.te : value.en;
+  if (locale === "te" && value.te) return value.te;
+  return value.en;
 }
 
 export function filterSchemes(
@@ -56,21 +59,19 @@ export function filterSchemes(
     const hasEligibility = scheme.eligibility !== null;
     return (
       (!filters.department ||
-        scheme.department.value.en === filters.department) &&
+        (scheme.department !== null &&
+          scheme.department.value.en === filters.department)) &&
       (!filters.district ||
-        scheme.districts.value.some(
-          (district) => district.en === filters.district,
-        )) &&
+        (scheme.districts !== null &&
+          scheme.districts.value.some(
+            (district) => district.en === filters.district,
+          ))) &&
       (!filters.category || scheme.category.value.en === filters.category) &&
       (filters.eligibility === "all" ||
         (filters.eligibility === "published" && hasEligibility) ||
         (filters.eligibility === "unavailable" && !hasEligibility))
     );
   });
-}
-
-export function preparedSchemeBySlug(slug: string): SchemeRecord | null {
-  return preparedSchemes.find((scheme) => scheme.slug === slug) ?? null;
 }
 
 export async function getSchemes(
