@@ -27,6 +27,8 @@ const copy = {
     consentHeading: "Consent choices are planned, not available",
     consentNote:
       "No consent choice can be made or stored yet. These are the choices the consent controls would offer once identity, privacy and audit controls are built.",
+    languageNote:
+      "Language is already available from the header selector and needs no account.",
     planned: "Planned",
     reportsEyebrow: "STRUCTURED REPORTS",
     reportsHeading: "Structured reports are prepared, not published",
@@ -54,6 +56,8 @@ const copy = {
     consentHeading: "సమ్మతి ఎంపికలు ప్రణాళికలో ఉన్నాయి, అందుబాటులో లేవు",
     consentNote:
       "ఇంకా ఎటువంటి సమ్మతి ఎంపిక చేయబడదు లేదా నిల్వ చేయబడదు. గుర్తింపు, గోప్యత మరియు ఆడిట్ నియంత్రణలు నిర్మించిన తర్వాత సమ్మతి నియంత్రణలు అందించే ఎంపికలు ఇవి.",
+    languageNote:
+      "భాష హెడర్ ఎంపిక ద్వారా ఇప్పటికే అందుబాటులో ఉంది మరియు దీనికి ఖాతా అవసరం లేదు.",
     planned: "ప్రణాళిక",
     reportsEyebrow: "నిర్మాణాత్మక నివేదికలు",
     reportsHeading: "నిర్మాణాత్మక నివేదికలు సిద్ధం, ప్రచురించబడలేదు",
@@ -120,6 +124,7 @@ export function AccountContent() {
               </li>
             ))}
           </ul>
+          <p className={styles.consentNote}>{labels.languageNote}</p>
         </section>
 
         <section className="section shell" aria-labelledby="reports-heading">

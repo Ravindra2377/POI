@@ -15,7 +15,11 @@ vi.mock("next/navigation", () => ({
 
 describe("account domain configuration", () => {
   it("configures only planned consent choices and prepared report domains", () => {
-    expect(consentChoices).toHaveLength(3);
+    expect(consentChoices).toHaveLength(2);
+    expect(consentChoices.map((choice) => choice.key)).toEqual([
+      "area-alerts",
+      "evidence",
+    ]);
     for (const choice of consentChoices) {
       expect(choice.planned).toBe(true);
       expect(choice.label.en.length).toBeGreaterThan(0);
@@ -55,7 +59,13 @@ describe("AccountContent", () => {
         name: "Consent choices are planned, not available",
       }),
     ).toBeVisible();
-    expect(screen.getAllByText("Planned")).toHaveLength(3);
+    expect(screen.getAllByText("Planned")).toHaveLength(2);
+    expect(screen.queryByText("Language preference")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Language is already available from the header selector and needs no account.",
+      ),
+    ).toBeVisible();
 
     expect(
       screen.getAllByText("No reviewed records published yet"),

@@ -6,7 +6,7 @@ export interface AccountLocalizedText {
 }
 
 export interface ConsentChoice {
-  key: "area-alerts" | "language" | "evidence";
+  key: "area-alerts" | "evidence";
   label: AccountLocalizedText;
   description: AccountLocalizedText;
   planned: true;
@@ -28,15 +28,6 @@ export const consentChoices: readonly ConsentChoice[] = [
     description: {
       en: "Alert me when reviewed records are published for a district I choose.",
       te: "నేను ఎంచుకున్న జిల్లాకు సమీక్షించిన రికార్డులు ప్రచురించబడినప్పుడు నాకు తెలియజేయండి.",
-    },
-    planned: true,
-  },
-  {
-    key: "language",
-    label: { en: "Language preference", te: "భాషా ప్రాధాన్యత" },
-    description: {
-      en: "Remember which of the supported languages to show.",
-      te: "మద్దతు ఉన్న భాషలలో ఏది చూపించాలో గుర్తుంచుకోండి.",
     },
     planned: true,
   },

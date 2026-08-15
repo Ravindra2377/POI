@@ -42,6 +42,11 @@
   font-size: 0.84rem;
   margin: 0;
 }
+.consentNote {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 16px 0 0;
+}
 .reportGrid {
   display: grid;
   gap: 18px;
