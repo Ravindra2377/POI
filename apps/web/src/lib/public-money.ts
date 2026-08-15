@@ -9,6 +9,7 @@ export interface MoneySourceRecord {
   source_record_id: string;
   source_name: string;
   official_source_url: string;
+  public_source_url?: string | null;
   retrieval_date: string;
   review_status: "reviewed";
 }
@@ -24,6 +25,12 @@ export interface MoneyAmount {
   value: number;
 }
 
+export interface BudgetAmountItem {
+  label: string;
+  value_text: string;
+  rupees: number;
+}
+
 export interface PublicMoneyRecord {
   slug: string;
   title: OfficialMoneyClaim<PublicMoneyLocalizedText>;
@@ -33,6 +40,11 @@ export interface PublicMoneyRecord {
   districts: OfficialMoneyClaim<PublicMoneyLocalizedText[]>;
   reporting_period: OfficialMoneyClaim<PublicMoneyLocalizedText> | null;
   amount: OfficialMoneyClaim<MoneyAmount> | null;
+  fiscal_year?: string;
+  statement?: string;
+  code?: string;
+  unit?: string;
+  amounts?: BudgetAmountItem[];
 }
 
 export interface PublicMoneyFilters {
@@ -54,7 +66,7 @@ export function localizedMoneyText(
   value: PublicMoneyLocalizedText,
   locale: Locale,
 ): string {
-  return locale === "te" ? value.te : value.en;
+  return locale === "te" && value.te ? value.te : value.en;
 }
 
 export function formatMoneyAmount(amount: MoneyAmount): string {

@@ -1941,3 +1941,13 @@ supported`; department cards opened the AP State Portal `ApOrganizations` JSON e
   - `npm run lint`: Passed with 0 warnings/errors.
   - `npm test`: Passed (34 test files, 105 tests total).
 
+### Stage 2.2 — AP Public Money Backend Integration (2026-08-16)
+
+- **Backend Budget Endpoint Integration:**
+  - Updated `apps/web/src/app/api/public-money/route.ts` to proxy requests to `${API_URL}/api/v1/budget`, linking the `/public-money` web interface to the live PostgreSQL catalog of 32,528 reviewed budget observations.
+  - Adapted `apps/web/src/lib/public-money.ts` to support both `BudgetLineOut` major-head observations and legacy prepared fallback states.
+  - Updated `OfficialMoneyClaim.tsx` with clean provenance URL formatting (`formatUrlDisplay`) and tooltips.
+- **Verification Evidence:**
+  - Web (`apps/web`): `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (34 test files, 105 tests passed).
+  - API (`apps/api`): `ruff check --no-cache .` (all clean), `mypy --cache-dir /tmp/mypy_cache app tests` (58 files clean), `pytest -p no:cacheprovider` (57 passed).
+
