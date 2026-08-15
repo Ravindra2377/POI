@@ -1912,3 +1912,32 @@ supported`; department cards opened the AP State Portal `ApOrganizations` JSON e
 - **Remaining work:** elections ingestion from the official AP Legislature term PDFs
   (14th/15th/16th terms) remains on the roadmap, as does upgrading the web budget catalogue slice to
   consume `GET /api/v1/budget`.
+
+
+## AP Historical Public Data (2014–Present) Production Database Ingestion & Quality Verification (2026-08-15)
+
+- **Goal & Scope:** Populated the production PostgreSQL database (Aiven instance) with verified Andhra Pradesh public data spanning 2014 to 2026, executing schema migrations, geography seeding, district ingestion, scheme ingestion, and Annual Financial Statements (AFS) budget parsing.
+- **Database Schema Migration:** Applied `alembic upgrade head` cleanly creating all domain, spatial, and provenance tables (`source_records`, `source_documents`, `source_snapshots`, `extraction_runs`, `source_observations`, `review_decisions`, `geographies`, `government_bodies`, `departments`).
+- **Data Ingestion Results:**
+  - **Geography & Administrative Entities:** Seeded state & district geographies (`geography`: 2, `source_reference`: 28).
+  - **Districts Directory:** Ingested & published 168 reviewed observations across 28 AP districts (`lgd_district`: 112, `ap_portal_district`: 56).
+  - **State Schemes Directory:** Ingested & published 100 reviewed observations for 20 AP state schemes (`scheme`: 100).
+  - **Annual Financial Statements (2014–2026):** Ingested & published 32,528 reviewed budget observations parsed from 14 official AFS PDF volumes from `apfinance.gov.in`.
+  - **Total Published Observations:** **32,826** verified, immutable source-linked records.
+- **Quality Gates Verification:**
+  - Web (`apps/web`): `npm run typecheck`, `npm run lint`, `npm test` (34 test files, 105 tests passed).
+  - API (`apps/api`): `ruff check --no-cache .`, `mypy --cache-dir /tmp/mypy_cache app tests` (58 files clean), `pytest` (57 passed).
+
+### Stage 2.1 — Web Application Header & Provenance Layout Refactor (2026-08-16)
+
+- **Top Navigation Restructuring:**
+  - Separated `primaryNavigation` (5 core items: *Schemes*, *Public Money*, *Projects*, *Government*, *My Area*) from `secondaryNavigation` (*Explore Data*, *Procurement*, *Officeholders*, *Sources*, *Ingestion*, *Community*, *Account*).
+  - Integrated a clean **"More ▾"** hamburger dropdown menu on desktop and responsive drawer on mobile, eliminating 12-item nav bar crowding.
+- **Source Record & Provenance Display Refinement:**
+  - Added URL host/path formatting (`formatUrlDisplay`) in `OfficialClaim.tsx` and `RecordStatus.tsx`.
+  - Replaced raw 300-character API endpoint query strings with clean domain links (`api.myscheme.gov.in/...`), preserving immutable source citations without cluttering item cards.
+- **Verification Evidence:**
+  - `npm run typecheck`: Passed with 0 errors.
+  - `npm run lint`: Passed with 0 warnings/errors.
+  - `npm test`: Passed (34 test files, 105 tests total).
+

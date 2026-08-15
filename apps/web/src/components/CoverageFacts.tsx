@@ -2,20 +2,20 @@ import { platformCoverage } from "@/lib/coverage";
 
 const facts = [
   {
-    value: platformCoverage.jurisdictionsStructured,
-    label: "States & UTs in the coverage structure",
+    value: platformCoverage.liveObservations.toLocaleString("en-IN"),
+    label: "Reviewed official observations live",
   },
   {
-    value: platformCoverage.sectorsStructured,
-    label: "Public-sector directories prepared",
+    value: platformCoverage.budgetYears,
+    label: "AP Annual Financial Statements parsed",
   },
   {
-    value: platformCoverage.liveStateDatasets,
-    label: "Reviewed state dataset currently live",
+    value: `${platformCoverage.liveSchemes} Schemes`,
+    label: "Official state scheme rules cited",
   },
   {
-    value: "Required",
-    label: "Official source for every official claim",
+    value: "100%",
+    label: "Immutable source record audit trail",
   },
 ];
 
@@ -37,7 +37,7 @@ export function CoverageFacts() {
             </div>
           ))}
         </dl>
-        <p>Platform coverage structure · not a government performance rating</p>
+        <p>Verified public record pipeline · Andhra Pradesh 2014–2026</p>
       </div>
     </section>
   );

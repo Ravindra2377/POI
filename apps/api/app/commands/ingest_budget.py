@@ -97,8 +97,9 @@ def main() -> None:
     years_summary: list[dict[str, object]] = []
     lines_seen = 0
     observations_created = 0
-    with get_session_factory()() as session, session.begin():
-        for year in years:
+    session_factory = get_session_factory()
+    for year in years:
+        with session_factory() as session, session.begin():
             lines = reconcile_head_names(parsed_by_year[year.fiscal_year], canonical)
             snapshot = fetch_afs_pdf(year)
             stored = store_budget_afs(

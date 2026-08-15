@@ -6,15 +6,18 @@ import { useState } from "react";
 import { useLocale } from "./LocaleProvider";
 import { CoverageNotice } from "./CoverageNotice";
 
-const navigation = [
-  { href: "/explore-data", label: "Explore Data" },
+const primaryNavigation = [
   { href: "/schemes", label: "Schemes" },
-  { href: "/projects", label: "Projects" },
   { href: "/public-money", label: "Public Money" },
+  { href: "/projects", label: "Projects" },
+  { href: "/government", label: "Government" },
+  { href: "/my-area", label: "My Area" },
+];
+
+const secondaryNavigation = [
+  { href: "/explore-data", label: "Explore Data" },
   { href: "/procurement", label: "Procurement" },
   { href: "/officeholders", label: "Officeholders" },
-  { href: "/my-area", label: "My Area" },
-  { href: "/government", label: "Government" },
   { href: "/sources", label: "Sources" },
   { href: "/ingestion", label: "Ingestion" },
   { href: "/community", label: "Community" },
@@ -25,6 +28,11 @@ export function SiteHeader() {
   const pathname = usePathname() ?? "";
   const { locale, setLocale } = useLocale();
   const [open, setOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const isSecondaryActive = secondaryNavigation.some((item) =>
+    pathname.startsWith(item.href)
+  );
 
   return (
     <>
@@ -51,18 +59,59 @@ export function SiteHeader() {
             aria-label="Primary navigation"
             data-open={open}
           >
-            {navigation.map((item) => (
+            {primaryNavigation.map((item) => (
               <Link
                 aria-current={
                   pathname.startsWith(item.href) ? "page" : undefined
                 }
+                className="nav-link-primary"
                 href={item.href}
                 key={item.href}
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  setMoreOpen(false);
+                }}
               >
                 {item.label}
               </Link>
             ))}
+
+            <div className="nav-dropdown-wrapper">
+              <button
+                className="more-menu-toggle"
+                type="button"
+                aria-expanded={moreOpen}
+                aria-haspopup="true"
+                data-active={isSecondaryActive}
+                onClick={() => setMoreOpen((prev) => !prev)}
+              >
+                <span>More</span>
+                <span className="dropdown-caret" aria-hidden="true">
+                  ▾
+                </span>
+              </button>
+              <div
+                className="more-menu-popover"
+                data-open={moreOpen || open}
+              >
+                {secondaryNavigation.map((item) => (
+                  <Link
+                    aria-current={
+                      pathname.startsWith(item.href) ? "page" : undefined
+                    }
+                    className="nav-link-secondary"
+                    href={item.href}
+                    key={item.href}
+                    onClick={() => {
+                      setOpen(false);
+                      setMoreOpen(false);
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </nav>
           <div className="language-control">
             <span className="language-control__icon" aria-hidden="true">

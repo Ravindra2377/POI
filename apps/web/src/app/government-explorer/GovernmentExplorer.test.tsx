@@ -101,7 +101,7 @@ describe("GovernmentExplorer", () => {
     ).toHaveAttribute("href", "https://ananthapuramu.ap.gov.in/te/");
     expect(
       screen.getByText(
-        "Recorded from: https://lgdirectory.gov.in/webservices/lgdws/districtList",
+        /Recorded from: lgdirectory.gov.in/,
       ),
     ).toBeVisible();
   });

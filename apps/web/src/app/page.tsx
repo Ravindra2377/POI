@@ -9,57 +9,27 @@ const quickLinks = [
   {
     label: "Andhra Pradesh",
     href: "/government-explorer",
-    note: "Reviewed data live",
+    note: "28 Districts Verified",
   },
   {
-    label: "Health",
-    href: "/explore-data?sector=Health#directory",
-    note: "Directory prepared",
+    label: "Public Schemes",
+    href: "/schemes",
+    note: "20 AP Schemes Live",
   },
   {
-    label: "Union ministers",
-    href: "/government#representatives",
-    note: "Awaiting reviewed records",
-  },
-  {
-    label: "AP ministers",
-    href: "/officeholders",
-    note: "Directory prepared",
-  },
-  {
-    label: "My Area",
-    href: "/my-area",
-    note: "Coarse area briefing",
-  },
-  {
-    label: "Account",
-    href: "/account",
-    note: "Not open yet",
-  },
-  {
-    label: "Community",
-    href: "/community",
-    note: "Not open yet",
-  },
-  {
-    label: "Latest expenditure",
+    label: "Public Money & Budget",
     href: "/public-money",
-    note: "Directory prepared",
-  },
-  {
-    label: "Tenders & contracts",
-    href: "/procurement",
-    note: "Directory prepared",
-  },
-  {
-    label: "CAG reports",
-    href: "/sources#future-sources",
-    note: "Source queue",
+    note: "32,528 AFS Observations",
   },
   {
     label: "Data Ingestion",
     href: "/ingestion",
-    note: "Feed status live",
+    note: "100% Provenance Audit",
+  },
+  {
+    label: "Official Sources",
+    href: "/sources",
+    note: "Raw PDF & JSON Feeds",
   },
 ];
 

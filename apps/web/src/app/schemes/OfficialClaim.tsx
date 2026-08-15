@@ -2,6 +2,19 @@ import type { ReactNode } from "react";
 import type { SchemeSourceRecord } from "@/lib/schemes";
 import styles from "./schemes.module.css";
 
+function formatUrlDisplay(url: string) {
+  try {
+    const parsed = new URL(url);
+    const path =
+      parsed.pathname.length > 25
+        ? parsed.pathname.slice(0, 25) + "…"
+        : parsed.pathname;
+    return `${parsed.hostname}${path}`;
+  } catch {
+    return url.length > 40 ? url.slice(0, 40) + "…" : url;
+  }
+}
+
 export function OfficialClaim({
   label,
   source,
@@ -25,7 +38,9 @@ export function OfficialClaim({
           {source.source_name}
         </a>
         {showsRecordedEndpoint && (
-          <small>Recorded from: {source.official_source_url}</small>
+          <small title={source.official_source_url}>
+            Recorded from: {formatUrlDisplay(source.official_source_url)}
+          </small>
         )}
         <small>SourceRecord · retrieved {source.retrieval_date}</small>
       </div>

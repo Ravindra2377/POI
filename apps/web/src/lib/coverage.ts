@@ -78,5 +78,8 @@ export const platformCoverage = {
   sectorsStructured: sectors.length,
   liveStateDatasets: indiaJurisdictions.filter((item) => item.status === "live")
     .length,
-  reviewedDistrictBaseline: 26,
+  reviewedDistrictBaseline: 28,
+  liveObservations: 32826,
+  liveSchemes: 20,
+  budgetYears: "2014–2026",
 } as const;

@@ -22,7 +22,7 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 from hashlib import sha256
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 from uuid import UUID, uuid5
 
@@ -497,6 +497,11 @@ def reconcile_head_names(
     return reconciled
 
 
+def _quote_url(url: str) -> str:
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, parts.netloc, quote(parts.path), parts.query, parts.fragment))
+
+
 def fetch_afs_pdf(
     year: BudgetYearRecord,
     *,
@@ -504,7 +509,7 @@ def fetch_afs_pdf(
     headers: dict[str, str] | None = None,
 ) -> BudgetSnapshot:
     """Fetch the AFS PDF for one budget year."""
-    request = Request(year.url, method="GET")
+    request = Request(_quote_url(year.url), method="GET")
     for key, value in (headers or {}).items():
         request.add_header(key, value)
     try:
@@ -672,11 +677,11 @@ def _write_observations(
     retrieved_on: date,
 ) -> int:
     created = 0
-    for entity_key, fields in rows:
-        entity_id = _stable(f"{entity_type}:{entity_key}")
+    for idx, (entity_key, fields) in enumerate(rows):
+        entity_id = _stable(f"{entity_type}:{entity_key}:{idx}")
         for field_path, value in fields.items():
             observation_id = _stable(
-                f"ingestion-observation:{entity_type}:{entity_key}:{field_path}"
+                f"ingestion-observation:{snapshot.id}:{entity_type}:{entity_key}:{idx}:{field_path}"
             )
             if session.get(SourceObservation, observation_id) is not None:
                 continue
