@@ -1,0 +1,178 @@
+.notice {
+  background: var(--surface-blue);
+  border-left: 4px solid var(--blue);
+  display: grid;
+  gap: 5px;
+  margin-top: 28px;
+  max-width: 850px;
+  padding: 15px 18px;
+}
+.notice strong {
+  color: var(--blue-dark);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+.notice p {
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+  margin: 0;
+}
+.filters {
+  border: 1px solid var(--line-dark);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 30px;
+  min-width: 0;
+  padding: 0;
+}
+.filters > div {
+  border-right: 1px solid var(--line);
+  padding: 11px 13px;
+}
+.filters > div:last-child {
+  border-right: 0;
+}
+.filters label,
+.claimLabel {
+  color: var(--muted);
+  display: block;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.filters select {
+  background: white;
+  border: 0;
+  color: var(--ink);
+  min-height: 38px;
+  width: 100%;
+}
+.results {
+  min-height: 260px;
+}
+.records {
+  border-top: 1px solid var(--line-dark);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.records > li {
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 30px;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(390px, 1.6fr);
+  padding: 24px 8px;
+}
+.records h2 {
+  font-size: 1.2rem;
+  margin: 0 0 8px;
+}
+.records h2 a {
+  color: var(--ink);
+}
+.records p {
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+  margin: 0;
+}
+.claimGrid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.claim {
+  min-width: 0;
+}
+.claimValue {
+  font-size: 0.82rem;
+}
+.amount {
+  font-family: ui-monospace, monospace;
+  font-size: 1rem;
+}
+.provenance {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  margin-top: 7px;
+}
+.provenance span {
+  background: var(--green-bg);
+  border: 1px solid #bddfce;
+  color: var(--green);
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 2px 5px;
+  text-transform: uppercase;
+}
+.provenance a,
+.provenance small {
+  font-size: 0.66rem;
+}
+.provenance small {
+  color: var(--muted);
+}
+.detailHeader {
+  padding-bottom: 34px;
+}
+.backLink {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.detailGrid {
+  display: grid;
+  gap: 44px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(330px, 0.9fr);
+}
+.detailGrid h2 {
+  font-size: 1.35rem;
+  margin-bottom: 18px;
+}
+.detailClaims {
+  border-top: 1px solid var(--line-dark);
+}
+.detailClaims .claim {
+  border-bottom: 1px solid var(--line);
+  padding: 18px 4px;
+}
+.unavailableSlug {
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+  margin-top: 12px;
+}
+
+@media (max-width: 800px) {
+  .filters,
+  .claimGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filters > div:nth-child(2) {
+    border-right: 0;
+  }
+  .filters > div:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+  .records > li,
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .filters,
+  .claimGrid {
+    grid-template-columns: 1fr;
+  }
+  .filters > div {
+    border-right: 0;
+  }
+  .filters > div:nth-child(n + 2) {
+    border-top: 1px solid var(--line);
+  }
+}

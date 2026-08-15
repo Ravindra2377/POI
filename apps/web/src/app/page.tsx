@@ -22,9 +22,34 @@ const quickLinks = [
     note: "Awaiting reviewed records",
   },
   {
+    label: "AP ministers",
+    href: "/officeholders",
+    note: "Directory prepared",
+  },
+  {
+    label: "My Area",
+    href: "/my-area",
+    note: "Coarse area briefing",
+  },
+  {
+    label: "Account",
+    href: "/account",
+    note: "Not open yet",
+  },
+  {
+    label: "Community",
+    href: "/community",
+    note: "Not open yet",
+  },
+  {
     label: "Latest expenditure",
     href: "/public-money",
-    note: "Finance structure only",
+    note: "Directory prepared",
+  },
+  {
+    label: "Tenders & contracts",
+    href: "/procurement",
+    note: "Directory prepared",
   },
   {
     label: "CAG reports",

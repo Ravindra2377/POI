@@ -1,12 +1,31 @@
 # Viksit Bharat??
 
-A civic intelligence and participation platform for Andhra Pradesh. The product will connect
-official records, platform calculations, and structured community experience while keeping
-those evidence classes visibly and technically separate.
+An India-wide public intelligence and civic participation platform, launching with Andhra Pradesh.
+The product connects official records, platform calculations, and structured community experience
+while keeping those evidence classes visibly and technically separate.
 
 Stage 1 adds the PostgreSQL/PostGIS geography and government-entity foundation, versioned read-only
 APIs, and a bilingual Government Explorer. Projects, financial observations, citizen reports,
 polls, eligibility decisions, and production ingestion remain outside this stage.
+
+Stage 2 provenance schema development is in progress; network ingestion remains gated by the
+documented database, recovery, object-storage, and source-access checks.
+
+The website exposes prepared AP Schemes, AP Projects, AP Public Money, AP Procurement and AP
+Officeholder directories at `/schemes`, `/projects`, `/public-money`, `/procurement` and
+`/officeholders`, a coarse bilingual area briefing at `/my-area`, an honest prepared account
+state at `/account`, and a closed prepared community shell at `/community`. They intentionally contain no
+production domain records until source-backed English
+and Telugu records complete review; neither route substitutes demonstration data for official claims.
+Public Money keeps the eleven financial stages distinct, so a published announcement is never
+presented as an expenditure; Procurement keeps tender estimates, contract awards, values and outcomes
+distinct; and Officeholders keeps roles and terms distinct from judgements about a person. My Area
+keeps the briefing coarse by design: it uses only the district the user selects by search, never a
+precise location, and alerts remain an honest deferred state until reviewable accounts and consent
+controls exist. The Account page collects nothing today and previews the planned consent and review
+controls, which are not built. Community participation is closed: no poll result there represents
+India or Andhra Pradesh, and moderation remains a planned principle backed by immutable audit. The
+community charter at `/community/charter` writes the rules of participation before it opens.
 
 ## Prerequisites
 
@@ -117,6 +136,9 @@ recovery. Use `alembic downgrade` only when that revision's downgrade has been t
 - No mandals, villages, constituencies, representatives, projects, or public offices are seeded.
 - No personal-data processing or community features exist.
 - Telugu copy and names need professional language review before public release.
+- Stage 2 raw ingestion is blocked until the disposable database run, restore drill, private
+  object-storage choice and cost limits, and LGD access review are recorded.
+- Stage 1 legacy sources do not have retained raw bytes; the backfill labels this explicitly.
 
 See the [complete cumulative development record](DEVELOPMENT.md),
 [entity relationships](docs/entity-relationships.md), and [roadmap](docs/roadmap.md).

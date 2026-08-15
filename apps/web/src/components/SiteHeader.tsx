@@ -8,10 +8,16 @@ import { CoverageNotice } from "./CoverageNotice";
 
 const navigation = [
   { href: "/explore-data", label: "Explore Data" },
+  { href: "/schemes", label: "Schemes" },
+  { href: "/projects", label: "Projects" },
   { href: "/public-money", label: "Public Money" },
+  { href: "/procurement", label: "Procurement" },
+  { href: "/officeholders", label: "Officeholders" },
+  { href: "/my-area", label: "My Area" },
   { href: "/government", label: "Government" },
   { href: "/sources", label: "Sources" },
   { href: "/community", label: "Community" },
+  { href: "/account", label: "Account" },
 ];
 
 export function SiteHeader() {

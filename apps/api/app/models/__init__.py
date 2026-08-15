@@ -12,11 +12,22 @@ from app.models.government import (
     Representative,
     RepresentativeTerm,
 )
+from app.models.provenance import (
+    Correction,
+    ExtractionRun,
+    ReviewDecision,
+    SourceDocument,
+    SourceObservation,
+    SourceRecord,
+    SourceSnapshot,
+)
 from app.models.source import SourceReference
 
 __all__ = [
     "Base",
+    "Correction",
     "Department",
+    "ExtractionRun",
     "Geography",
     "GeographyAlias",
     "GeographyRelationship",
@@ -29,5 +40,10 @@ __all__ = [
     "PublicOfficeAlias",
     "Representative",
     "RepresentativeTerm",
+    "ReviewDecision",
+    "SourceDocument",
+    "SourceObservation",
+    "SourceRecord",
+    "SourceSnapshot",
     "SourceReference",
 ]

@@ -12,6 +12,44 @@ class ReviewStatus(StrEnum):
     REJECTED = "rejected"
 
 
+class ValueClassification(StrEnum):
+    OFFICIAL = "official"
+    CALCULATED = "calculated"
+    INFERRED = "inferred"
+    COMMUNITY_REPORTED = "community_reported"
+
+
+class AccessMethod(StrEnum):
+    API = "api"
+    HTML = "html"
+    CSV = "csv"
+    XLSX = "xlsx"
+    PDF = "pdf"
+    DASHBOARD = "dashboard"
+    MANUAL = "manual"
+
+
+class ExtractionStatus(StrEnum):
+    PENDING = "pending"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    QUARANTINED = "quarantined"
+
+
+class ObservationReviewState(StrEnum):
+    PENDING = "pending"
+    REVIEWED = "reviewed"
+    REJECTED = "rejected"
+    SUPERSEDED = "superseded"
+
+
+class ReviewDecisionType(StrEnum):
+    APPROVE = "approve"
+    REJECT = "reject"
+    REQUEST_CHANGES = "request_changes"
+
+
 class GeographyType(StrEnum):
     STATE = "state"
     DISTRICT = "district"

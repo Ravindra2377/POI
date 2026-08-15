@@ -1,0 +1,153 @@
+"use client";
+
+import Link from "next/link";
+import { PageFooter } from "@/components/PageFooter";
+import { SiteHeader } from "@/components/SiteHeader";
+import { useLocale } from "@/components/LocaleProvider";
+import { localized, type SchemeRecord } from "@/lib/schemes";
+import { OfficialClaim } from "./OfficialClaim";
+import styles from "./schemes.module.css";
+
+const copy = {
+  en: {
+    back: "← All AP schemes",
+    eyebrow: "ANDHRA PRADESH · SCHEME RECORD",
+    unavailable: "Scheme record unavailable",
+    unavailableText:
+      "No reviewed, source-backed scheme record is published at this address. The address alone does not establish that a scheme exists or does not exist.",
+    prepared: "Prepared-data status",
+    overview: "Official overview",
+    details: "Official details",
+    name: "Scheme name",
+    description: "Description",
+    department: "Department",
+    districts: "District coverage",
+    category: "Category",
+    eligibility: "Eligibility criteria",
+    eligibilityUnavailable:
+      "Eligibility criteria are unavailable in this reviewed record. This page cannot determine personal eligibility.",
+  },
+  te: {
+    back: "← అన్ని ఆంధ్రప్రదేశ్ పథకాలు",
+    eyebrow: "ఆంధ్రప్రదేశ్ · పథకం రికార్డు",
+    unavailable: "పథకం రికార్డు అందుబాటులో లేదు",
+    unavailableText:
+      "ఈ చిరునామాలో సమీక్షించిన, మూలాధారంతో కూడిన పథకం రికార్డు ప్రచురించబడలేదు. ఈ చిరునామా మాత్రమే పథకం ఉందని లేదా లేదని నిర్ధారించదు.",
+    prepared: "సిద్ధం చేసిన డేటా స్థితి",
+    overview: "అధికారిక అవలోకనం",
+    details: "అధికారిక వివరాలు",
+    name: "పథకం పేరు",
+    description: "వివరణ",
+    department: "శాఖ",
+    districts: "జిల్లా పరిధి",
+    category: "వర్గం",
+    eligibility: "అర్హత ప్రమాణాలు",
+    eligibilityUnavailable:
+      "ఈ సమీక్షించిన రికార్డులో అర్హత ప్రమాణాలు అందుబాటులో లేవు. ఈ పేజీ వ్యక్తిగత అర్హతను నిర్ణయించదు.",
+  },
+} as const;
+
+export function SchemeDetail({
+  scheme,
+  requestedSlug,
+}: {
+  scheme: SchemeRecord | null;
+  requestedSlug: string;
+}) {
+  const { locale } = useLocale();
+  const labels = copy[locale];
+
+  return (
+    <>
+      <SiteHeader />
+      <main id="main-content">
+        <header className={`page-intro shell ${styles.detailHeader}`}>
+          <Link className={styles.backLink} href="/schemes">
+            {labels.back}
+          </Link>
+          <p className="eyebrow">{labels.eyebrow}</p>
+          {scheme ? (
+            <OfficialClaim label={labels.name} source={scheme.name.source}>
+              <h1 lang={locale}>{localized(scheme.name.value, locale)}</h1>
+            </OfficialClaim>
+          ) : (
+            <>
+              <h1>{labels.unavailable}</h1>
+              <p className="lede">{labels.unavailableText}</p>
+              <p className={styles.unavailableSlug}>
+                {labels.prepared}: {requestedSlug}
+              </p>
+            </>
+          )}
+        </header>
+
+        {scheme && (
+          <section className="section shell">
+            <div className={styles.detailGrid}>
+              <div>
+                <h2>{labels.overview}</h2>
+                <OfficialClaim
+                  label={labels.description}
+                  source={scheme.description.source}
+                >
+                  <p lang={locale}>
+                    {localized(scheme.description.value, locale)}
+                  </p>
+                </OfficialClaim>
+              </div>
+              <div>
+                <h2>{labels.details}</h2>
+                <div className={styles.detailClaims}>
+                  <OfficialClaim
+                    label={labels.department}
+                    source={scheme.department.source}
+                  >
+                    {localized(scheme.department.value, locale)}
+                  </OfficialClaim>
+                  <OfficialClaim
+                    label={labels.districts}
+                    source={scheme.districts.source}
+                  >
+                    {scheme.districts.value
+                      .map((district) => localized(district, locale))
+                      .join(", ")}
+                  </OfficialClaim>
+                  <OfficialClaim
+                    label={labels.category}
+                    source={scheme.category.source}
+                  >
+                    {localized(scheme.category.value, locale)}
+                  </OfficialClaim>
+                  {scheme.eligibility ? (
+                    <OfficialClaim
+                      label={labels.eligibility}
+                      source={scheme.eligibility.source}
+                    >
+                      <ul>
+                        {scheme.eligibility.value.map((criterion) => (
+                          <li key={criterion.en} lang={locale}>
+                            {localized(criterion, locale)}
+                          </li>
+                        ))}
+                      </ul>
+                    </OfficialClaim>
+                  ) : (
+                    <div className={styles.claim}>
+                      <span className={styles.claimLabel}>
+                        {labels.eligibility}
+                      </span>
+                      <div className={styles.claimValue}>
+                        {labels.eligibilityUnavailable}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+      <PageFooter />
+    </>
+  );
+}

@@ -3,8 +3,9 @@
 ## Purpose
 
 The source registry is the controlled inventory of public sources the platform is allowed and able
-to retrieve. Registration precedes ingestion. Stage 1 defines the minimal source-reference bridge and reviewed seed references; production
-ingestion remains deferred.
+to retrieve. Registration precedes ingestion. Stage 1 defines the minimal source-reference bridge
+and reviewed seed references. Stage 2 provenance schema development has begun, but production
+ingestion remains gated and deferred.
 
 ## Required source fields
 
@@ -59,3 +60,14 @@ The requested seed baseline contains 26 districts. The live LGD response retriev
 listed 28, including Markapuram (LGD 790) and Polavaram (LGD 791). The two newer entries are not
 silently merged into the requested baseline; the state record, explorer, and seed citation metadata
 disclose the gap pending a separate source review. No boundary dataset has been approved.
+
+## Stage 2 first-adapter decision
+
+The first end-to-end adapter is limited to one Local Government Directory endpoint already cited by
+Stage 1. Its exact access conditions, rate limits, response contract, and permitted fixture must be
+reviewed before network ingestion begins. No second source may be added until unchanged reruns,
+changed snapshots, extraction failure, human review, and publication gates pass for the first.
+
+Registered document metadata and normalized records remain in PostgreSQL. Raw responses must use
+approved private S3-compatible object storage under the limits in
+[the provenance contract](provenance-contract.md).

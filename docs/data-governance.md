@@ -58,12 +58,25 @@ retention schedules before Stage 6. Audit logs are append-only and access to the
 
 ## Stage 1 source references and boundaries
 
-Until Stage 2 adds snapshots and observations, every seeded record points to a minimal immutable
-source reference containing source name, official URL, retrieval date, publication/effective date
-when known, review status, fixture status, and citation notes. Mutable seed execution is separate
-from schema migration and refuses conflicting pre-existing values rather than silently replacing
+Stage 1 introduced a minimal immutable source reference for every seeded record. Stage 2A/2B now
+adds the richer document, snapshot-metadata, extraction, observation, decision, and correction schema
+while retaining that compatibility bridge. Seed execution remains separate from schema migration
+and refuses conflicting pre-existing values rather than silently replacing
 them.
 
 No boundary geometry is seeded in Stage 1. Null geometry means “not reviewed or unavailable,” not
 zero area. Future boundary imports must preserve source, precision, and boundary validity, and must
 append changed boundary observations instead of overwriting history.
+
+## Stage 2 implementation boundary
+
+New observations require exactly one typed value and an explicit classification. Non-legacy
+observations require a stored immutable snapshot and versioned extraction run. Publication is
+limited to reviewed observations. Snapshot, review-decision, and correction rows are
+database-enforced append-only. Observation values and deletion are immutable; review/publication
+state transitions require the latest immutable review decision. Corrections append an approved
+replacement and are excluded from public projection without changing the original value.
+
+Stage 1 raw bytes were not retained, so the compatibility backfill marks those documents as legacy
+raw-unavailable and does not fabricate checksums. The minimal bridge remains until a later verified
+migration. See [the Stage 2 provenance contract](provenance-contract.md).

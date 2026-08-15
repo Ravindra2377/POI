@@ -1,0 +1,84 @@
+.notice {
+  background: var(--surface-blue);
+  border-left: 4px solid var(--blue);
+  display: grid;
+  gap: 5px;
+  margin-top: 28px;
+  max-width: 850px;
+  padding: 15px 18px;
+}
+.notice strong {
+  color: var(--blue-dark);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+.notice p {
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+  margin: 0;
+}
+.classGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ruleGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.card {
+  background: white;
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 18px;
+}
+.card h3 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+.card p {
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+  margin: 0;
+}
+.openness {
+  border: 1px dashed var(--line-dark);
+  display: grid;
+  gap: 8px;
+  max-width: 850px;
+  padding: 20px 24px;
+}
+.openness h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+.openness p {
+  color: var(--ink-soft);
+  font-size: 0.84rem;
+  margin: 0;
+}
+.openness a {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+@media (max-width: 800px) {
+  .ruleGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .classGrid {
+    grid-template-columns: 1fr;
+  }
+}

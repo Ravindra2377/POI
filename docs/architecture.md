@@ -2,15 +2,18 @@
 
 ## Decision status
 
-Accepted for the pilot foundation. Revisit individual infrastructure choices only when measured
-load, operational limits, or a stage requirement provides evidence.
+Stage 1 is accepted. Stage 2A/2B passes disposable PostgreSQL/PostGIS integration and awaits
+production restore and deployment proof. Revisit infrastructure choices only when measured load, operational limits, or a stage
+requirement provides evidence.
 
 ## System context
 
-Official AP and Government of India sources enter source-specific Python ingestion workers. Raw
-snapshots are retained before normalized observations are appended to PostgreSQL/PostGIS. A
-FastAPI service exposes reviewed data to a Next.js web application. Community submissions flow
-through private storage and moderation before any public projection is created.
+The live system currently exposes reviewed Andhra Pradesh Stage 1 records through FastAPI and
+Next.js. The local Stage 2A/2B schema defines source-specific acquisition, immutable raw-snapshot
+metadata, extraction runs, observations, review decisions, and corrections, but acquisition workers
+and raw object storage are not yet implemented or deployed.
+
+Future community submissions will flow through private storage and moderation before any public
 
 ## Monorepo boundaries
 
@@ -42,7 +45,7 @@ history.
 - Next.js 16 with TypeScript for the web application
 - FastAPI with Python 3.12 for the API and future extraction code
 - Render PostgreSQL with PostGIS for relational and geographic data
-- S3-compatible private/public buckets in production; no object store is required in Stage 0
+- S3-compatible private object storage is required before Stage 2C; provider selection is pending
 - PostgreSQL full-text search initially; external search only after measured need
 
 ## API conventions
@@ -94,3 +97,15 @@ separate operator action.
 extension checks. Public catalog APIs are versioned under `/api/v1`, paginated, stably ordered,
 and expose provenance summaries rather than internal storage fields. See
 [entity relationships](entity-relationships.md) for the Stage 1 model.
+
+## Stage 2 provenance foundation
+
+The additive Stage 2 revision introduces registered sources, stable documents, immutable snapshot
+metadata, versioned extraction runs, typed append-only observations, immutable review decisions,
+correction links, and a reviewed-only public database projection. Raw bytes belong in private
+S3-compatible object storage; PostgreSQL stores their checksum and object metadata only.
+
+The Stage 1 `source_references` bridge remains operational. Existing source UUIDs are preserved in
+the richer chain, and existing public APIs remain compatible while later endpoints are designed.
+See [the provenance contract](provenance-contract.md) and
+[operations and recovery](operations-and-recovery.md).

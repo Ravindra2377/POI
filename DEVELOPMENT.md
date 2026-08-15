@@ -1,17 +1,29 @@
 # Viksit Bharat?? — Development Record
 
-**Product:** Andhra Pradesh public intelligence and civic participation platform
-**Analysis date:** 11 August 2026
-**Development covered:** Product definition, Stage 0 foundation, and Stage 1 implementation
+**Product:** India-wide public intelligence and civic participation platform, launching with Andhra Pradesh
+**Initial analysis date:** 11 August 2026
+**Last updated:** 15 August 2026
+**Development covered:** Product definition, Stage 0 foundation, Stage 1 implementation and acceptance,
+production stabilization, public-utility frontend, legal-basis page, scalable language selector,
+the locally integration-tested Stage 2A provenance contract and Stage 2B schema/compatibility implementation,
+and the prepared AP Schemes and AP Projects website slices
 
 ## Acceptance status
 
 - **Implementation acceptance:** Passed
-- **Database operational acceptance:** Pending
-- **Visual acceptance:** Pending
-- **Overall Stage 1 acceptance:** Pending
+- **Database operational acceptance:** Passed with explicit seed-rerun evidence waiver
+- **Visual acceptance:** Passed
+- **Stage 2A/2B status:** Implemented and disposable-PostGIS tested; operational acceptance pending
+- **Overall Stage 1 acceptance:** Passed with documented operational risk
 
-Stage 2 must not begin until database operational and visual acceptance pass and the evidence is recorded in this file.
+Stage 1 acceptance was completed on 13 August 2026. The operator explicitly accepted the missing
+second-seed command output as an operational risk after live database, seed coverage, search, provenance,
+and visual checks passed.
+
+Stage 2A/2B implementation and the disposable PostgreSQL/PostGIS migration, backfill,
+downgrade/re-upgrade, double-seed, concurrency, correction-chain, and publication proofs pass locally.
+Operational acceptance still requires production-backup restore and production deployment evidence.
+Stage 2C object-storage implementation has not begun.
 
 ## 1. Purpose of this document
 
@@ -83,8 +95,9 @@ claim true. Official records cannot be created or modified through comments.
 
 ### 2.4 Scope decision
 
-The national idea was reduced to Andhra Pradesh because nationwide coverage would make source
-review, entity matching, bilingual accuracy, boundary management, and moderation unreliable.
+The first rollout was reduced to Andhra Pradesh because beginning nationwide would make source
+review, entity matching, bilingual accuracy, boundary management, and moderation unreliable. This
+is an implementation strategy for an India-wide product, not a permanent product boundary.
 
 The first durable experience is “My Area”: a citizen selects a district and mandal without exposing
 precise location, then discovers schemes, projects, responsible offices, official updates, polls,
@@ -130,6 +143,7 @@ The repository instructions require:
 8. Every moderation action to create an audit record.
 9. Migrations, tests, and documentation for schema changes.
 10. Fixtures to be visibly labeled.
+11. Material implementations and completed stages to be appended to this cumulative record.
 
 These rules constrain all future stages and take priority over rapid feature expansion.
 
@@ -213,13 +227,18 @@ Stage 0 completed its intended foundation role. It intentionally contained no of
 records, ingestion adapters, accounts, citizen reports, polls, schemes, projects, eligibility
 decisions, or production personal-data processing.
 
-## 5. Cumulative architecture after Stage 0 and Stage 1
+## 5. Cumulative architecture through local Stage 2A/2B
 
 ```mermaid
 flowchart TD
-  Sources[Official government sources] --> FutureRaw[Immutable raw snapshots - Stage 2]
-  FutureRaw --> FutureObs[Append-only observations - Stage 2]
-  SourceBridge[Stage 1 source references] --> Geography[Geography and aliases]
+  Sources[Official government sources] -. acquisition not built .-> ObjectStore[Private object storage - provider pending]
+  ObjectStore -. raw bytes not implemented .-> Snapshots[Immutable snapshot metadata schema]
+  Snapshots --> Extractions[Versioned extraction-run schema]
+  Extractions --> Observations[Immutable values and audited review state]
+  Observations --> ReviewedProjection[Reviewed-only projection]
+  SourceBridge[Stage 1 source references] --> Compatibility[Stage 2 compatibility backfill]
+  Compatibility --> Observations
+  SourceBridge --> Geography[Geography and aliases]
   SourceBridge --> Government[Government organisations]
   Geography --> API[FastAPI v1 read API]
   Government --> API
@@ -228,27 +247,36 @@ flowchart TD
   FutureCommunity[Future structured community records] -. separate from official data .-> Explorer
 ```
 
-The current repository implements the product contract, source-reference bridge, geography,
-organisations, public API, and Government Explorer. Full provenance, schemes, projects, finance,
-procurement, identity, and community participation remain later stages.
+The repository now implements the product contract, Stage 1 source bridge, geography,
+organisations, public API, Government Explorer, and the Stage 2A/2B provenance schema and
+compatibility path. The migration and triggers pass on a disposable PostgreSQL/PostGIS database.
+Production migration and restore evidence, raw acquisition, object storage, parser adapters, review
+UI, public provenance UI, later domains, identity, and community participation remain unimplemented.
 
 ## 6. Cumulative development status
 
-| Area                                    | Status                                             |
-| --------------------------------------- | -------------------------------------------------- |
-| Product definition                      | Complete                                           |
-| Engineering and trust contract          | Complete                                           |
-| Repository and quality foundation       | Complete                                           |
-| Render-native service foundation        | Complete                                           |
-| Andhra Pradesh geography schema         | Implemented                                        |
-| Government-entity schema                | Implemented                                        |
-| Reviewed 26-district baseline           | Implemented with 28-district discrepancy disclosed |
-| Bilingual Government Explorer           | Implemented                                        |
-| Live PostgreSQL/PostGIS migration proof | Outstanding                                        |
-| Manual mobile/desktop visual review     | Outstanding                                        |
-| Full append-only provenance             | Stage 2                                            |
-| Schemes, projects, finance, procurement | Future stages                                      |
-| Identity, reports, polls, moderation    | Future stages                                      |
+| Area                                      | Status                                              |
+| ----------------------------------------- | --------------------------------------------------- |
+| Product definition                        | Complete                                            |
+| Engineering and trust contract            | Complete                                            |
+| Repository and quality foundation         | Complete                                            |
+| Render-native service foundation          | Complete                                            |
+| Andhra Pradesh geography schema           | Implemented                                         |
+| Government-entity schema                  | Implemented                                         |
+| Reviewed 26-district baseline             | Implemented with 28-district discrepancy disclosed  |
+| Bilingual Government Explorer             | Implemented                                         |
+| Live PostgreSQL/PostGIS readiness         | Passed                                              |
+| Live seed and reviewed-source coverage    | Passed with seed-rerun evidence waiver              |
+| Mobile/desktop visual and keyboard review | Passed                                              |
+| Legal and constitutional basis page       | Implemented and published                           |
+| Scalable English/Telugu selector          | Implemented and published                           |
+| Stage 2A provenance contract              | Implemented and locally integration-tested          |
+| Stage 2B schema and compatibility path    | Disposable PostGIS proof passed; production pending |
+| Raw object storage                        | Contract defined; provider not selected             |
+| First ingestion adapter                   | LGD selected conceptually; not implemented          |
+| Review workflow and public provenance UI  | Schema only / not implemented                       |
+| Schemes, projects, finance, procurement   | Future stages                                       |
+| Identity, reports, polls, moderation      | Future stages                                       |
 
 ## 7. Development record policy
 
@@ -768,3 +796,877 @@ after those gates pass or are explicitly accepted as documented deployment risks
   real-data human review at the required widths. Overall Stage 1 acceptance remains pending.
 - **Recommended next action:** Complete the existing Render migration, PostGIS readiness, double-seed,
   live English/Telugu/alias search, and live responsive/keyboard acceptance procedure; append that
+  evidence to this cumulative record.
+
+## Development entry — Render public availability check
+
+- **Check date:** 13 August 2026
+- **Scope:** Verify the supplied deployed frontend route before attempting Stage 1 operational acceptance.
+- **Target:** `https://viksit-bharat-web.onrender.com/explore-data?state=Andhra+Pradesh&sector=Education#directory`
+- **Results:** The supplied Explorer route returned HTTP 503. The same deployed origin also returned HTTP
+  503 for `/` and `/api/health`.
+- **Acceptance evidence:** No frontend-to-API behavior, CORS behavior, live catalog data, or responsive
+  review could be verified because the public web service was unavailable.
+- **Database evidence:** No database credentials, API service URL, Render Shell/CLI access, migration
+  output, PostGIS preflight output, readiness output, or double-seed output was provided. Database
+  operational acceptance therefore remains pending.
+- **Acceptance decision:** Stage 1 visual, database operational, and overall acceptance remain pending.
+- **Required unblock:** Restore the web service to a public healthy state and provide the API service URL
+  for public checks. For database acceptance, run the documented migration, preflight, and double-seed
+  procedure through Render's API service shell and retain the command output.
+
+## Development entry — Render deployment log and live recheck
+
+- **Check date:** 13 August 2026
+- **Deployment-log evidence:** Render logs dated 12 August 2026 show the API installed successfully,
+  executed `alembic upgrade head`, started Uvicorn, and served successful district and department API
+  requests. They also show the web application built successfully and started with Next.js.
+- **Live web result:** `https://viksit-bharat-web.onrender.com/api/health` returned
+  `{"service":"ap-civic-web","status":"ok","version":"0.1.0"}`. The supplied Explore Data
+  route returned its expected HTML application shell.
+- **Live API result:** `https://viksit-bharat-api.onrender.com/health/live`, `/health/ready`, and the
+  public district and department collection endpoints each returned HTTP 503 during this check.
+- **Operational assessment:** The deployment logs demonstrate that a migration command ran, but do not
+  show a successful PostGIS readiness response, a seed execution, or a second idempotent seed execution.
+  Current API unavailability also prevents live catalog and frontend-to-API acceptance checks.
+- **Acceptance decision:** The web service is publicly healthy. API availability, database operational
+  acceptance, visual acceptance with live data, and overall Stage 1 acceptance remain pending.
+- **Required unblock:** Inspect the Render API service event and runtime logs for the current HTTP 503,
+  restore `/health/live` and `/health/ready`, then run and retain output from `python -m app.commands.preflight`
+  and two consecutive `python -m app.commands.seed` executions in the API service shell.
+
+## Development entry — Render database readiness and catalog check
+
+- **Check date:** 13 August 2026
+- **Database readiness:** Independently verified `https://viksit-bharat-api.onrender.com/health/ready`
+  returning `ready`, database `ok`, and PostGIS version `3.6.4`.
+- **Public API availability:** The public API is reachable again. Both the district and department
+  collection requests returned HTTP 200.
+- **Catalog result:** The district and department collections each returned an empty data array with a
+  total of zero. This proves the migrated database contains no published Stage 1 seed records at the
+  time of checking.
+- **Frontend result:** The public Government Explorer page is reachable but cannot display records while
+  its API collections are empty.
+- **Acceptance decision:** Database and PostGIS readiness are demonstrated. Seed execution,
+  seed idempotency, live English/Telugu/alias search, and visual acceptance remain pending. The Stage 1
+  dataset must not be described as live until the seed has been run successfully.
+- **Required unblock:** From a trusted local environment using Render's external database URL, run
+  `../../.venv/bin/python -m app.commands.seed` twice from `apps/api`, retaining both non-sensitive
+  outputs. Recheck public district and department counts afterward.
+
+## Development entry — Review-status ORM persistence fix
+
+- **Completion date:** 13 August 2026
+- **Goal:** Correct Stage 1 seed persistence of source review status against the existing lowercase
+  database constraint.
+- **Root cause:** SQLAlchemy's default Python-enum mapping persisted enum member names such as
+  `REVIEWED`, while the migration permits lowercase values such as `reviewed`.
+- **Implementation:** Configured the `SourceReference.review_status` SQLAlchemy enum to persist each
+  `ReviewStatus.value`. No database schema or migration change was required because this aligns the ORM
+  with the existing database representation.
+- **Tests:** Added a model contract test asserting the ORM maps the three database values `pending`,
+  `reviewed`, and `rejected`.
+- **Verification:** Ruff lint passed; Ruff format check passed for 38 files; strict MyPy passed for 36
+  source files; Pytest passed 22 tests with the disposable PostgreSQL integration test skipped; root
+  Prettier check passed.
+- **Security and data impact:** No credentials, public API fields, personal information, or historical
+  records changed. The fix enables the reviewed Stage 1 source records to be seeded using the migration's
+  existing constrained values.
+- **Remaining operational step:** Deploy this change, then run the seed twice against the Render database
+  and verify 26 public district records and the expected department records.
+
+## Development entry — Post-seed production acceptance check
+
+- **Check date:** 13 August 2026
+- **Scope:** Verify the reported completed seed against the deployed API and web application, then rerun
+  all available local quality gates.
+- **Readiness:** After a transient free-service wake-up period, `/health/live` returned API version
+  `0.2.0` and `/health/ready` returned database `ok` with PostGIS `3.6.4`.
+- **Seed verification:** The deployed district collection returned HTTP 200 with total zero. The deployed
+  department collection also returned HTTP 200 with total zero. The expected 26 districts and three
+  departments are therefore not present in the database currently used by the deployed API.
+- **Search verification:** Non-empty geography searches, including English alias `Vizag` and Telugu name
+  search, returned HTTP 500. A non-empty government-body search also returned HTTP 500. Equivalent
+  public-office and representative searches returned HTTP 200 with empty collections. The failing
+  responses use an unstructured plain-text `Internal Server Error` body.
+- **CORS verification:** A request from `https://viksit-bharat-web.onrender.com` received the matching
+  `Access-Control-Allow-Origin` response header. An unapproved origin did not receive that header.
+- **Frontend availability:** The homepage, Explore Data, Government Explorer, Government, Public Money,
+  Sources, and Community routes each returned HTTP 200. API-backed pages cannot demonstrate live records
+  while the deployed catalog remains empty.
+- **Local verification:** Prettier, ESLint, TypeScript, 12 frontend tests, and the Next.js production build
+  passed. Ruff lint and format checks passed; strict MyPy passed for 36 files; Pytest passed 22 tests with
+  one PostgreSQL integration test skipped because `TEST_DATABASE_URL` was not supplied.
+- **Worktree observation:** Additional uncommitted enum-value mappings are present across geography and
+  government models. They align Python enum persistence with the migration's lowercase database values,
+  but deployment of those changes and their effect on a real seed were not demonstrated by this check.
+- **Acceptance decision:** PostGIS readiness and public route availability pass. Seed acceptance,
+  production search acceptance, live-data visual acceptance, and overall Stage 1 acceptance fail and
+  remain pending. Stage 2 remains blocked.
+- **Required resolution:** Confirm the seed command used the same database referenced by the deployed API,
+  deploy the complete lowercase enum-mapping changes, rerun the seed twice while retaining both outputs,
+  and inspect API logs for the geography/government-body search exceptions. Acceptance requires public
+  totals of 26 districts and three departments plus successful English, Telugu, and alias searches.
+
+## Development entry — ORM enum persistence correction
+
+- **Completion date:** 13 August 2026
+- **Scope:** Correct SQLAlchemy enum serialization so application writes match the lowercase values enforced by the existing PostgreSQL check constraints and exposed by the API schemas.
+- **Cause:** SQLAlchemy `Enum` defaults to persisting Python member names such as `REVIEWED` and `STATE`, while the reviewed migration contract accepts public values such as `reviewed` and `state`.
+- **Implementation:** Added one shared enum-value resolver and applied it to all ORM enum mappings for source review status, geography and government types, language and alias types, relationships, and appointments. No migration is required because the database schema was already correct, and no historical records are overwritten.
+- **Regression coverage:** Added a metadata-wide test asserting that every ORM enum persists its public value. This protects both currently seeded columns and enum-backed models used by later stages.
+- **Verification:** `ruff check --no-cache .` passed; `mypy --no-incremental --cache-dir /tmp/ap-civic-mypy-cache app tests` passed for 36 files; API Pytest passed with 22 tests and one database integration test skipped; repository `format:check`, lint, and typecheck passed; web tests passed with 12 tests across four files.
+- **Operational limitation:** The external database seed was not executed as part of this code change. Run the documented seed twice in the API environment and retain non-sensitive output to complete the deployment idempotency check.
+
+## Development entry — Stage 1 publication and search stabilization
+
+- **Completion date:** 13 August 2026
+- **Goal and scope:** Stabilize the public Stage 1 repository after production showed empty seeded
+  collections and HTTP 500 responses for geography and government-body search. No new product domain,
+  schema, migration, personal-data path, or community functionality was introduced.
+- **Assumptions:** Public catalog endpoints may expose only records whose linked source has review status
+  `reviewed`. Search text is literal citizen input; SQL wildcard characters must not silently broaden it.
+- **Schema impact:** None. Existing lowercase PostgreSQL check constraints remain unchanged. The ORM enum
+  mappings now consistently use those existing public values.
+- **Publication boundary:** Applied reviewed-source predicates to geography, child-geography,
+  government-body, public-office, and representative list queries and to geography/government detail
+  resolution. Pending or rejected source records are no longer eligible for public repository output.
+- **Search behavior:** Added one normalized search-pattern function that trims input and escapes backslash,
+  percent, and underscore before case-insensitive matching. English, Telugu, and alias fields retain
+  partial-match behavior without treating citizen text as SQL wildcard syntax.
+- **Regression coverage:** Added unit tests for search normalization and wildcard escaping. Expanded the
+  disposable PostgreSQL/PostGIS integration test to execute real seeded repository queries and require
+  26 districts, three departments, and successful `Vizag` alias and Telugu Visakhapatnam searches.
+- **Verification:** Repository Prettier, ESLint, TypeScript, 12 frontend tests, and Next.js production
+  build passed. API Ruff lint and format checks passed for 39 files; strict MyPy passed for 37 files;
+  Pytest passed 24 tests with one PostgreSQL integration test skipped because `TEST_DATABASE_URL` was not
+  supplied.
+- **Security and trust impact:** Public reviewed-only enforcement now exists in executable repository
+  queries rather than only documentation. Search remains parameterized and now avoids unintended wildcard
+  scans. No credentials, precise locations, moderation records, or historical official records changed.
+- **Deployment limitation:** Production still runs committed code that returns zero districts and zero
+  departments. These stabilization changes must be committed, pushed, deployed, and followed by two seed
+  runs against the exact database referenced by the API. Live acceptance then requires 26 districts,
+  three departments, reviewed provenance, and successful English, Telugu, and alias searches.
+- **Acceptance decision:** Local implementation acceptance passed. Production seed, search, live-data
+  visual, and overall Stage 1 acceptance remain pending. Stage 2 remains blocked.
+
+## Development entry — Stage 1 live functional acceptance
+
+- **Check date:** 13 August 2026
+- **Goal:** Re-evaluate every Stage 1 gate available from the synchronized repository and deployed Render
+  services after the production seed became visible.
+- **Repository and deployment state:** Local `main` and `origin/main` both point to `eb391a8`. That commit
+  contains reviewed-only repository publication, literal search handling, and real-database repository
+  assertions. Render is serving the resulting behavior.
+- **Database readiness:** The deployed API liveness endpoint returned API version `0.2.0`. Readiness
+  returned database `ok` and PostGIS version `3.6.4`.
+- **Live seed coverage:** The public API returned 26 reviewed district records, three reviewed department
+  records, and 26 children under Andhra Pradesh. Responses contained source UUIDs, official source URLs,
+  retrieval dates, `reviewed` status, and `is_fixture: false`. Boundary fields remain explicitly absent.
+- **Live search and detail behavior:** English `Visakhapatnam`, Telugu `విశాఖపట్నం`, and alias `Vizag`
+  searches each returned the reviewed Visakhapatnam record. Government-body search for `School`,
+  geography detail, and government-body detail returned HTTP 200 with reviewed provenance.
+- **CORS:** The deployed web origin received its matching `Access-Control-Allow-Origin` header. An
+  unapproved origin did not receive that header.
+- **Frontend availability:** The homepage, Explore Data, Government Explorer, Government, Public Money,
+  Sources, Community, and web health routes each returned HTTP 200. A hydrated Explore Data search for
+  `Vizag` rendered Visakhapatnam and did not render the previous no-match state.
+- **Live browser review:** Captured the API-backed Government Explorer at 1440 by 900 and 390 by 844.
+  Desktop displayed reviewed records, source links, the 26-district disclosure, pilot labels, and missing
+  boundary labels. Mobile stacked navigation, tabs, search, and disclosure without horizontal document
+  overflow. Browser-protocol inspection found 26 reviewed labels and Visakhapatnam in the hydrated DOM.
+- **Keyboard and language review:** Actual Tab navigation traversed coverage, wordmark, menu, English and
+  Telugu controls, district and department controls, search field, search button, and source links in a
+  logical order. Selecting Telugu changed the document language to `te` and rendered the Telugu Explorer
+  heading. Full-site Telugu copy still requires later professional review as previously disclosed.
+- **Local verification:** Prettier, ESLint, TypeScript, 12 frontend tests, and the Next.js production build
+  passed. Ruff lint and format checks passed for 39 files; strict MyPy passed for 37 files; Pytest passed
+  24 tests. The disposable PostgreSQL migration-and-double-seed integration test remained skipped because
+  `TEST_DATABASE_URL` was not supplied.
+- **Healthcheck note:** `npm run healthcheck` targets localhost by default and failed because local web and
+  API processes were not started. Direct checks against both deployed services passed.
+- **Acceptance decision:** Implementation, deployed database readiness, live seed coverage, API search,
+  CORS, and live visual/keyboard functional acceptance pass. One evidence gate remains: no accessible
+  command output proves that a second production seed execution created zero rows, and no disposable
+  `_test` database was available to execute the destructive empty-database integration test. Stage 1 is
+  functionally accepted but not yet fully operationally closed under the repository's explicit acceptance
+  contract. Stage 2 remains blocked until the double-seed evidence is recorded or that gate is explicitly
+  waived as an accepted operational risk.
+- **Required final evidence:** Run `python -m app.commands.seed` once more against the exact Render database
+  and retain the non-sensitive JSON result showing zero created records in every category. Alternatively,
+  provide a disposable PostGIS database whose name contains `_test` and run the existing integration test.
+
+## Development entry — Stage 1 final acceptance and operational-risk waiver
+
+- **Acceptance date:** 13 August 2026
+- **Decision:** Stage 1 is accepted and closed. Database operational acceptance, visual acceptance, and
+  overall Stage 1 acceptance are marked passed with the explicit operational risk below.
+- **Accepted evidence:** Render API liveness and PostGIS `3.6.4` readiness passed; the live catalog contains
+  26 reviewed districts, three reviewed departments, and 26 district children; all returned records expose
+  reviewed, non-fixture provenance; English, Telugu, alias, detail, and hierarchy requests passed; deployed
+  CORS behavior passed; all public routes passed; desktop and mobile browser checks passed; keyboard focus,
+  Telugu switching, and horizontal-overflow checks passed; all host-side format, lint, type, test, and build
+  gates passed.
+- **Explicit waiver:** At the operator's direction, the absence of retained command output from a second
+  production seed execution is accepted as an operational risk. Stable live counts and deterministic seed
+  design support confidence but do not prove that the rerun command occurred. The disposable empty-database
+  integration test also remains skipped because no `TEST_DATABASE_URL` was supplied.
+- **Data limitations retained:** Markapuram and Polavaram remain outside the reviewed 26-district baseline;
+  authoritative boundary geometry is absent; no mandals, villages, constituencies, offices, representatives,
+  projects, finance, schemes, identities, reports, polls, or moderation records are included; Telugu content
+  still requires professional review before broad public release.
+- **Security limitations retained:** Production backup/retention guarantees, restore drills, monitoring,
+  resource controls, and complete provenance storage remain future operational work. No precise user location
+  or personal data is processed in Stage 1.
+- **Stage 2 authorization:** Stage 2 may begin. It must implement immutable raw-source retention, checksums,
+  snapshots, extraction runs, observations, review decisions, corrections, and value classification before
+  projects, schemes, finance, or community records are broadened.
+
+## Development entry — Legal and constitutional basis page
+
+- **Completion date:** 14 August 2026
+- **Goal and scope:** Added a prominent footer action and a dedicated public-facing legal-basis route at
+  `/legal-basis`. This was a frontend-only implementation; no API behavior, database schema, provenance
+  record, deployment configuration, or Stage 2 work changed.
+- **UI implementation:** The footer now includes a keyboard-focusable `Legal & constitutional basis`
+  action while retaining the independent/non-government affiliation notice. The new page uses the existing
+  global header, footer, type scale, dividers, colors, responsive table treatment, and English/Telugu locale
+  control.
+- **Legal framing:** The page describes Articles 19(1)(a), 19(2), and 51A(h) of the Constitution; Sections
+  2(f), 2(j), 3, 4, 8, 9, and 11 of the Right to Information Act, 2005; and relevant guardrails under the
+  Digital Personal Data Protection Act, Information Technology Act, Bharatiya Nyaya Sanhita, Copyright Act,
+  and Representation of the People Act. It expressly states that the summary is not legal advice, creates
+  no immunity, and does not guarantee the legality of a particular publication.
+- **Official references:** Added direct official links to the Legislative Department Constitution page,
+  India Code records for the RTI Act, Information Technology Act and Bharatiya Nyaya Sanhita, and the
+  Legislative Department central-Acts directory. Legal content is marked last reviewed on 14 August 2026.
+- **Product safeguards documented:** The page restates source-record requirements, evidence-class
+  separation, historical-value retention, precise-location privacy, and the non-representative labeling of
+  open platform polls. It explains that transparency work remains subject to privacy, defamation, copyright,
+  intermediary and election-period rules.
+- **Tests added:** Added component coverage for the footer route, constitutional Articles, RTI sections,
+  legal disclaimer, official Constitution source link, and Telugu rendering through the locale contract.
+- **Commands executed:** `npm run format -- --ignore-unknown`, `npm run format:check`, `npm run lint`,
+  `npm run typecheck`, `npm test`, and `npm run build`.
+- **Verification results:** Prettier, ESLint and TypeScript passed. Vitest passed 15 tests across five files.
+  The Next.js 16.3.0 production build passed and statically generated `/legal-basis`.
+- **Visual inspection:** Inspected local production screenshots at 1440 by 900 and 390 by 844. The desktop
+  view preserved the public-utility layout and readable hierarchy. The mobile view stacked the header,
+  introduction, disclaimer, and legal sections without visible horizontal overflow or clipped text. Existing
+  focus styles apply to the new footer and official-source links; the Telugu presentation is covered by the
+  locale test and uses the established Telugu font stack.
+- **Security and privacy:** No personal data, precise location, user content, credentials, or new network
+  integration was introduced. Official legal links are static references rather than imported claims.
+- **Limitations and acceptance:** Frontend implementation is accepted. This page is a product-policy
+  explanation, not a substitute for review by qualified Indian counsel. Statutes, commencement notices,
+  rules and case law can change, so the legal content needs periodic review. The change has not been pushed
+  or deployed as part of this task.
+
+## Development entry — Scalable Indian-language selector
+
+- **Completion date:** 14 August 2026
+- **Goal and scope:** Replaced the English/Telugu slash toggle in the global header with a compact native
+  language selector designed to accommodate additional Indian languages without expanding or restructuring
+  the header. This is a frontend-only interaction and styling change.
+- **Interaction design:** The selector combines a language globe, an accessible `Select language` label,
+  the current language name, and the native disclosure arrow. English and Telugu remain the only available
+  options until additional translations are reviewed; unavailable languages are not advertised as complete.
+- **Accessibility:** The native `select` supports keyboard navigation and platform assistive technology.
+  Choosing Telugu continues to update the document `lang` attribute through the existing locale provider.
+- **Tests and verification:** Updated header and Government Explorer tests to exercise the select contract.
+  Prettier, ESLint, TypeScript, all 15 Vitest tests, and the Next.js production build passed. A local 390-pixel
+  mobile screenshot confirmed that the wordmark, menu and full `English` selection fit without clipping or
+  horizontal overflow.
+- **Limitations:** Adding a language still requires reviewed translations, locale type expansion, option
+  registration, search aliases and typography review. The selector does not imply that unsupported languages
+  are currently available. The change has not been pushed or deployed as part of this task.
+
+## Development entry — Frontend publication reconciliation and Stage 2 handoff
+
+- **Reconciliation date:** 14 August 2026
+- **Purpose:** Reconcile the canonical record with repository and live-service state after the legal-basis
+  page and scalable language selector were published. This entry supersedes only the earlier statements that
+  those two frontend changes had not yet been pushed or deployed; their implementation and verification
+  evidence remains unchanged.
+- **GitHub publication:** Local `main` and `origin/main` both point to commit `1335ba3`. Commit `74a9585`
+  contains the legal-basis route and footer action. Commit `1335ba3` contains the native language selector,
+  related test updates, and documentation changes.
+- **Live Render verification:** `https://viksit-bharat-web.onrender.com/` and
+  `https://viksit-bharat-web.onrender.com/legal-basis` each returned HTTP 200. The rendered homepage contained
+  the `site-language` selector, its accessible `Select language` label, English and Telugu options, and the
+  legal-basis footer link. The rendered legal page contained the same language selector and Article 19(1)(a)
+  content. This verifies route and server-rendered markup deployment; it is not a new full browser,
+  interaction, or external legal review.
+- **Current frontend state:** The public site now exposes the legal and constitutional basis page and uses a
+  language control that can scale beyond two languages. Only English and Telugu are offered because no other
+  language has reviewed translations, search aliases, or typography acceptance yet.
+- **Current acceptance state:** Stage 1 remains accepted and closed under the recorded operational-risk
+  waiver. The legal page and language-selector implementations are published. The legal wording still needs
+  qualified Indian counsel review before broad public launch and periodic review as law changes.
+- **Next authorized stage:** Stage 2 provenance is the next implementation stage. It must migrate the minimal
+  `source_reference` bridge into immutable sources, documents, raw snapshots, extraction runs, source
+  observations, review decisions, and append-only corrections while preserving every existing Stage 1 UUID
+  and citation relationship. It must also classify values as official, calculated, inferred, or
+  community-reported and prove that historical observations cannot be silently replaced.
+- **Scope boundary:** Stage 2 has not begun. Schemes, projects, finance, polling, citizen reports, comments,
+  and moderation expansion remain out of scope until the provenance foundation is complete.
+
+## Development entry — Stage 2A/2B provenance schema and compatibility foundation
+
+- **Completion date:** 14 August 2026
+- **Goal and bounded scope:** Began the approved provenance-first development sequence. This slice
+  reconciles the India-wide product scope, defines the Stage 2 provenance and raw-storage contracts,
+  adds the append-only relational foundation, and preserves the Stage 1 source bridge and public API.
+  It does not implement network ingestion, schemes, projects, finance, officeholder publication,
+  identity, community features, a review console, or public provenance UI.
+- **Canonical product scope:** Updated the engineering contract, README, product requirements, API
+  package description, roadmap, and this record to define an India-wide public intelligence and
+  civic participation platform launching with Andhra Pradesh. The earlier Andhra Pradesh scope
+  reduction is retained as a rollout and evidence-quality strategy, not a permanent product boundary.
+- **Schema and migration:** Added Alembic revision `20260814_0002` and SQLAlchemy models for
+  `sources`, `source_documents`, `source_snapshots`, `extraction_runs`,
+  `source_observations`, `review_decisions`, and `observation_corrections`. Observations support
+  typed values and the required official, calculated, inferred, and community-reported
+  classifications. Publication requires reviewed state.
+- **Append-only enforcement:** PostgreSQL triggers reject updates and deletes for snapshots, review
+  decisions, and corrections. Observation deletion and value changes are rejected; review/publication
+  state may change only when it matches the latest immutable review decision. Corrections require
+  the latest approval for a reviewed replacement of the same entity and field, link rather than
+  rewrite the incorrect observation, and remove that incorrect observation from the public projection.
+  The reviewed public database projection also excludes storage keys, raw retrieval metadata, parser
+  configuration, and reviewer identity.
+
+- **Stage 1 compatibility and backfill:** The migration does not remove `source_references` or alter
+  geography/government UUIDs. Each existing Stage 1 source UUID is reused across its new source,
+  document, legacy observation, and review-decision rows in separate tables. The Stage 1 deterministic
+  seed now ensures the same chain after a clean `upgrade head` and remains idempotent on rerun.
+  Existing public API schemas and repository queries remain unchanged.
+- **Historical raw-data limitation:** Stage 1 did not retain raw response bytes. Backfilled documents
+  are explicitly marked `unavailable_legacy_source_reference`; no checksum, object, or snapshot is
+  fabricated. New non-legacy observations are database-constrained to require both an immutable real
+  snapshot and an extraction run.
+- **Raw-storage and ingestion contract:** Added provider-neutral private S3-compatible storage rules:
+  streaming SHA-256, generated safe keys, a default 50 MiB response cap, MIME/signature validation,
+  duplicate detection, private access, no executable rendering of source HTML, and archive
+  quarantine with 100 MiB expanded-size and 20:1 ratio limits. PostgreSQL stores metadata only.
+  One existing LGD source is selected as the first adapter, subject to access-condition review.
+- **Recovery and monitoring:** Added a runbook for the disposable `_test` database migration and
+  double-seed check, production backup inventory, isolated restore drill, UUID/count verification,
+  database size and connection monitoring, object-store usage monitoring, and evidence retention.
+  These procedures are documented but have not been executed in this environment.
+- **Tests added:** Added metadata and migration contract tests for all provenance tables, enum value
+  persistence, single typed values, source origin, reviewed-only publication, correction links,
+  append-only triggers, public-field exclusions, Stage 1 bridge preservation, and explicit legacy
+  raw-data status. Expanded the opt-in PostgreSQL/PostGIS integration test to require 28 preserved
+  source UUIDs in every compatibility table, zero duplicate creation on the second seed, unchanged
+  catalog behavior, and rejection of an observation update.
+- **Verification completed:** Repository Prettier passed; ESLint passed; TypeScript passed; 15 web
+  tests passed; the Next.js 16.3.0 production build passed and generated all public routes. API Ruff
+  lint passed; strict MyPy passed 39 source files; Pytest passed 30 tests with one disposable
+  PostgreSQL/PostGIS integration test skipped because `TEST_DATABASE_URL` was not supplied. Alembic
+  offline PostgreSQL generation passed for both revisions and produced an 805-line SQL script.
+- **Security and privacy:** Raw object bytes remain outside PostgreSQL and private by contract.
+  Reviewer identities and object-storage keys are excluded from the public projection. This slice
+  adds no credentials, personal data, precise user location, uploads, public write endpoint,
+  moderation feature, or community data path. Review actions are append-only audit records.
+- **Unresolved operational gates:** A real empty-database migration/double-seed execution, production
+  backup-retention inventory, successful isolated restore drill, monitoring configuration, object
+  storage provider and cost approval, and LGD access/robots review remain outstanding. Qualified
+  Indian legal review also remains required before broad promotion or community submissions.
+- **Acceptance decision:** The local Stage 2A contract and Stage 2B additive schema/backfill
+  implementation are accepted as an in-progress Stage 2 foundation. Stage 2 as a whole is not
+  accepted. Network ingestion and later product domains remain blocked until the documented
+  operational gates pass and one adapter completes the full reviewed lifecycle.
+
+## Development entry — Stage 2A/2B database proof and canonical reconciliation
+
+- **Completion date:** 14 August 2026
+- **Goal and bounded scope:** Reconciled the canonical status sections, proved revision
+  `20260814_0002` on disposable PostgreSQL/PostGIS databases, added concurrency and correction-chain
+  coverage, and documented production migration/recovery criteria. No object-storage implementation,
+  network ingestion, LGD parser, new domain, public provenance UI, review console, or production
+  deployment was performed.
+- **Compatibility defect fixed:** The Stage 1 seed had begun querying Stage 2 tables unconditionally,
+  which made the required “migrate to Stage 1, seed, then upgrade to Stage 2” sequence impossible.
+  It now detects whether `sources` exists, remains runnable at revision `20260810_0001`, and ensures
+  the richer compatibility chain only when Stage 2 tables are present.
+- **Review and publication hardening:** New observations must begin pending and unpublished. Review
+  decisions now form a database-constrained single chain per observation or extraction run: partial
+  unique indexes prevent concurrent roots and forks, a trigger requires the current head and a
+  strictly later decision time, and append-only triggers prevent edits. The public projection now
+  independently requires the latest decision to be an approval, preventing stale publication flags
+  from exposing an observation after rejection.
+- **Compatibility identity contract:** Documented that UUID uniqueness and meaning are table-local.
+  Reusing each Stage 1 UUID in the compatibility source, document, observation, and decision tables
+  is deterministic migration behavior, not cross-table semantic identity. New adapters must create
+  independent identities unless a future compatibility contract explicitly requires reuse.
+- **Disposable migration evidence:** On PostgreSQL 16.9 and PostGIS 3.5.2, the integration path
+  downgraded to base, upgraded to `20260810_0001`, ran the Stage 1 seed, recorded IDs/counts,
+  upgraded to `20260814_0002`, ran the seed twice with zero creations on both reruns, downgraded
+  only the disposable copy to Stage 1, and upgraded to Stage 2 again. The final revision was
+  `20260814_0002`; the review-chain trigger remained installed.
+- **Counts and preservation:** Both the clean source and isolated restore contained 28
+  `source_references`, 27 geographies, four government bodies, 28 `sources`, 28
+  `source_documents`, zero `source_snapshots`, 28 `source_observations`, 28
+  `review_decisions`, and zero corrections. Geography, government-body, and source-reference IDs
+  survived downgrade/re-upgrade. Full joins between restored Stage 1 source IDs and each compatibility
+  source/document/observation/decision table reported zero mismatches. All 28 documents retained
+  `unavailable_legacy_source_reference`; no snapshot or checksum was fabricated.
+- **Concurrency and correction evidence:** Live tests used overlapping transactions. Exactly one of
+  two concurrent root review decisions succeeded; stale-head and backdated decisions were rejected.
+  Exactly one of two same-document/checksum snapshots and one of two corrections for the same original
+  succeeded. Invalid cross-field corrections were rejected. A two-link correction chain published
+  only the final observation. Direct reviewed/published insertion, publication against a latest
+  rejection, observation value/delete mutations, snapshot update/delete, decision update/delete, and
+  correction update/delete were rejected.
+- **Trigger output retained:** The disposable database returned
+  `source observation values are immutable; create a superseding observation` for a value mutation
+  and `review_decisions is append-only; create a superseding record instead` for an audit mutation.
+- **Public/API regression evidence:** The reviewed projection contained 28 compatibility observations
+  and excluded private storage/retrieval/parser/reviewer fields by contract. Repository queries still
+  returned 26 districts, three departments, the English alias `Vizag`, and Telugu
+  `విశాఖపట్నం`. Existing API tests remained green.
+- **Local restore-mechanics evidence:** A custom-format logical backup of the clean disposable database
+  was restored into isolated `india_stage2_restore_test`. The restore reported revision
+  `20260814_0002`, identical logical counts, zero unvalidated constraints, zero compatibility UUID-set
+  mismatches, 28 public rows, and the installed review-chain trigger. Source size was 25,186,787 bytes;
+  restored size was 21,213,667 bytes, with one active connection and a configured maximum of 100 in
+  each check. Size equality is not expected after logical restore. This is local restore-mechanics
+  evidence, not evidence that a Render production backup is available or restorable.
+- **Runbook and deployment contract:** The operations guide now records the Render pre-deploy
+  `alembic upgrade head` path, required maintenance-window evidence, transaction-failure retry,
+  additive-schema fix-forward policy, isolated-restore criteria, and post-deploy readiness/count/search/
+  privacy checks. No production deployment event or provider backup identifier exists for this task.
+- **Verification:** `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test`
+  (15 tests), and `npm run build` passed. API `ruff check --no-cache .` passed; strict MyPy passed
+  39 source files with its cache redirected to writable `/tmp`; the complete API suite passed 34
+  tests, including four live PostgreSQL/PostGIS integration tests. `git diff --check` passed before
+  this entry and is rerun after formatting it.
+- **Security and data boundaries:** Reviewer identities, object keys, raw retrieval metadata, and parser
+  configuration remain outside the public projection. No credentials were committed, no production
+  data was modified, no precise location or personal data was introduced, and all test writes were
+  limited to databases whose names contain `_test`.
+- **Deferred and unresolved:** Object-upload rollback/cleanup testing is deferred to Stage 2C because
+  this slice intentionally has no storage adapter or upload transaction to exercise. Production backup
+  retention, a provider-backed isolated production restore, database plan/region and monitoring
+  evidence, a named migration window/operator, actual Render deployment and post-deploy verification,
+  object-storage selection, and LGD access-condition review remain open. The current `render.yaml`
+  database is declared on the free plan, so backup/PITR availability must be confirmed rather than
+  assumed.
+- **Acceptance decision:** The disposable Stage 2A/2B database proof is accepted. Operational acceptance
+  and deployment of Stage 2A/2B remain pending the production recovery and deployment evidence above.
+  Stage 2C and all network ingestion remain blocked.
+
+## Development entry — Stage 2A/2B controlled deployment readiness
+
+- **Date:** 14 August 2026
+- **Scope:** Prepared the controlled Render migration worksheet for `20260814_0002`; no production
+  mutation, migration, seed, ingestion, or snapshot creation was performed.
+- **Candidate state:** Local `main` and `origin/main` remain at `1335ba35af6e327b1c15398486b3193939862e7c`.
+  Stage 2A/2B changes are present locally but uncommitted; this workspace has no Render CLI, Render
+  credential, database URL, provider database ID, or Git push authority.
+- **Public baseline:** `https://viksit-bharat-api.onrender.com/health/live` returned HTTP 200 with
+  service `ap-civic-api`, version `0.2.0`; `/health/ready` returned HTTP 200, database `ok`, PostGIS
+  `3.6.4`. The first liveness probe took 32.8 seconds while the service woke from idle.
+- **Catalog baseline:** Public API returned 26 districts, four government bodies (three departments),
+  and the reviewed Visakhapatnam UUID `18f2d10c-dddb-5362-b74e-e836701c8a26` for English,
+  Telugu `విశాఖపట్నం`, and alias `Vizag`. Existing web home and `/explore-data` routes returned HTTP 200.
+- **Recovery gate:** Provider plan, backup retention/PITR, isolated provider restore, database size,
+  connection usage, named operator, migration window, and rollback authority remain unverified. The
+  Blueprint declares the database `free`; Render Free Postgres recovery is therefore not assumed.
+- **Documentation:** Added a controlled deployment worksheet to `docs/operations-and-recovery.md`
+  requiring provider recovery evidence, exact pre/post UUID/count comparisons, migration logs, health,
+  search, frontend, and public-projection checks.
+- **Acceptance decision:** Stage 2A/2B remains technically accepted but operationally pending. The
+  migration must not run until authenticated provider recovery/deployment access and the required
+  operator record are supplied. Stage 2C and ingestion remain blocked.
+
+## Development entry — Prepared AP Schemes website vertical slice
+
+- **Date:** 14 August 2026
+- **Goal and bounded scope:** Added a discoverable `/schemes` directory, dynamic `/schemes/[slug]`
+  detail route, and read-only `/api/schemes` prepared-catalogue route. This is a website-only shell;
+  it adds no scheme database schema, migration, seed, source ingestion, reviewed production scheme,
+  personal eligibility decision, project, finance record, poll, account, or community submission.
+- **Prepared-data boundary:** The production catalogue is an explicit empty array and the route returns
+  `prepared-empty`. The directory states that no reviewed records are published and does not imply
+  that Andhra Pradesh has no schemes. Unknown detail slugs show an unavailable state and state that
+  the URL neither establishes nor disproves a scheme's existence. Test scheme information exists only
+  inside test files.
+- **Bilingual and filter contract:** English and Telugu names, descriptions, departments, districts,
+  categories, and eligibility criteria are represented as bilingual values. Native select controls
+  filter department, district, category, and whether reviewed eligibility criteria are published;
+  the eligibility filter does not infer or decide whether a person qualifies.
+- **Provenance contract:** Every renderable official field is an `official` claim with a reviewed
+  `source_record_id`, official source name and URL, and retrieval date. Directory cards and detail
+  fields place an `Official · Reviewed` label, official-source link, and `SourceRecord` retrieval note
+  beside each claim. Records without reviewed eligibility criteria show an unavailable platform state,
+  not an unsupported official claim.
+- **States, responsive behavior, and accessibility:** Added route-level and catalogue loading states,
+  prepared-empty and filtered-empty states, retryable catalogue and route errors, and unavailable
+  details. Filters use a labelled fieldset and native controls; asynchronous results use live status
+  or alert semantics. The four-column filter bar and two-column record/detail layouts collapse at
+  tablet and mobile breakpoints, while existing focus and reduced-motion rules remain intact.
+- **Tests:** Added pure combined-filter tests; component tests for loading, empty, filtered-empty,
+  unavailable, failure/retry, English/Telugu switching, native control labels, and per-claim source
+  links; and route tests for `/api/schemes`, `/schemes`, and `/schemes/[slug]`. Production records remain
+  empty while explicitly labelled test-only records exercise populated rendering.
+- **Verification:** `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (25 tests),
+  and `npm run build` passed. The Next.js build emitted `/schemes`, `/schemes/[slug]`, and
+  `/api/schemes`. In an isolated temporary Python environment, API Ruff passed, strict MyPy passed 39
+  source files, and Pytest passed 30 tests with four database integration tests skipped because no
+  `TEST_DATABASE_URL` was supplied.
+- **Security and privacy:** The slice is read-only and processes no identity, personal data, user
+  location, uploads, writes, moderation actions, or community evidence. No official record can enter
+  the prepared production array accidentally through test fixtures. External official links open with
+  `noreferrer`.
+- **Limitations and next order:** No reviewed scheme records, source acquisition, runtime schema
+  validation, browser screenshot regression, or live deployment verification exists yet. Stage 3 data
+  acceptance still requires the governed ingestion/review path and reviewed bilingual records.
+  Projects is the next website slice, followed by Public Money; polls, accounts, and community
+  submissions remain deferred.
+
+## Development entry — Prepared AP Projects website vertical slice
+
+- **Date:** 15 August 2026
+- **Goal and bounded scope:** Added a discoverable `/projects` directory, dynamic `/projects/[slug]`
+  detail route, and read-only `/api/projects` prepared-catalogue route. This is a website-only shell;
+  it adds no project database schema, migration, seed, source ingestion, reviewed production project,
+  financial observation, procurement record, map, poll, account, or community submission.
+- **Prepared-data boundary:** The production project catalogue is an explicit empty array and the route
+  returns `prepared-empty`. The directory does not imply that Andhra Pradesh has no public projects.
+  Unknown detail slugs state that their address neither establishes nor disproves a project's existence.
+  All populated project names, offices, statuses, and dates are confined to tests.
+- **Bilingual and filter contract:** English and Telugu project names, descriptions, departments,
+  districts, statuses, project types, and responsible offices are first-class values. Native controls
+  combine department, district, status, and project-type filters without deriving new project facts.
+- **Responsibility and timeline contract:** Each project record has separately sourced responsible-office
+  and timeline claims. Timeline values keep start, expected-completion, and actual-completion dates
+  separate; a missing date renders as `Not stated in source` rather than being estimated. Status does not
+  imply expenditure, physical completion, or public outcome.
+- **Provenance contract:** Every renderable official field is an `official` claim with a reviewed
+  `source_record_id`, source name, official URL, and retrieval date. Directory cards and detail fields
+  place an `Official · Reviewed` label, official-source link, and `SourceRecord` retrieval note beside
+  each of the eight project claims.
+- **States, responsive behavior, and accessibility:** Added route-level and catalogue loading states,
+  prepared-empty and filtered-empty states, retryable catalogue and route errors, and unavailable detail
+  states. Filters use a labelled fieldset and native controls; asynchronous output uses live status or
+  alert semantics. Project, detail, filter, and timeline grids collapse at tablet and mobile breakpoints.
+- **Tests:** Added combined-filter unit coverage; component coverage for loading, empty, filtered-empty,
+  unavailable, failure/retry, English/Telugu switching, responsible offices, timeline dates, accessible
+  controls, and per-claim provenance; route coverage for `/api/projects`, `/projects`, and
+  `/projects/[slug]`; and a responsive stylesheet contract test. Test-only records exercise populated
+  behavior while production stays empty.
+- **Verification:** `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (35 tests),
+  and `npm run build` passed. The build emitted `/api/projects`, `/projects`, and `/projects/[slug]`.
+  API Ruff passed, strict MyPy passed 39 source files, and Pytest passed 30 tests with four database
+  integration tests skipped because no `TEST_DATABASE_URL` was supplied.
+- **Security and privacy:** The slice is read-only and processes no identity, personal data, user
+  location, uploads, writes, moderation actions, or community evidence. External source links use
+  `noreferrer`; test fixtures are not imported by production modules.
+- **Limitations and next order:** No reviewed project records, runtime response validation, source
+  acquisition, map, project-finance links, browser screenshot regression, or live deployment
+  verification exists yet. Stage 4 data acceptance still requires governed ingestion and reviewed
+  bilingual records. Public Money is the next website slice; polls, accounts, and community submissions
+  remain deferred.
+
+## Development entry — Prepared AP Public Money website vertical slice
+
+- **Date:** 15 August 2026
+- **Goal and bounded scope:** Added a discoverable `/public-money` directory, dynamic
+  `/public-money/[slug]` detail route, and read-only `/api/public-money` prepared-catalogue route,
+  replacing the earlier presentation-only shell. This is a website-only slice; it adds no financial
+  schema, migration, seed, source ingestion, reviewed production public-money record, procurement
+  record, map, poll, account, or community submission.
+- **Stage discipline:** The eleven financial stages remain distinct and are never collapsed. An
+  announcement is not an expenditure, a contract value is not an outcome, and the interface never
+  infers an amount or period that the source did not state. The existing financial-stage explainer and
+  money-rules band are preserved and bilingualised.
+- **Prepared-data boundary:** The production catalogue is an explicit empty array and the route returns
+  `prepared-empty`. The directory does not imply that Andhra Pradesh publishes no public-money
+  records. Unknown detail slugs state that their address neither establishes nor disproves a figure's
+  existence. All populated figures, periods, and stages are confined to tests.
+- **Bilingual and filter contract:** English and Telugu record titles, descriptions, departments,
+  districts, stages, and reporting periods are first-class values. Native controls combine stage,
+  department, district, and amount-information filters without deriving new financial facts. The
+  amount-information filter is not a figure filter: records are separated by whether a reviewed amount
+  exists, never by a fabricated number.
+- **Provenance contract:** Every renderable official field is an `official` claim with a reviewed
+  `source_record_id`, source name, official URL, and retrieval date. Directory cards and detail fields
+  place an `Official · Reviewed` label, official-source link, and `SourceRecord` retrieval note beside
+  each of the seven public-money claims. Amounts render through `formatMoneyAmount` with Indian
+  grouping and an explicit INR marker only when published in a reviewed record.
+- **States, responsive behavior, and accessibility:** Added route-level and catalogue loading states,
+  prepared-empty and filtered-empty states, retryable catalogue and route errors, and unavailable detail
+  states. Filters use a labelled fieldset and native controls; asynchronous output uses live status or
+  alert semantics. Filter, record, detail, and claim grids collapse at tablet and mobile breakpoints.
+- **Tests:** Added combined-filter and Indian-grouping unit coverage; component coverage for loading,
+  empty, filtered-empty, unavailable, failure/retry, English/Telugu switching, per-claim provenance,
+  and unavailable figure and reporting-period fields; route coverage for `/api/public-money`,
+  `/public-money`, and `/public-money/[slug]`; and a responsive stylesheet contract test. Test-only
+  records exercise populated behavior while production stays empty.
+- **Verification:** `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (46 tests),
+  and `npm run build` passed. The build emitted `/api/public-money`, `/public-money`, and
+  `/public-money/[slug]`. API Ruff passed, strict MyPy passed 39 source files, and Pytest passed 30
+  tests with four database integration tests skipped because no `TEST_DATABASE_URL` was supplied.
+- **Security and privacy:** The slice is read-only and processes no identity, personal data, user
+  location, uploads, writes, moderation actions, or community evidence. External source links use
+  `noreferrer`; test fixtures are not imported by production modules.
+- **Limitations and next order:** No reviewed public-money records, runtime response validation, source
+  acquisition, scheme/project finance links, browser screenshot regression, or live deployment
+  verification exists yet. Finance data acceptance still requires governed ingestion and reviewed
+  bilingual records. Polls, accounts, and community submissions remain deferred.
+
+## Development entry — Prepared AP Procurement website vertical slice
+
+- **Date:** 15 August 2026
+- **Goal and bounded scope:** Added a discoverable `/procurement` directory, dynamic
+  `/procurement/[slug]` detail route, and read-only `/api/procurement` prepared-catalogue route. This
+  is a website-only slice; it adds no procurement schema, migration, seed, source ingestion, reviewed
+  production tender or contract record, public-money record, map, poll, account, or community
+  submission.
+- **Stage discipline:** Seven procurement stages remain distinct and are never collapsed. A tender
+  estimate is not a contract value, and a contract award is not a public outcome; the interface never
+  infers a value, contractor or reference that the source did not state. The procurement-stage
+  explainer and the rules band are bilingualised, and the explainer is a separate component from the
+  eleven-stage public-money selector so the two chains never share a stage model.
+- **Prepared-data boundary:** The production catalogue is an explicit empty array and the route returns
+  `prepared-empty`. The directory does not imply that Andhra Pradesh publishes no procurement
+  records. Unknown detail slugs state that their address neither establishes nor disproves a tender's
+  existence. All populated tenders, contractors, values, and references are confined to tests.
+- **Bilingual and filter contract:** English and Telugu record titles, descriptions, departments,
+  districts, stages, contractors, and tender references are first-class values. Native controls
+  combine stage, department, district, and contractor-information filters without deriving new
+  procurement facts. The contractor-information filter is not a contractor figure: records are
+  separated by whether a reviewed contractor is published, never by an invented firm.
+- **Provenance contract:** Every renderable official field is an `official` claim with a reviewed
+  `source_record_id`, source name, official URL, and retrieval date. Directory cards and detail fields
+  place an `Official · Reviewed` label, official-source link, and `SourceRecord` retrieval note beside
+  each of the eight procurement claims. Contract values render through `formatContractValue` with
+  Indian grouping and an explicit INR marker only when published in a reviewed record.
+- **States, responsive behavior, and accessibility:** Added route-level and catalogue loading states,
+  prepared-empty and filtered-empty states, retryable catalogue and route errors, and unavailable detail
+  states. Filters use a labelled fieldset and native controls; asynchronous output uses live status or
+  alert semantics. Filter, record, detail, and claim grids collapse at tablet and mobile breakpoints.
+- **Tests:** Added combined-filter and Indian-grouping unit coverage; component coverage for loading,
+  empty, filtered-empty, unavailable, failure/retry, English/Telugu switching, per-claim provenance,
+  and unavailable contractor, contract-value, and tender-reference fields; route coverage for
+  `/api/procurement`, `/procurement`, and `/procurement/[slug]`; and a responsive stylesheet contract
+  test. Test-only records exercise populated behavior while production stays empty.
+- **Verification:** `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (57 tests),
+  and `npm run build` passed. The build emitted `/api/procurement`, `/procurement`, and
+  `/procurement/[slug]`. API Ruff passed, strict MyPy passed 39 source files, and Pytest passed 30
+  tests with four database integration tests skipped because no `TEST_DATABASE_URL` was supplied.
+- **Security and privacy:** The slice is read-only and processes no identity, personal data, user
+  location, uploads, writes, moderation actions, or community evidence. External source links use
+  `noreferrer`; test fixtures are not imported by production modules.
+- **Limitations and next order:** No reviewed procurement records, runtime response validation, source
+  acquisition, scheme/project/public-money finance links, browser screenshot regression, or live
+  deployment verification exists yet. Stage 6 data acceptance still requires governed ingestion and
+  reviewed bilingual records. Officeholder history is the next website slice; polls, accounts, and
+  community submissions remain deferred.
+
+## Development entry — Prepared AP Officeholder History website vertical slice
+
+- **Date:** 15 August 2026
+- **Goal and bounded scope:** Added a discoverable `/officeholders` directory, dynamic
+  `/officeholders/[slug]` detail route, and read-only `/api/officeholders` prepared-catalogue route.
+  This is a website-only slice; it adds no officeholder schema, migration, seed, source ingestion,
+  reviewed production role or term record, procurement record, public-money record, map, poll,
+  account, or community submission. The existing Stage 1 `/government` page and its
+  representatives empty-state remain unchanged.
+- **Term discipline:** Time-bounded roles and terms are kept distinct from personal or political
+  claims. A term record asserts the dates and role stated in its source and nothing beyond them: an
+  office is not the person, and a term end is not a verdict. When the source does not state a term
+  end, the interface says so rather than assuming the term continues to today.
+- **Prepared-data boundary:** The production catalogue is an explicit empty array and the route returns
+  `prepared-empty`. The directory does not imply that Andhra Pradesh has no officeholders. Unknown
+  detail slugs state that their address neither establishes nor disproves a person, role or term.
+  All populated holders, offices, bodies, and dates are confined to tests.
+- **Bilingual and filter contract:** English and Telugu record titles, descriptions, holders, offices,
+  bodies, and districts are first-class values. Term dates are non-localized source strings. Native
+  controls combine office, government-body, district, and term-date filters without deriving new
+  officeholder facts. The term-date filter separates records by whether a reviewed term end is
+  published, never by an invented date.
+- **Provenance contract:** Every renderable official field is an `official` claim with a reviewed
+  `source_record_id`, source name, official URL, and retrieval date. Directory cards and detail fields
+  place an `Official · Reviewed` label, official-source link, and `SourceRecord` retrieval note beside
+  each of the eight officeholder claims.
+- **States, responsive behavior, and accessibility:** Added route-level and catalogue loading states,
+  prepared-empty and filtered-empty states, retryable catalogue and route errors, and unavailable detail
+  states. Filters use a labelled fieldset and native controls; asynchronous output uses live status or
+  alert semantics. Filter, record, detail, claim, and term-note grids collapse at tablet and mobile
+  breakpoints.
+- **Tests:** Added combined-filter unit coverage; component coverage for loading, empty,
+  filtered-empty, unavailable, failure/retry, English/Telugu switching, per-claim provenance, and
+  unavailable term-end fields; route coverage for `/api/officeholders`, `/officeholders`, and
+  `/officeholders/[slug]`; and a responsive stylesheet contract test. Test-only records exercise
+  populated behavior while production stays empty.
+- **Verification:** `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (67 tests),
+  and `npm run build` passed. The build emitted `/api/officeholders`, `/officeholders`, and
+  `/officeholders/[slug]`. API Ruff passed, strict MyPy passed 39 source files, and Pytest passed 30
+  tests with four database integration tests skipped because no `TEST_DATABASE_URL` was supplied.
+- **Security and privacy:** The slice is read-only and processes no identity, personal data, user
+  location, uploads, writes, moderation actions, or community evidence. Officeholder names are
+  published records, not derived personal data. External source links use `noreferrer`; test fixtures
+  are not imported by production modules.
+- **Limitations and next order:** No reviewed officeholder records, runtime response validation, source
+  acquisition, officeholder-to-project or officeholder-to-role graphs, browser screenshot regression,
+  or live deployment verification exists yet. Stage 7 data acceptance still requires governed
+  ingestion and reviewed bilingual records. Search, alerts, and My Area is the next website slice;
+  polls, accounts, and community submissions remain deferred.
+
+## Development entry — Prepared AP My Area website vertical slice
+
+- **Goal and bounded scope:** Added a discoverable `/my-area` page giving a coarse, source-first
+  briefing from a district the citizen selects. This is a website-only slice: it adds no schema,
+  migration, seed, source ingestion, or write path, and it intentionally does not add a
+  prepared-catalogue API route, because the district list is read live from the reviewed geography
+  API. There is no user account, no stored preference, and no alerts implementation.
+- **Privacy posture:** The page uses only the district the citizen chooses. No precise location,
+  coordinates, or device location is collected; the choice is kept only in the URL query parameter
+  `?district=<slug>` and is never persisted. This satisfies the non-negotiable rule not to expose
+  precise user locations.
+- **Bilingual search:** A client-side search matches reviewed districts by English name, Telugu
+  name, and alternate names (for example "Vizag"), then filters the district dropdown. The district
+  list comes from `getDistricts` in `apps/web/src/lib/catalog-api.ts` against the reviewed geography
+  endpoint; a retryable error state is shown when the official-record API cannot be reached.
+- **Honest briefing panels:** Five prepared panels cover schemes, projects, public money,
+  procurement, and officeholders. Each shows a pending status label for the selected district and
+  links to the matching prepared directory. Nothing is demonstrated: the production catalogues
+  remain empty until reviewed records are published for a district. The page does not imply that a
+  district has no schemes, projects, financial observations, tenders, or officeholders.
+- **Alerts-deferred box:** The alerts section states plainly that area alerts require a reviewable
+  account and consent controls that are not built, and that no email, phone, or push subscription is
+  collected today. This keeps the "not built" boundary visible rather than implying an unavailable
+  feature is pending silently.
+- **Test coverage:** Added `MyArea.test.tsx` (6 tests: domain configuration, privacy notice and
+  empty prompt, district selection with URL update and prepared panels, bilingual search, Telugu
+  switching, and alerts-deferred state with retry), `MyAreaRoutes.test.tsx` (1 test: route renders),
+  and `MyAreaResponsive.test.ts` (1 test: mobile toolbar collapse and briefing auto-fill at the
+  800px/520px breakpoints). The selection test uses a stateful mocked `next/navigation` so
+  `useSearchParams` reflects the URL update after `router.replace`.
+- **Verification evidence:** `npm run format:check`, `npm run lint`, and `npm run typecheck` passed;
+  the web suite passed 75 tests across 23 files (up from 67); `npm run build` emitted `/my-area` as
+  a static route. API Ruff passed, strict MyPy passed 39 source files, and Pytest passed 30 tests
+  with 4 skipped; `git diff --check` was clean. Production paths for the five briefing domains
+  remain explicitly empty.
+- **Limitations and next order:** No reviewed per-district records, no alerts, no account or consent
+  controls, no browser screenshot regression, and no live deployment verification exist yet. Stage 8
+  data acceptance still requires governed ingestion and reviewed bilingual records. Accounts and
+  structured reports is the next website slice (it touches consent, privacy, and review controls, so
+  it warrants a design discussion before implementation); polls and community submissions remain
+  deferred.
+
+## Development entry — Prepared AP Accounts and structured reports website vertical slice
+
+- **Goal and bounded scope:** Added a discoverable `/account` page as an honest, prepared shell for
+  accounts and structured reports. This is a website-only slice that intentionally builds no real
+  account: there is no sign-up, sign-in, session, password, stored preference, consent record,
+  schema, migration, seed, or secret. The user selected this scope over real read-only accounts.
+- **Privacy posture:** The page states plainly that nothing is collected today — no email, password,
+  phone, or precise location is collected or stored, and there is no saved preference. This keeps
+  the non-negotiable privacy rule (no precise user locations) and the consent rule (explicit and
+  reversible) visible as future requirements rather than implying they exist.
+- **Prepared consent model:** Three planned consent choices are shown as pending status-labeled
+  items: area alerts, language preference, and submitted-evidence visibility. The copy explains that
+  no consent choice can be made or stored yet, so the page does not fake an interactive consent
+  flow.
+- **Prepared structured reports:** Five panels mirror the prepared directory domains (schemes,
+  projects, public money, procurement, officeholders) as the structured reports an account would
+  deliver, each pending and linked to its prepared directory. Nothing is demonstrated.
+- **Review-controls boundary:** A tinted section states that identity, moderation, appeals, abuse,
+  and audit controls must be implemented before any account exists, so no personal evidence, private
+  message, or moderation action can be stored today, and that every future moderation action will
+  produce an audit record (consistent with the audit-record non-negotiable rule).
+- **Test coverage:** Added `Account.test.tsx` (3 tests: configuration sanity plus honest shell and
+  Telugu switch), `AccountRoutes.test.tsx` (1 test: route renders), and `AccountResponsive.test.ts`
+  (1 test: report grid auto-fill and consent/report list stacking at the 800px/520px breakpoints).
+  The My Area selection and search tests were hardened to wait for the reviewed-district option
+  before interacting, removing a load-race flake surfaced by the fuller parallel suite.
+- **Verification evidence:** `npm run format:check`, `npm run lint`, and `npm run typecheck` passed;
+  the web suite passed 80 tests across 26 files (up from 75); `npm run build` emitted `/account` as
+  a static route. API Ruff passed, strict MyPy passed 39 source files, and Pytest passed 30 tests
+  with 4 skipped; `git diff --check` was clean. No personal data path exists.
+- **Limitations and next order:** No real accounts, consent storage, identity verification,
+  moderation, appeals, audit UI, or live deployment verification exist yet. Stage 9 data acceptance
+  requires a deliberate identity, consent, and audit design plus governed ingestion. Polls,
+  comments, moderation, and community submissions are the next website slice (Stage 10) and remain
+  out of scope.
+
+## Development entry — Prepared AP Polls, comments, and moderation website vertical slice
+
+- **Goal and bounded scope:** Reworked `/community` from a static English-only placeholder into a
+  closed, bilingual (EN/TE) prepared shell for future community participation. This is a
+  website-only slice: it builds no submissions, no polls, no comments, no identity, no moderation
+  flow, no schema, and no write path. The page collects nothing about the visitor.
+- **Non-representative label (non-negotiable rule):** A prominent polls box states that no poll
+  result here represents India or Andhra Pradesh, and that when polls open every poll will be
+  labeled as community opinion and never described as representative of Andhra Pradesh. This keeps
+  the Stage 10 "non-representative labels" requirement explicit rather than implied.
+- **Immutable moderation audit (non-negotiable rule):** A moderation section previews the three
+  principles that must exist before any submission is accepted — immutable audit (every moderation
+  action produces an audit record), appeals through a review path, and no anonymous abuse — each
+  marked planned. This keeps the "all moderation actions must produce an audit record" rule visible
+  as a precondition.
+- **Prepared participation modes:** Two planned modes are shown as pending status-labeled items:
+  structured evidence and comments, and transparent polls. The copy states that nothing can be
+  submitted today and that these modes would open only once consent, identity, and moderation
+  controls are built.
+- **Test coverage:** Added `Community.test.tsx` (3 tests: configuration sanity, honest closed shell
+  with the non-representative disclaimer and audit principle, and Telugu switch),
+  `CommunityRoutes.test.tsx` (1 test: route renders), and `CommunityResponsive.test.ts` (1 test:
+  participation and pillar grids stack at the 800px breakpoint).
+- **Verification evidence:** `npm run format:check`, `npm run lint`, and `npm run typecheck` passed;
+  the web suite passed 85 tests across 29 files (up from 80); `npm run build` emitted `/community`
+  as a static route. API Ruff passed, strict MyPy passed 39 source files, and Pytest passed 30 tests
+  with 4 skipped; `git diff --check` was clean. No participation or moderation path exists.
+- **Limitations and next order:** No open polls, comments, submissions, identity, moderation,
+  appeals, or audit UI exist, and no live deployment verification has been done. Stage 10 data
+  acceptance requires identity, consent, moderation, and audit infrastructure plus governed review.
+  Additional states using the proven Andhra Pradesh pipeline are the next website slice; they remain
+  out of scope until network ingestion and data acceptance are operational.
+
+## Development entry — Community readiness, charter, and prepared-closed API
+
+- **Goal and bounded scope:** Deepened the prepared community slice in four ordered additions: (1) a
+  participation readiness board, (2) poll disclosure commitments, (3) a community charter page at
+  `/community/charter`, and (4) a prepared `/api/community` route. Everything remains a closed,
+  bilingual, honest shell: no submissions, polls, comments, accounts, moderation, or write paths were
+  added, and the page still collects nothing about the visitor.
+- **Readiness board:** The community page now previews the seven gates that must exist before
+  participation opens — identity, explicit consent, private-evidence handling, moderation, appeals,
+  abuse controls, and immutable audit — each marked planned. This replaces the earlier standalone
+  moderation-pillars preview, folding moderation, appeals, abuse, and audit into the full gate set,
+  and keeps the "every moderation action produces an audit record" principle prominent in the section
+  note.
+- **Poll disclosure commitments:** The polls box now lists the four disclosures every poll must carry
+  when polls open: never representative of India or Andhra Pradesh, method and size disclosed, no
+  identity-linked results, and attached to specific records. Each is marked planned; the
+  non-representative disclaimer (non-negotiable rule) stays the section heading.
+- **Community charter:** A new `/community/charter` page states it is a commitment, not an open door.
+  It defines the four evidence classes (official, calculated, inferred, community-reported, reusing
+  the global classification marks), states that community experience is always labeled and never
+  silently official, lists what is never allowed (impersonation, anonymous abuse, required precise
+  locations, unlabeled community items), and links back to the readiness gates. The community page
+  links to the charter.
+- **Prepared-closed API:** `/api/community` returns `{ data: [], status: "prepared-closed" }`,
+  mirroring the directory-route contract while honestly stating participation is closed. The route
+  test asserts the exact payload, matching the established `GET()` pattern.
+- **Test coverage:** Added `Charter.test.tsx` (3 tests: configuration sanity, commitment shell with
+  evidence classes and planned rules, Telugu switch), `CharterRoutes.test.tsx` (1 test), and
+  `CharterResponsive.test.ts` (1 test: evidence and rule grids stack). Reworked `Community.test.tsx`
+  for the new sections (13 planned labels: 2 participation modes, 4 poll disclosures, 7 readiness
+  gates), `CommunityRoutes.test.tsx` (now asserts the prepared-closed API payload), and
+  `CommunityResponsive.test.ts` (readiness and disclosure grids).
+- **Verification evidence:** `npm run format:check`, `npm run lint`, and `npm run typecheck` passed;
+  the web suite passed 91 tests across 32 files (up from 85); `npm run build` emitted `/community`,
+  `/community/charter`, and `/api/community` (static pages plus the dynamic API route). API Ruff
+  passed, strict MyPy passed 39 source files, and Pytest passed 30 tests with 4 skipped;
+  `git diff --check` was clean. No participation or moderation path exists.
+- **Limitations and next order:** No open polls, comments, submissions, identity, moderation,
+  appeals, or audit UI exist, and no live deployment verification has been done. Stage 10 data
+  acceptance requires identity, consent, moderation, and audit infrastructure plus governed review.
+  Additional states using the proven Andhra Pradesh pipeline are the next website slice; they remain
+  out of scope until network ingestion and data acceptance are operational.

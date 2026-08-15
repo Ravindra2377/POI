@@ -1,20 +1,25 @@
 import json
-from datetime import date
+from datetime import UTC, date, datetime
 from importlib.resources import files
+from urllib.parse import urlsplit
 from uuid import UUID, uuid5
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import select
+from sqlalchemy import inspect, select
 from sqlalchemy.orm import Session
 
 from app.models.enums import (
+    AccessMethod,
     AliasType,
     GeographyRelationshipType,
     GeographyType,
     GovernmentBodyType,
     GovernmentRelationshipType,
     LanguageCode,
+    ObservationReviewState,
+    ReviewDecisionType,
     ReviewStatus,
+    ValueClassification,
 )
 from app.models.geography import Geography, GeographyAlias, GeographyRelationship
 from app.models.government import (
@@ -22,6 +27,12 @@ from app.models.government import (
     GovernmentBody,
     GovernmentBodyAlias,
     GovernmentBodyRelationship,
+)
+from app.models.provenance import (
+    ReviewDecision,
+    SourceDocument,
+    SourceObservation,
+    SourceRecord,
 )
 from app.models.source import SourceReference
 
@@ -94,6 +105,118 @@ def load_manifest() -> SeedManifest:
     return SeedManifest.model_validate(json.loads(resource.read_text(encoding="utf-8")))
 
 
+def _ensure_source_provenance(session: Session, source: SourceReference) -> None:
+    """Create the Stage 2 compatibility chain without inventing a raw snapshot."""
+    source_record = session.get(SourceRecord, source.id)
+    if source_record is None:
+        source_record = SourceRecord(
+            id=source.id,
+            name=source.source_name,
+            publisher=source.source_name,
+            official_domain=urlsplit(source.official_source_url).hostname or "unknown.invalid",
+            source_type="stage1_reference",
+            jurisdiction_code="IN-AP",
+            access_method=AccessMethod.MANUAL,
+            licence_status=None,
+            reuse_status=None,
+            active_from=source.effective_date,
+            active_to=None,
+            review_status=source.review_status,
+            legacy_source_reference_id=source.id,
+        )
+        session.add(source_record)
+        session.flush()
+    elif source_record.legacy_source_reference_id != source.id:
+        raise SeedConflict(f"source provenance {source.id} conflicts with the Stage 1 bridge")
+
+    document = session.get(SourceDocument, source.id)
+    if document is None:
+        document = SourceDocument(
+            id=source.id,
+            source_id=source.id,
+            official_url=source.official_source_url,
+            title=source.source_name,
+            publication_date=source.publication_date,
+            reporting_period_start=source.effective_date,
+            reporting_period_end=source.effective_date,
+            document_type="stage1_reference",
+            language_code=LanguageCode.UND,
+            jurisdiction_code="IN-AP",
+            document_metadata={
+                "legacy_source_reference_id": str(source.id),
+                "raw_snapshot_status": "unavailable_legacy_source_reference",
+                "retrieval_date": source.retrieval_date.isoformat(),
+                "citation_metadata": source.citation_metadata,
+                "notes": source.notes,
+                "is_fixture": source.is_fixture,
+            },
+        )
+        session.add(document)
+        session.flush()
+    elif document.official_url != source.official_source_url:
+        raise SeedConflict(f"source document {source.id} differs from the Stage 1 bridge")
+
+    observation = session.get(SourceObservation, source.id)
+    if observation is None:
+        observation = SourceObservation(
+            id=source.id,
+            entity_type="source_reference",
+            entity_id=source.id,
+            field_path="legacy_reference",
+            value_json={
+                "source_name": source.source_name,
+                "official_source_url": source.official_source_url,
+                "retrieval_date": source.retrieval_date.isoformat(),
+                "publication_date": (
+                    source.publication_date.isoformat() if source.publication_date else None
+                ),
+                "effective_date": (
+                    source.effective_date.isoformat() if source.effective_date else None
+                ),
+                "citation_metadata": source.citation_metadata,
+                "notes": source.notes,
+                "is_fixture": source.is_fixture,
+            },
+            document_id=source.id,
+            legacy_source_reference_id=source.id,
+            classification=ValueClassification.OFFICIAL,
+            review_state=ObservationReviewState.REVIEWED,
+            valid_from=source.effective_date,
+            is_published=True,
+        )
+        session.add(observation)
+        session.flush()
+
+    decision = session.get(ReviewDecision, source.id)
+    if decision is None:
+        reviewed_at = datetime.combine(source.retrieval_date, datetime.min.time(), tzinfo=UTC)
+        session.add(
+            ReviewDecision(
+                id=source.id,
+                observation_id=source.id,
+                reviewer_identity="system:stage2-legacy-backfill",
+                decision=ReviewDecisionType.APPROVE,
+                reason=(
+                    "Imported from the explicit Stage 1 reviewed source reference; "
+                    "raw bytes were not retained."
+                ),
+                decided_at=reviewed_at,
+            )
+        )
+        session.flush()
+
+
+def _stage2_provenance_available(session: Session) -> bool:
+    """Keep the Stage 1 seed runnable at its own migration revision."""
+    cache_key = "stage2_provenance_available"
+    cached = session.info.get(cache_key)
+    if isinstance(cached, bool):
+        return cached
+    available = inspect(session.get_bind()).has_table("sources")
+    session.info[cache_key] = available
+    return available
+
+
 def _ensure_source(
     session: Session,
     *,
@@ -117,6 +240,8 @@ def _ensure_source(
         )
         if actual != expected:
             raise SeedConflict(f"source {key} differs from the reviewed seed")
+        if _stage2_provenance_available(session):
+            _ensure_source_provenance(session, existing)
         return existing, False
     source = SourceReference(
         id=source_id,
@@ -132,6 +257,8 @@ def _ensure_source(
     )
     session.add(source)
     session.flush()
+    if _stage2_provenance_available(session):
+        _ensure_source_provenance(session, source)
     return source, True
 
 

@@ -2,8 +2,9 @@
 
 ## Product
 
-This repository contains a civic intelligence and participation platform for Andhra Pradesh.
-The system must keep official government information, platform-derived information, and
+This repository contains an India-wide public intelligence and civic participation platform,
+launching with Andhra Pradesh. The system must keep official government information,
+platform-derived information, and
 community-generated information visibly and technically separate.
 
 ## Non-negotiable rules

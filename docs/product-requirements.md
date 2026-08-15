@@ -1,6 +1,10 @@
-# Product Requirements: Andhra Pradesh Pilot
+# Product Requirements: India-wide Platform, Andhra Pradesh Launch
 
 ## Product promise
+
+The durable product scope is India-wide. Andhra Pradesh is the first reviewed implementation and
+rollout boundary, not a permanent geographic limit. New states may be added only after the Andhra
+Pradesh provenance and ingestion pipeline is accepted.
 
 Help a person understand what is happening in their area and compare official government records
 with structured, clearly separated community experience.
@@ -18,7 +22,7 @@ released, spent, and delivered—and which official source supports each figure?
 
 ## Pilot scope
 
-- Andhra Pradesh, with a schema that can later cover all Indian states
+- Andhra Pradesh as the first implementation of the India-wide schema and public experience
 - All 26 districts in the directory; controlled content rollout may start with selected districts
 - District and mandal navigation without precise user GPS
 - Roads and infrastructure, healthcare, and education
