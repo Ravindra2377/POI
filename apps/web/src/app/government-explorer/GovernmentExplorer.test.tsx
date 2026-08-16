@@ -72,7 +72,7 @@ describe("GovernmentExplorer", () => {
     ).toBeVisible();
   });
 
-  it("links to the human-readable official page and shows the recorded endpoint", async () => {
+  it("links to the human-readable official source page", async () => {
     const portalDistrict = {
       ...district,
       provenance: {
@@ -99,11 +99,7 @@ describe("GovernmentExplorer", () => {
     expect(
       screen.getByRole("link", { name: "Local Government Directory" }),
     ).toHaveAttribute("href", "https://ananthapuramu.ap.gov.in/te/");
-    expect(
-      screen.getByText(
-        /Recorded from: lgdirectory.gov.in/,
-      ),
-    ).toBeVisible();
+    expect(screen.getByText(/Retrieved 2026-08-10/)).toBeVisible();
   });
 
   it("supports Telugu rendering and native keyboard controls", async () => {

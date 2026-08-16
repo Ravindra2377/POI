@@ -1977,8 +1977,8 @@ supported`; department cards opened the AP State Portal `ApOrganizations` JSON e
 - **Civic Watchlists & Activity Stream Pages:**
   - Created `/lists` (`apps/web/src/app/lists/page.tsx`) for curated thematic dossiers (e.g. *Rayalaseema Irrigation Watch*, *Farmer Welfare Schemes*).
   - Created `/activity` (`apps/web/src/app/activity/page.tsx`) combining live official dataset ingestion feeds with audited community observations.
-- **Top Navigation Integration:**
-  - Updated `SiteHeader.tsx` adding *Activity Stream* and *Civic Lists* to primary navigation.
+- **Clean Institutional Source Presentation (Credibility Refinement):**
+  - Cleaned up source attribution components (`RecordStatus.tsx`, `OfficialClaim.tsx`, `OfficialMoneyClaim.tsx`, `OfficialOfficeholderClaim.tsx`, `OfficialProjectClaim.tsx`, `OfficialProcurementClaim.tsx`) to display clean authoritative institutional publisher names (e.g. *Government of Andhra Pradesh*, *Local Government Directory*) without raw external domain URLs in UI subtitles.
 - **Verification Evidence:**
   - Web (`apps/web`): `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (35 test files, 109 tests passed).
   - API (`apps/api`): `ruff check --no-cache .` (0 errors), `mypy --cache-dir /tmp/mypy_cache app tests` (67 files clean), `pytest -p no:cacheprovider` (57 passed, 7 skipped).
