@@ -2173,3 +2173,49 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   `98aaf35` for Stage 2.8 and this stage's fix in a follow-up commit.
 - **Remaining work:** unchanged from Stage 2.8 — production review/publish deployment, Stage 7 data
   acceptance, and the projects/procurement official-source assessment.
+
+### Stage 2.10 — Disposable PostGIS Verification: Integration Suite + Live Elections Operator (2026-08-16)
+
+- **Scope:** the "9 skipped" Postgres-gated integration suite had never executed against a real
+  database, and every ingestion stage deferred "run the operator live against a Postgres database"
+  to deployment. A disposable `postgis/postgis:16-3.5` container (`ap_civic_stage7_test`, name
+  contains `_test` per the runbook, local only) was started with `docker run`, `TEST_DATABASE_URL`
+  and `DATABASE_URL` pointed at it, and the full suite ran for the first time. This is
+  pre-deployment verification evidence, not production deployment or restore evidence.
+- **Test fixes (five integration tests, never previously executed because always skipped):**
+  - `test_ingest_elections_postgres.py`: queried `SourceObservation.entity_id.like(...)`, but
+    `entity_id` is a `uuid` column, so Postgres raised `operator does not exist: uuid ~~ uuid`.
+    The queries now match the exact stable UUIDs the module generates:
+    `uuid5(ELECTION_INGESTION_NAMESPACE, "election-result:term16-1-ichchapuram")` and
+    `...("election-result:term16-kovur")` (Kovur's Term XVI row omits its constituency number, so its
+    slug has no number segment).
+  - `test_ingest_budget_postgres.py`: asserted a `{sha256}.json` snapshot file, but the budget store
+    writes `{sha256}.pdf`; corrected. Also compared pydantic `HttpUrl` to `str` directly; wrapped in
+    `str(...)`.
+  - `test_ingest_officeholders_postgres.py`, `test_ingest_schemes_postgres.py`,
+    `test_ingest_districts_postgres.py`: compared pydantic `HttpUrl` values to plain strings, which
+    is always false. Now compare `str(...)` against the canonical serialization (including trailing
+    `/` for root URLs and `%20` for the myScheme space).
+  - All four non-district tests asserted `published_observations == stored.observations_created`,
+    ignoring that `seed_stage1` publishes **28** `source_reference` observations; corrected to
+    `28 + stored.observations_created` (the districts test already accounted for the seed).
+- **Verification evidence:** full `pytest -p no:cacheprovider` **88 passed** (integration suite 9/9
+  green: stage-1 migration/double-seed/downgrade, districts 28, schemes 20, officeholders 3,
+  elections 175, budget AFS), plus `ruff check --no-cache .` clean and strict MyPy clean (76 source
+  files).
+- **Live operator run (`python -m app.commands.ingest_elections` against the disposable database):**
+  Term XVI → 175 results, 2,275 observations created and reviewed; Term XV → 177, 2,301; Term XIV →
+  179, 2,327; each PDF stored as an immutable snapshot, all observations published with audited
+  review decisions under reviewer `operator:stage7-local`. A re-run of Term XIV stored 0 snapshots
+  and created/reviewed 0 observations, proving idempotency. After the run the database held 8
+  snapshots, 31 documents, 31 source records, and 6,935 published observations, and
+  `SQLCatalogRepository.list_election_results()` returned `status: "reviewed"` with **531** rows
+  (175 + 177 + 179), each with a `reviewed` `SourceRecord` (sample: Sri Mopurugundu Thippeswamy,
+  Madakasira (SC), ANANTHAPUR, YSRCP).
+- **Release-gate note:** the `ingest_officeholders`/`ingest_districts`/`ingest_budget`/
+  `ingest_schemes` CLIs fetch live endpoints and remain gated by the release criteria in
+  `docs/operations-and-recovery.md` (private object storage approval, LGD access review, restore
+  drill, monitoring). `ingest_elections` takes operator-supplied local PDFs, so it ran now without
+  violating that gate.
+- **Remaining work:** production deploy of the review/publish path (Render contract) followed by
+  Stage 7 data acceptance; then the projects/procurement official-source assessment.

@@ -87,7 +87,7 @@ def test_budget_afs_ingestion_publishes_major_heads(tmp_path: Path) -> None:
         assert stored.snapshots_stored == 1
         assert stored.observations_created > 0
         assert reviewed == stored.observations_created
-        assert (tmp_path / "snapshots" / f"{stored.sha256}.json").exists()
+        assert (tmp_path / "snapshots" / f"{stored.sha256}.pdf").exists()
 
         assert session.scalar(select(func.count()).select_from(SourceSnapshot)) == 1
 
@@ -102,7 +102,7 @@ def test_budget_afs_ingestion_publishes_major_heads(tmp_path: Path) -> None:
         assert line.amounts[0].rupees == 96255380000
         assert line.source.source_name.startswith("Annual Financial Statement")
         assert line.source.official_source_url.host == "apfinance.gov.in"
-        assert line.source.public_source_url == "https://apfinance.gov.in/budget.html"
+        assert str(line.source.public_source_url) == "https://apfinance.gov.in/budget.html"
         assert line.source.review_status.value == "reviewed"
 
         published_observations = session.scalar(
@@ -110,7 +110,7 @@ def test_budget_afs_ingestion_publishes_major_heads(tmp_path: Path) -> None:
             .select_from(SourceObservation)
             .where(SourceObservation.is_published.is_(True))
         )
-        assert published_observations == stored.observations_created
+        assert published_observations == 28 + stored.observations_created
 
     with Session(engine) as session, session.begin():
         lines = parse_afs_layout(

@@ -197,3 +197,13 @@ official claims grouped by result, mirroring the officeholders pattern; the web 
 slice is live with a bilingual directory, district/party/term/seat-status filters, per-record
 detail pages, and the same prepared-empty honesty labels until reviewed records are deployed to
 production and Stage 7 data acceptance is operational.
+
+The disposable-PostGIS verification then ran the integration suite for the first time (9/9 green,
+with the five test-side bugs that had never been exercised fixed) and the `ingest_elections` operator
+live against a local database: Terms XVI/XV/ XIV were stored as immutable snapshots with 2,275 /
+2,301 / 2,327 reviewed and published observations each, and `GET /api/v1/election-results`
+(equivalently `SQLCatalogRepository.list_election_results()`) returned `status: "reviewed"` with 531
+rows on real Postgres. Production deploy of the review/publish path and Stage 7 data acceptance
+remain the outstanding release steps; the live-fetching `ingest_officeholders`/`ingest_districts`/
+`ingest_budget`/`ingest_schemes` operators stay gated on the operations release criteria (private
+object storage, restore drill, LGD access review, monitoring).

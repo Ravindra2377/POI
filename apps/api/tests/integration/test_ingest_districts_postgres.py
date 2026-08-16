@@ -143,10 +143,13 @@ def test_district_feed_ingestion_publishes_all_28_districts(tmp_path: Path) -> N
         markapuram = next(item for item in districts.data if item.slug == "markapuram")
         assert markapuram.official_code == "790"
         assert markapuram.provenance.review_status.value == "reviewed"
-        assert markapuram.provenance.official_source_url == (
+        assert str(markapuram.provenance.official_source_url) == (
             "https://lgdirectory.gov.in/webservices/lgdws/districtList"
         )
-        assert markapuram.provenance.public_source_url == "https://markapuram.ap.gov.in/"
+        assert (
+            str(markapuram.provenance.public_source_url)
+            == "https://markapuram.ap.gov.in/"
+        )
         assert not markapuram.has_boundary
 
         published_observations = session.scalar(

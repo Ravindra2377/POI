@@ -1,6 +1,7 @@
 import os
 from datetime import UTC, datetime
 from pathlib import Path
+from uuid import uuid5
 
 import pytest
 from sqlalchemy import Engine, create_engine, func, select
@@ -10,6 +11,7 @@ from alembic import command
 from alembic.config import Config
 from app.db import normalize_database_url
 from app.ingestion.elections import (
+    ELECTION_INGESTION_NAMESPACE,
     ElectionFeedSnapshot,
     build_election_snapshot,
     parse_election_results,
@@ -85,7 +87,11 @@ def test_election_feed_ingestion_publishes_term16_results(tmp_path: Path) -> Non
         ichchapuram = session.scalar(
             select(SourceObservation).where(
                 SourceObservation.entity_type == "election_result",
-                SourceObservation.entity_id.like("%-1-ichchapuram"),
+                SourceObservation.entity_id
+                == uuid5(
+                    ELECTION_INGESTION_NAMESPACE,
+                    "election-result:term16-1-ichchapuram",
+                ),
                 SourceObservation.field_path == "constituency_en",
             )
         )
@@ -101,7 +107,11 @@ def test_election_feed_ingestion_publishes_term16_results(tmp_path: Path) -> Non
         kovur = session.scalar(
             select(SourceObservation).where(
                 SourceObservation.entity_type == "election_result",
-                SourceObservation.entity_id.like("%-kovur"),
+                SourceObservation.entity_id
+                == uuid5(
+                    ELECTION_INGESTION_NAMESPACE,
+                    "election-result:term16-kovur",
+                ),
                 SourceObservation.field_path == "constituency_no",
             )
         )
@@ -113,7 +123,7 @@ def test_election_feed_ingestion_publishes_term16_results(tmp_path: Path) -> Non
             .select_from(SourceObservation)
             .where(SourceObservation.is_published.is_(True))
         )
-        assert published_observations == stored.observations_created
+        assert published_observations == 28 + stored.observations_created
 
     with Session(engine) as session, session.begin():
         records = parse_election_results(TERM16_TEXT, term_id=16)

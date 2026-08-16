@@ -107,8 +107,8 @@ def test_scheme_feed_ingestion_publishes_all_20_schemes(tmp_path: Path) -> None:
         assert rythu.eligibility is None
         assert rythu.name.source.source_name.startswith("myScheme")
         assert rythu.name.source.official_source_url.host == "api.myscheme.gov.in"
-        assert rythu.name.source.public_source_url == (
-            "https://www.myscheme.gov.in/search/state/Andhra Pradesh"
+        assert str(rythu.name.source.public_source_url) == (
+            "https://www.myscheme.gov.in/search/state/Andhra%20Pradesh"
         )
         assert rythu.name.source.review_status.value == "reviewed"
 
@@ -117,7 +117,7 @@ def test_scheme_feed_ingestion_publishes_all_20_schemes(tmp_path: Path) -> None:
             .select_from(SourceObservation)
             .where(SourceObservation.is_published.is_(True))
         )
-        assert published_observations == stored.observations_created
+        assert published_observations == 28 + stored.observations_created
 
     with Session(engine) as session, session.begin():
         records = parse_ap_schemes(SCHEME_PAYLOAD)

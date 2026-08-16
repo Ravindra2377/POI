@@ -108,7 +108,10 @@ def test_officeholder_feed_ingestion_publishes_term16_members(tmp_path: Path) ->
             "AP Legislative Assembly member report"
         )
         assert ichchapuram.person_name.source.official_source_url.host == "aplegislature.org"
-        assert ichchapuram.person_name.source.public_source_url == "https://aplegislature.org"
+        assert (
+            str(ichchapuram.person_name.source.public_source_url)
+            == "https://aplegislature.org/"
+        )
         assert ichchapuram.person_name.source.review_status.value == "reviewed"
 
         published_observations = session.scalar(
@@ -116,7 +119,7 @@ def test_officeholder_feed_ingestion_publishes_term16_members(tmp_path: Path) ->
             .select_from(SourceObservation)
             .where(SourceObservation.is_published.is_(True))
         )
-        assert published_observations == stored.observations_created
+        assert published_observations == 28 + stored.observations_created
 
     with Session(engine) as session, session.begin():
         records = parse_officeholders(TERM16_REPORT, term_id=16)
