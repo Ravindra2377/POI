@@ -1908,11 +1908,10 @@ supported`; department cards opened the AP State Portal `ApOrganizations` JSON e
   the rerun is idempotent (zero new snapshots/observations).
 - **Verification evidence:** API Ruff clean; strict MyPy clean (58 files); Pytest 57 passed, 7 skipped
   (postgres-gated integration tests skip locally because `TEST_DATABASE_URL` is unset); `git diff
-  --check` clean.
+--check` clean.
 - **Remaining work:** elections ingestion from the official AP Legislature term PDFs
   (14th/15th/16th terms) remains on the roadmap, as does upgrading the web budget catalogue slice to
   consume `GET /api/v1/budget`.
-
 
 ## AP Historical Public Data (2014–Present) Production Database Ingestion & Quality Verification (2026-08-15)
 
@@ -1931,7 +1930,7 @@ supported`; department cards opened the AP State Portal `ApOrganizations` JSON e
 ### Stage 2.1 — Web Application Header & Provenance Layout Refactor (2026-08-16)
 
 - **Top Navigation Restructuring:**
-  - Separated `primaryNavigation` (5 core items: *Schemes*, *Public Money*, *Projects*, *Government*, *My Area*) from `secondaryNavigation` (*Explore Data*, *Procurement*, *Officeholders*, *Sources*, *Ingestion*, *Community*, *Account*).
+  - Separated `primaryNavigation` (5 core items: _Schemes_, _Public Money_, _Projects_, _Government_, _My Area_) from `secondaryNavigation` (_Explore Data_, _Procurement_, _Officeholders_, _Sources_, _Ingestion_, _Community_, _Account_).
   - Integrated a clean **"More ▾"** hamburger dropdown menu on desktop and responsive drawer on mobile, eliminating 12-item nav bar crowding.
 - **Source Record & Provenance Display Refinement:**
   - Added URL host/path formatting (`formatUrlDisplay`) in `OfficialClaim.tsx` and `RecordStatus.tsx`.
@@ -1975,20 +1974,18 @@ supported`; department cards opened the AP State Portal `ApOrganizations` JSON e
   - Created `LogCivicActionModal` (`apps/web/src/components/LogCivicActionModal.tsx`) enabling citizens to record scheme interactions, field project observations, and constituent inquiries.
   - Enforced strict `Community Reported` audit notice boundaries to prevent platform community logs from being presented as official data or representative polls.
 - **Civic Watchlists & Activity Stream Pages:**
-  - Created `/lists` (`apps/web/src/app/lists/page.tsx`) for curated thematic dossiers (e.g. *Rayalaseema Irrigation Watch*, *Farmer Welfare Schemes*).
+  - Created `/lists` (`apps/web/src/app/lists/page.tsx`) for curated thematic dossiers (e.g. _Rayalaseema Irrigation Watch_, _Farmer Welfare Schemes_).
   - Created `/activity` (`apps/web/src/app/activity/page.tsx`) combining live official dataset ingestion feeds with audited community observations.
 - **Clean Institutional Source Presentation (Credibility Refinement):**
-  - Cleaned up source attribution components (`RecordStatus.tsx`, `OfficialClaim.tsx`, `OfficialMoneyClaim.tsx`, `OfficialOfficeholderClaim.tsx`, `OfficialProjectClaim.tsx`, `OfficialProcurementClaim.tsx`) to display clean authoritative institutional publisher names (e.g. *Government of Andhra Pradesh*, *Local Government Directory*) without raw external domain URLs in UI subtitles.
+  - Cleaned up source attribution components (`RecordStatus.tsx`, `OfficialClaim.tsx`, `OfficialMoneyClaim.tsx`, `OfficialOfficeholderClaim.tsx`, `OfficialProjectClaim.tsx`, `OfficialProcurementClaim.tsx`) to display clean authoritative institutional publisher names (e.g. _Government of Andhra Pradesh_, _Local Government Directory_) without raw external domain URLs in UI subtitles.
 - **Verification Evidence:**
   - Web (`apps/web`): `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (35 test files, 109 tests passed).
   - API (`apps/api`): `ruff check --no-cache .` (0 errors), `mypy --cache-dir /tmp/mypy_cache app tests` (67 files clean), `pytest -p no:cacheprovider` (57 passed, 7 skipped).
 
-
-
 ### Stage 2.5 — Officeholders Ingestion: Live-Source Validation, Rate-Limit Guard, and Slug Uniqueness (2026-08-16)
 
 - **Source revalidation against the live Legislature site:**
-  - The live PDF export URL today serves a *different, pathological template* than the committed fixtures
+  - The live PDF export URL today serves a _different, pathological template_ than the committed fixtures
     (`Sixteenth Andhra Pradesh Legislative Assembly / Constituted on 06.06.2024 / 1:SRIKAKULAM`); member
     columns wrap across lines in an ambiguous, layout-dependent way that cannot be parsed reliably. The
     HTML portlet report retains the exact validated structure (`<ul class="table1">`, `mem_name`,
@@ -2021,3 +2018,41 @@ supported`; department cards opened the AP State Portal `ApOrganizations` JSON e
 - **Remaining work:** commit the officeholders ingestion changes; document live-run outcomes for the
   three terms in the operator guide; elections ingestion from the official AP Legislature term PDFs
   remains on the roadmap.
+
+### Stage 2.6 — Elections Ingestion: Official AP Legislature Term PDFs (2026-08-16)
+
+- **Source decision:** the live aplegislature.org PDF export now serves a pathological,
+  layout-unstable template (the same one that forced the officeholders pipeline off the live export).
+  The committed `term14.pdf`/`term15.pdf`/`term16.pdf` are genuine official publications in the clean
+  old format, so elections ingestion parses **operator-supplied official PDF files** rather than
+  fetching the live export. `AccessMethod.PDF`, `source_type="election_result_report"`,
+  `document_type="election_result_report"`, `request_method="local_file"`, snapshot key
+  `ap-legislature-election-results-term{term_id}` stored as `{sha256}.pdf` under `storage/snapshots`.
+- **Parser (`apps/api/app/ingestion/elections.py`):** converts each PDF via `pdftotext -layout`,
+  detects the term from the header ordinal (`SIXTEENTH/FIFTEENTH/FOURTEENTH ANDHRA PRADESH
+LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose constituency prints
+  on the following line; annotation continuations (`of `, `Oath`, `held`, `accepted`, ...); by-election
+  rows whose sl.no + party print on their own line (`15A <spaces> TDP`, e.g. Nandigama); and seat
+  inheritance — by-elections inherit the seat from the original row (backward: `2A` from `2`) and
+  originals with an unprinted seat inherit from the following `*A` row (forward: `1` from `1A`).
+  Term XVI's Kovur row omits its constituency number in the source; the constituency name is recovered
+  from the wide gap before the party column and `constituency_no=""` is kept honestly. The 14th-term
+  NOMINATED placeholder rows (`---`) carry no member name and are skipped.
+- **Verified parses against the committed official PDFs:** Term XVI → **175**, Term XV → **177**
+  (2 by-elections: Atmakur, Badvel), Term XIV → **179** (4 by-elections: Nandigama, Allagadda,
+  Madakasira, Tirupathi); every result has a non-empty name, constituency, party, and district, and
+  slugs are unique within each term. Seat status is classified died/resigned/disqualified/bye_election
+  from the annotation; `elected_via` distinguishes `general_election`/`bye_election`. Constitued-on
+  normalization: `06TH JUNE, 2024` → `06.06.2024`, `24th May, 2019` → `24.05.2019`, the 14th-term
+  header year `2014` is kept as-is.
+- **Operator CLI (`apps/api/app/commands/ingest_elections.py`):** repeatable `--pdf` argument (one per
+  term PDF), `--reviewer`, `--storage-dir`; stores the immutable PDF snapshot, extraction run, typed
+  official observations, and audited review decisions, mirroring the officeholders pattern.
+- **Verification evidence:** `ruff check --no-cache .` all clean; strict MyPy clean (74 source files);
+  `pytest -p no:cacheprovider` **78 passed, 9 skipped** (postgres-gated tests skip locally because
+  `TEST_DATABASE_URL` is unset; the postgres integration test is committed and skips here);
+  `python -m app.commands.ingest_elections --help` runs; `git diff --check` clean.
+- **Remaining work:** deploy the review/publish path and run the operator live against a Postgres
+  database, then wire the election-results catalogue into the web model and `/api/v1`; the 14th-term
+  report covers post-reorganisation Andhra Pradesh only, and the reports are English-only (Telugu
+  fields stay unpublished by design).

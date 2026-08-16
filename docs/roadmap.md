@@ -176,5 +176,17 @@ XIV (01.05.2014) 181 members, all verified against the live site on 2026-08-16. 
 English only, so Telugu fields remain honestly unpublished; seats with by-election replacements (e.g.
 ATMAKUR in Term XV) publish one entity per `mem_id`. The site's PDF export uses a layout-unstable
 template and is not used as a source. `/officeholders` remains a prepared slice until the reviewed
-records are deployed to production and Stage 7 data acceptance is operational; elections ingestion
-from the official AP Legislature term PDFs remains on the roadmap.
+records are deployed to production and Stage 7 data acceptance is operational.
+
+Elections ingestion then extended the same member reports: the `ingest_elections` operator takes
+operator-supplied official term PDFs (the committed `term14.pdf`/`term15.pdf`/`term16.pdf` are genuine
+publications in the clean pre-2026 template — the live export now uses the pathological template and is
+not fetched), converts each with `pdftotext -layout`, parses the wrapped and annotated rows, stores the
+PDF as an immutable snapshot, and publishes reviewed official observations with audited review decisions.
+Verified parses: Term XVI 175 results, Term XV 177 (2 by-elections: Atmakur, Badvel), Term XIV 179 (4
+by-elections: Nandigama, Allagadda, Madakasira, Tirupathi). By-election rows inherit their seat from the
+original row; deaths, resignations, and disqualifications are recorded as seat status on the original
+result. The reports are English-only, so Telugu fields remain honestly unpublished; one Term XVI row
+(Kovur) omits its constituency number in the source and is published with an empty constituency number;
+the 14th-term report's NOMINATED placeholder rows carry no member name and are not transcribed. The web
+catalogue slice for election results and its `/api/v1` endpoint remain on the roadmap.
