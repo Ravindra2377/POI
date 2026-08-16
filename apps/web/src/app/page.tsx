@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CivicPosterGridSection } from "@/components/CivicPosterGridSection";
 import { CoverageFacts } from "@/components/CoverageFacts";
 import { LatestRecordUpdates } from "@/components/LatestRecordUpdates";
 import { PageFooter } from "@/components/PageFooter";
@@ -60,6 +61,7 @@ export default function Home() {
             ))}
           </nav>
         </section>
+        <CivicPosterGridSection />
         <CoverageFacts />
         <section className="section shell" aria-labelledby="latest-heading">
           <div className="section-heading section-heading--split">

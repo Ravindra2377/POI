@@ -1,0 +1,115 @@
+.pageHeader {
+  background: var(--surface-blue);
+  border-bottom: 1px solid var(--line);
+  padding-block: 40px;
+}
+
+.heroTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  max-width: 680px;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.createListButton {
+  background: var(--blue);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease;
+}
+
+.createListButton:hover {
+  background: var(--blue-dark);
+}
+
+.mainSection {
+  padding-block: 40px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.listCard {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+
+.listCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(20, 32, 51, 0.08);
+  border-color: var(--blue);
+}
+
+.listTag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: var(--blue);
+  width: fit-content;
+}
+
+.listTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 8px 0 6px 0;
+  line-height: 1.3;
+}
+
+.listDesc {
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.itemCount {
+  font-weight: 600;
+}
+
+.curator {
+  color: var(--muted);
+}

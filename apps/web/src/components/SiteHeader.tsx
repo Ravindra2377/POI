@@ -10,6 +10,8 @@ const primaryNavigation = [
   { href: "/schemes", label: "Schemes" },
   { href: "/public-money", label: "Public Money" },
   { href: "/projects", label: "Projects" },
+  { href: "/activity", label: "Activity Stream" },
+  { href: "/lists", label: "Civic Lists" },
   { href: "/government", label: "Government" },
   { href: "/my-area", label: "My Area" },
 ];

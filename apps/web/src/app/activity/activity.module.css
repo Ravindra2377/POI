@@ -1,0 +1,156 @@
+.pageHeader {
+  background: var(--surface-blue);
+  border-bottom: 1px solid var(--line);
+  padding-block: 40px;
+}
+
+.heroTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  max-width: 680px;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.actionButton {
+  background: var(--blue);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease;
+}
+
+.actionButton:hover {
+  background: var(--blue-dark);
+}
+
+.mainSection {
+  padding-block: 40px;
+}
+
+.activityFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 800px;
+  margin-inline: auto;
+}
+
+.feedItem {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: border-color 0.15s ease;
+}
+
+.feedItem:hover {
+  border-color: var(--blue);
+}
+
+.avatarCircle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.itemContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.actorName {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.actionVerb {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.timestamp {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.targetTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.targetTitle:hover {
+  text-decoration: underline;
+}
+
+.itemNotes {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  background: var(--surface);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border-left: 3px solid var(--line);
+  margin: 4px 0 0 0;
+}
+
+.badgeGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.officialBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #ecf8f2;
+  color: var(--green);
+}
+
+.communityBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f3e8ff;
+  color: #7e22ce;
+}

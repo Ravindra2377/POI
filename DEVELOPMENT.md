@@ -1966,4 +1966,22 @@ supported`; department cards opened the AP State Portal `ApOrganizations` JSON e
   - Web (`apps/web`): `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (34 test files, 105 tests passed).
   - API (`apps/api`): `ruff check --no-cache .` (0 errors), `mypy --cache-dir /tmp/mypy_cache app tests` (67 files clean), `pytest -p no:cacheprovider` (57 passed, 7 skipped).
 
+### Stage 2.4 — Letterboxd for Politics UX & Community Logging Transformation (2026-08-16)
+
+- **Civic Poster Cards & Hero Showcase:**
+  - Implemented `CivicPosterCard` (`apps/web/src/components/CivicPosterCard.tsx`) with category-themed poster banners, entity type badges, district indicators, and direct "+ Log" action triggers.
+  - Integrated `CivicPosterGridSection` on the Home page (`apps/web/src/app/page.tsx`) showcasing trending AP welfare schemes, infrastructure projects, officeholders, and tenders.
+- **Citizen Diary & Audited Action Modal:**
+  - Created `LogCivicActionModal` (`apps/web/src/components/LogCivicActionModal.tsx`) enabling citizens to record scheme interactions, field project observations, and constituent inquiries.
+  - Enforced strict `Community Reported` audit notice boundaries to prevent platform community logs from being presented as official data or representative polls.
+- **Civic Watchlists & Activity Stream Pages:**
+  - Created `/lists` (`apps/web/src/app/lists/page.tsx`) for curated thematic dossiers (e.g. *Rayalaseema Irrigation Watch*, *Farmer Welfare Schemes*).
+  - Created `/activity` (`apps/web/src/app/activity/page.tsx`) combining live official dataset ingestion feeds with audited community observations.
+- **Top Navigation Integration:**
+  - Updated `SiteHeader.tsx` adding *Activity Stream* and *Civic Lists* to primary navigation.
+- **Verification Evidence:**
+  - Web (`apps/web`): `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (35 test files, 109 tests passed).
+  - API (`apps/api`): `ruff check --no-cache .` (0 errors), `mypy --cache-dir /tmp/mypy_cache app tests` (67 files clean), `pytest -p no:cacheprovider` (57 passed, 7 skipped).
+
+
 
