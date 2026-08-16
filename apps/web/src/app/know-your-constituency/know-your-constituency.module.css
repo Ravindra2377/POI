@@ -144,6 +144,11 @@
   flex-wrap: wrap;
   gap: 12px;
 }
+.communityNote {
+  color: var(--muted);
+  font-size: 0.84rem;
+  margin: 14px 0 0;
+}
 
 @media (max-width: 800px) {
   .toolbar {

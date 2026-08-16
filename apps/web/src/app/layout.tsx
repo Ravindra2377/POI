@@ -3,7 +3,13 @@ import type { ReactNode } from "react";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import "./styles.css";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  process.env.RENDER_EXTERNAL_URL ??
+  "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Viksit Bharat??",
     template: "%s",

@@ -228,6 +228,24 @@ describe("KnowYourConstituency", () => {
     ).toBeVisible();
   });
 
+  it("links the honest community submit flow from the launch page", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response([])));
+    render(
+      <LocaleProvider>
+        <KnowYourConstituency />
+      </LocaleProvider>,
+    );
+
+    await screen.findByRole("heading", { name: "Know Your Constituency" });
+    expect(
+      screen.getByRole("heading", { name: "Your constituency, by you" }),
+    ).toBeVisible();
+    expect(screen.getByText(/planned, not open/i)).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Read the community charter" }),
+    ).toHaveAttribute("href", "/community");
+  });
+
   it("picks a district, lists its current-term seats, and shows the profile card", async () => {
     vi.stubGlobal(
       "fetch",

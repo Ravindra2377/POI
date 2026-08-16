@@ -2328,3 +2328,51 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
 - **Verification evidence:** from `apps/api`: `ruff check --no-cache .` clean, `mypy --no-incremental
   app tests` clean (75 source files), and `pytest -p no:cacheprovider` with `TEST_DATABASE_URL` set —
   **90 passed** (79 unit + 11 integration, including the new seed-on-head test).
+
+### Stage 2.14 — Rich Share Previews, Production Deploy Runbook, and Community Submit-Link Flow (2026-08-16)
+
+- **Scope:** the remaining launch-hook items — rich WhatsApp/Open Graph/Twitter card previews for the
+  constituency launch page, a production deployment runbook, and the community submit-link flow that
+  moves users from the launch page to `/community`.
+- **Share previews (server-rendered `next/og` cards):** the web service is a Next.js server (not a
+  static export), so per-seat cards are generated on request. A shared `ogCard({ seat })` renderer
+  (`src/lib/og-card.tsx`, 1200x630 PNG, navy `#0e2a4f`/blue `#1558a6` brand) covers the generic
+  app-level card (`/opengraph-image`, `/twitter-image`, static) and the per-seat card. Per-seat cards
+  live at `/og/constituency/[seat]/opengraph-image` and `/twitter-image` (`force-dynamic`): they fetch
+  `/api/v1/election-results` through the same no-store proxy pattern as the page route and resolve the
+  record with `seatBySlug`, falling back to the generic card when the seat is unknown or the API is
+  unreachable.
+- **Design finding — query-param OG images cannot carry per-seat data:** Next appends a cache-busting
+  token to the `og:image` URL it emits (`?75db2b14303ccd8f`) instead of the page's own query
+  parameters, so an `opengraph-image.tsx` that read `searchParams.seat` always rendered the generic
+  card (all four test URLs produced byte-identical PNGs). The seat must be a path segment
+  (`/og/constituency/[seat]/…`), and `generateMetadata` in `page.tsx` explicitly sets
+  `openGraph.images`/`twitter.images` to that path when a seat slug is present. Satori also requires
+  explicit `display: flex`/`contents`/`none` on any element with more than one child, including
+  multi-span text rows.
+- **Dynamic metadata:** `generateMetadata` reads `searchParams` (guarding against the undefined
+  build-time value) and returns a per-district title/description when a district is selected, with the
+  per-seat card images attached only when a seat slug is present. `metadataBase` is now resolved from
+  `NEXT_PUBLIC_SITE_URL` → `RENDER_EXTERNAL_URL` → `http://localhost:3000` in `layout.tsx` so the
+  emitted `og:image` URLs are absolute.
+- **Community submit-link flow:** the launch page gains a bilingual `COMMUNITY · SUBMIT` section whose
+  copy states plainly that structured submissions, comments and polls are planned, not open, and
+  nothing is collected; its button links to `/community` (the prepared-closed charter page). Telugu
+  copy added to the language dictionary and asserted in the test suite.
+- **Documentation:** `docs/deployment-runbook.md` records the two-service contract from `render.yaml`
+  (web is Next server mode, API runs `alembic upgrade head` pre-deploy, DB is free Postgres without
+  provider backup), the `sync: false` env vars to set per environment (`NEXT_PUBLIC_API_URL`,
+  `NEXT_PUBLIC_SITE_URL`, `CORS_ORIGINS`), the post-deploy verification matrix (health, revision
+  `20260816_0003`, catalogue counts, both-language search, generic + per-seat card fetch,
+  WhatsApp/Telegram scraper cache-busting), and fix-forward/rollback criteria. It stays gated on the
+  `operations-and-recovery.md` release gates.
+- **Verification evidence (from `apps/web`):** `eslint .` clean, `tsc --noEmit` clean, `npm test` —
+  **141 passed** (40 files, including the new community-flow test), `npm run build` succeeds with
+  `/og/constituency/[seat]/opengraph-image` and `/twitter-image` marked dynamic. Live end-to-end
+  against the disposable database (`ap_civic_stage7_test`, seed + districts + elections term16): the
+  generic card renders at `/opengraph-image`, and
+  `/og/constituency/term16-5-srikakulam/opengraph-image` vs
+  `/og/constituency/term16-111-markapuram/opengraph-image` produce distinct PNGs, proving per-seat
+  data reaches the card; the served page emits
+  `og:image`/`twitter:image` = `/og/constituency/term16-5-srikakulam/…` for a seat selection and the
+  generic `/opengraph-image` otherwise. `git diff --check` clean.

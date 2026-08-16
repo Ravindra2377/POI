@@ -239,3 +239,9 @@ the chosen district, and a per-seat profile card with per-claim `Official · Rev
 WhatsApp/copy-link sharing that deep-links to `?district=..&seat=..`. It composes only reviewed
 election-results data, so it shows the honest prepared-empty state before deployment and lights up
 with real records as soon as the review/publish path and Stage 7 data acceptance are operational.
+The share path now includes rich previews: server-rendered `next/og` cards (a generic app-level card
+plus a per-seat card at `/og/constituency/[seat]/…`), per-district dynamic metadata, and
+`metadataBase` from `NEXT_PUBLIC_SITE_URL`; a community submit-link section moves users from the
+launch page to the prepared-closed `/community` charter. The production deploy sequence is written
+down in `docs/deployment-runbook.md` and remains gated on the `operations-and-recovery.md` release
+gates (private object storage, restore drill, LGD access review, monitoring).

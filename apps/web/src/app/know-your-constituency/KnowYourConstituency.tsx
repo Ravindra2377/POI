@@ -62,6 +62,12 @@ const copy = {
     shareHeading: "Share this record",
     shareNote:
       "The share card carries the same official, source-linked claims.",
+    communityHeading: "Your constituency, by you",
+    communityText:
+      "Structured submissions, comments and polls for your seat are planned, not open. Nothing can be submitted or collected yet — no account, no consent flow, no comment box.",
+    communityLink: "Read the community charter",
+    communityLinkNote:
+      "Participation modes, consent and moderation controls are previewed there.",
   },
   te: {
     eyebrow: "ఆంధ్రప్రదేశ్ · మీ నియోజకవర్గాన్ని తెలుసుకోండి",
@@ -105,6 +111,12 @@ const copy = {
       "ప్రతి పదవీ కాలంలోని అన్ని సమీక్షించిన నియోజకవర్గ ఫలితాలను చూడండి.",
     shareHeading: "ఈ రికార్డును భాగస్వామ్యం చేయండి",
     shareNote: "షేర్ కార్డు అదే అధికారిక, మూలాధార వాదనలను కలిగి ఉంటుంది.",
+    communityHeading: "మీ నియోజకవర్గం, మీ చేత",
+    communityText:
+      "మీ సీటుకు నిర్మాణాత్మక సమర్పణలు, వ్యాఖ్యలు మరియు పోల్స్ ప్రణాళికలో ఉన్నాయి, ప్రారంభంలో కాదు. ఇంకా ఏదీ సమర్పించలేరు లేదా సేకరించలేరు — ఖాతా, సమ్మతి ప్రవాహం, వ్యాఖ్య పెట్టె ఏవీ లేవు.",
+    communityLink: "కమ్యూనిటీ చార్టర్ చదవండి",
+    communityLinkNote:
+      "పాల్గొనే విధానాలు, సమ్మతి మరియు మోడరేషన్ నియంత్రణలు అక్కడ ముందే చూడవచ్చు.",
   },
 } as const;
 
@@ -407,6 +419,20 @@ export function KnowYourConstituency() {
           <Link className="button button--secondary" href="/election-results">
             {labels.openDirectory}
           </Link>
+        </section>
+
+        <section className="section shell" aria-labelledby="community-heading">
+          <div className="section-heading section-heading--split">
+            <div>
+              <p className="eyebrow">COMMUNITY · SUBMIT</p>
+              <h2 id="community-heading">{labels.communityHeading}</h2>
+            </div>
+            <p>{labels.communityText}</p>
+          </div>
+          <Link className="button button--secondary" href="/community">
+            {labels.communityLink}
+          </Link>
+          <p className={styles.communityNote}>{labels.communityLinkNote}</p>
         </section>
       </main>
       <PageFooter />
