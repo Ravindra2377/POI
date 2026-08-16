@@ -73,3 +73,28 @@ changed snapshots, extraction failure, human review, and publication gates pass 
 Registered document metadata and normalized records remain in PostgreSQL. Raw responses must use
 approved private S3-compatible object storage under the limits in
 [the provenance contract](provenance-contract.md).
+
+## Projects and procurement official-source assessment (2026-08-16)
+
+Two placeholder ingestion modules claimed official status (`ReviewStatus.REVIEWED`,
+`ValueClassification.OFFICIAL`, published) for hand-written records. The assessment below determined
+that no verifiable official source supports those records, and both modules were removed as gating.
+
+- **AP eProcurement** (`https://apeprocurement.gov.in`) is a real, official Andhra Pradesh portal
+  (ITE&C Department, maintained by AP Technology Services; live bidding on
+  `https://tender.apeprocurement.gov.in`). However, the removed adapter's claimed feed
+  (`/tenders/published`) is not a verified interface, and its two sample tender records (SH-41
+  Kakinada corridor, MRI equipment for Guntur GGH) were fabricated. The portal's access terms,
+  search interface, and response contract have not been reviewed under the Stage 2 first-adapter
+  gate, so no procurement adapter is registered.
+- **AP infrastructure projects** — the removed adapter claimed
+  `https://ap.gov.in/infrastructure-projects`, which returns 404 and is not a real page. Polavaram,
+  Amaravati, and Visakhapatnam-Chennai Industrial Corridor are real undertakings, but the removed
+  module's descriptions, statuses, and scope figures ("7.2 lakh acres", "Phase 1 Completed") were
+  hand-written and unverified. No project catalogue page on any verified official AP domain has been
+  identified, so no projects adapter is registered.
+
+Both web slices (`/projects`, `/procurement`) remain prepared-empty by design and will stay empty
+until a real adapter and a registered, access-reviewed source produce reviewed records. The API
+catalog endpoints and web proxies serve `prepared-empty` with no data, which is the only possible
+state until that adapter exists.

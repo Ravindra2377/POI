@@ -71,7 +71,11 @@ empty until reviewed scheme records and their `SourceRecord` links exist.
 The AP Projects website shell is also prepared at `/projects`, with department, district, status and
 project-type filters; responsible-office and timeline fields; per-claim provenance; and explicit
 empty and unavailable states. This is not Stage 4 data acceptance: the production catalogue remains
-empty until reviewed project records exist.
+empty until reviewed project records exist. The projects and procurement official-source assessment
+(2026-08-16) found no verifiable official source behind the two placeholder ingestion adapters
+(`ap.gov.in/infrastructure-projects` 404s; the eProcurement sample tenders were fabricated even
+though the portal itself is real), so both fabricated adapters were removed and the slices remain
+prepared-empty until a registered, access-reviewed source and a real adapter exist.
 
 The AP Public Money website slice is prepared at `/public-money`, keeping the eleven financial stages
 distinct (an announcement is never an expenditure). It offers stage, department, district and
@@ -85,7 +89,8 @@ distinct (a tender estimate is never a contract value, and an award is never an 
 stage, department, district and contractor-information filters, the procurement-stage explainer,
 per-claim provenance for tenders, contractors, contract values and references, and explicit empty,
 filtered-empty and unavailable states. This is not Stage 6 data acceptance: no tender, contract value
-or contractor is published until reviewed records exist.
+or contractor is published until reviewed records exist (and the fabricated placeholder adapter was
+removed in the 2026-08-16 source assessment).
 
 The AP Officeholder History website slice is prepared at `/officeholders`, keeping time-bounded roles
 and terms distinct from personal claims. It offers office, government-body, district and term-date

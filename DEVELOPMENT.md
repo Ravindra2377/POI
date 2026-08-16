@@ -2219,3 +2219,30 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   violating that gate.
 - **Remaining work:** production deploy of the review/publish path (Render contract) followed by
   Stage 7 data acceptance; then the projects/procurement official-source assessment.
+
+### Stage 2.11 — Projects/Procurement Official-Source Assessment and Gating (2026-08-16)
+
+- **Assessment:** `app/ingestion/projects.py` and `app/ingestion/procurement.py` built snapshots from
+  hand-written JSON records and labelled them `ReviewStatus.REVIEWED`,
+  `ValueClassification.OFFICIAL`, and published — without any verified source. Live verification
+  (2026-08-16): the claimed projects feed `https://ap.gov.in/infrastructure-projects` returns **404**
+  (not a real page), and the projects' descriptions, statuses, and scope figures were unverified;
+  the claimed procurement feed `/tenders/published` is not a verified interface on the real
+  `https://apeprocurement.gov.in` portal (ITE&C Department, bidding at
+  `https://tender.apeprocurement.gov.in`), and its two sample tenders were fabricated. Both modules
+  were dead code (no imports, no commands, no tests), but if ever wired they would have published
+  fabricated official claims, violating the "no mock information without a visible label" and
+  "every official claim references a `SourceRecord`" rules.
+- **Gating action:** removed `app/ingestion/projects.py` and `app/ingestion/procurement.py`. The API
+  catalog endpoints, repositories, web proxies, and `/projects` and `/procurement` slices are
+  untouched and already honest: they serve `prepared-empty` with no data until published records
+  exist, which is now the only reachable state.
+- **Documentation:** `docs/source-registry.md` records the assessment and keeps both domains
+  unregistered (the eProcurement portal is real but its access terms, search interface, and response
+  contract are not yet access-reviewed under the first-adapter gate); `docs/roadmap.md` notes the
+  removed adapters under Stages 4 and 6.
+- **Verification evidence:** full API gates after removal — `ruff check --no-cache .` clean, strict
+  MyPy clean, `pytest -p no:cacheprovider` **88 passed**; `git diff --check` clean.
+- **Remaining work:** production deploy of the review/publish path (Render contract), Stage 7 data
+  acceptance, and — for projects/procurement — a registered, access-reviewed source plus a real
+  adapter before any reviewed record can be published.
