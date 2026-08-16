@@ -212,3 +212,10 @@ rows on real Postgres. Production deploy of the review/publish path and Stage 7 
 remain the outstanding release steps; the live-fetching `ingest_officeholders`/`ingest_districts`/
 `ingest_budget`/`ingest_schemes` operators stay gated on the operations release criteria (private
 object storage, restore drill, LGD access review, monitoring).
+
+The launch hook is the constituency-first `/know-your-constituency` page: bilingual search and
+district selection (kept in the web address, no precise location), the current Assembly's seats for
+the chosen district, and a per-seat profile card with per-claim `Official · Reviewed` provenance and
+WhatsApp/copy-link sharing that deep-links to `?district=..&seat=..`. It composes only reviewed
+election-results data, so it shows the honest prepared-empty state before deployment and lights up
+with real records as soon as the review/publish path and Stage 7 data acceptance are operational.

@@ -13,6 +13,7 @@ const primaryNavigation = [
   { href: "/activity", label: "Activity Stream" },
   { href: "/lists", label: "Civic Lists" },
   { href: "/government", label: "Government" },
+  { href: "/know-your-constituency", label: "Know Your Constituency" },
   { href: "/my-area", label: "My Area" },
 ];
 

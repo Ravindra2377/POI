@@ -2246,3 +2246,33 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
 - **Remaining work:** production deploy of the review/publish path (Render contract), Stage 7 data
   acceptance, and — for projects/procurement — a registered, access-reviewed source plus a real
   adapter before any reviewed record can be published.
+
+### Stage 2.12 — Know Your Constituency Launch Feature (2026-08-16)
+
+- **Scope:** a constituency-first entry point for the reviewed election-results catalogue, built as
+  the launch hook ("know your constituency / MLA"). It composes already-reviewed data only — the
+  current Assembly (latest term) — so it is honest pre-deploy (prepared-empty) and goes live the
+  moment the catalogue deploys.
+- **Lib (`apps/web/src/lib/know-your-constituency.ts`):** pure helpers — `latestTermId`,
+  `resultDistricts` (bilingual, unique, sorted for the latest term), `seatsForDistrict` (ordered by
+  constituency number then slug), `seatBySlug`, `seatStatusWord` (bilingual status labels),
+  `constituencyPageUrl` (deep link `?district=..&seat=..`), `buildShareText` (bilingual, names the
+  source record and the deep link), and `buildWhatsAppShareUrl` (`https://wa.me/?text=…`).
+- **Slice (`apps/web/src/app/know-your-constituency/`):** `page.tsx` (metadata + static shell);
+  `KnowYourConstituency.tsx` (search + district select kept in the URL, seat list for the selected
+  district's current term, seat profile card, prepared/privacy notices, honest loading/empty/error
+  states, and a link to the full directory); `ConstituencyProfileCard.tsx` (bilingual card with
+  per-claim `OfficialElectionResultClaim` provenance plus WhatsApp share and copy-link actions);
+  `know-your-constituency.module.css`; `loading.tsx` / `error.tsx`.
+  `apps/web/src/components/SiteHeader.tsx` gains "Know Your Constituency" in the primary navigation.
+- **Honesty constraints honored:** no precise location (district/seat choice only, kept in the web
+  address); claims stay `Official · Reviewed` and source-linked; a bye-election remains a distinct
+  result; the page shows an intentionally empty prepared state until reviewed records exist.
+- **Verification evidence:** from `apps/web`: `npm run lint` clean (0 warnings), `npm run typecheck`
+  clean, `npm test` **40 files / 140 tests passed** (12 new: 7 helper + 5 component), and
+  `npm run build` succeeds with `/know-your-constituency` prerendered as static content. New files
+  are Prettier-clean; `format:check` still fails only on the unchanged pre-existing files. `git diff
+  --check` clean.
+- **Remaining work:** the launch page goes live with the election-results deploy (Stage 7 data
+  acceptance); share cards are WhatsApp/copy-link only for now, with the community layer deferred to
+  the accounts-and-moderation stage.
