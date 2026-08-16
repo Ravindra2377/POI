@@ -1,17 +1,41 @@
-"""Read-only ingestion for official Andhra Pradesh Legislative Assembly officeholders.
+"""Read-only network ingestion for the official AP Legislative Assembly member report.
 
-This module ingests AP Legislative Assembly records for the 14th, 15th, and 16th Assembly
-terms (2014–2026). It extracts typed observations for MLAs, constituency names, term periods,
-and political party affiliations, and publishes reviewed claims with source provenance.
+The operator-facing command fetches the Andhra Pradesh Legislature website's
+assembly member report (a Liferay portlet) for a chosen Assembly term (14th,
+15th, or 16th), stores the raw HTML response as an immutable snapshot,
+extracts typed official observations for each Member of the Legislative
+Assembly (MLA), and publishes reviewed claims with source provenance. Nothing
+here runs in a production request path; every run is an explicit, audited
+operator action.
+
+The term choice is carried as a Liferay render parameter in the URL, so a
+plain GET returns the report for the requested term. The site rate-limits
+repeated portlet submissions by returning a short "Page Not Found" page with
+HTTP 200, so the fetcher retries such responses with a short backoff.
+
+Known source limitations (recorded in the source registry and surfaced in the
+web model): the member report is published in English only, so every Telugu
+field remains empty and unpublished. The report groups members by the 13
+pre-reorganisation Andhra Pradesh districts (plus a "NOMINATED" section in the
+14th term); it does not carry constituency-level district boundaries or
+personal member biographies.
+
+Source stability note (2026-08-16): the Legislature site also exposes a PDF
+export of the report, but on that date it switched to a template whose columns
+wrap across lines in an ambiguous, layout-dependent way that cannot be parsed
+reliably; the HTML portlet report remains the stable, validated source.
 """
 
-import json
+import html
+import re
+import time
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlsplit
+from urllib.request import Request, urlopen
 from uuid import UUID, uuid5
 
 from pydantic import BaseModel
@@ -38,34 +62,79 @@ from app.models.provenance import (
 
 OFFICEHOLDER_INGESTION_NAMESPACE = UUID("e8f3b1c2-3d4e-5f6a-7b8c-9d0e1f2a3b4c")
 ADAPTER_VERSION = "1.0.0"
-SOFTWARE_REVISION = "officeholder-feed-1.0.0"
+SOFTWARE_REVISION = "officeholder-feed-1.1.0"
 
-AP_LEGISLATURE_URL = "https://aplegislature.org/members-of-assembly"
+# Verified live endpoint and human-readable page (2026-08-16). The report is a
+# Liferay portlet; the term choice is a render parameter in the URL.
+AP_LEGISLATURE_REPORT_URL = (
+    "https://aplegislature.org/web/legislative-assembly/legislative-assembly/"
+    "member-s-information"
+)
 AP_LEGISLATURE_PUBLIC_URL = "https://aplegislature.org"
+AP_LEGISLATURE_PORTLET_INSTANCE = "AssemblyMemberInformation_APPortlet_INSTANCE_u0YprwIEdWmS"
+
+# Ordinal word used by the report header for each Assembly term.
+ASSEMBLY_TERMS: dict[int, tuple[str, str]] = {
+    16: ("Term XVI", "SIXTEENTH"),
+    15: ("Term XV", "FIFTEENTH"),
+    14: ("Term XIV", "FOURTEENTH"),
+}
+DEFAULT_TERM_ID = 16
+
+OFFICE_TITLE_EN = "Member of Legislative Assembly"
+GOVERNMENT_BODY_EN = "Andhra Pradesh Legislative Assembly"
+
+_TERM_HEADER_RE = re.compile(
+    r"(FOURTEENTH|FIFTEENTH|SIXTEENTH) ANDHRA PRADESH LEGISLATIVE ASSEMBLY "
+    r"CONSTITUTED ON (\d{2}\.\d{2}\.\d{4})"
+)
+_TABLE_RE = re.compile(r'<ul class="table1">(.*?)</ul>', re.IGNORECASE | re.DOTALL)
+_DISTRICT_H4_RE = re.compile(r"<h4[^>]*>")
+_DISTRICT_NAME_RE = re.compile(r"\s*([A-Z][A-Z ]*?)\s*(?=</h4>)")
+_MEMBER_SPLIT_RE = re.compile(r'<li><div class="data">', re.IGNORECASE)
+_MEMBER_NAME_RE = re.compile(
+    r'class="cbp-vm-title mem_name"[^>]*>(.*?)</font>', re.IGNORECASE | re.DOTALL
+)
+_MEMBER_IMG_ALT_RE = re.compile(r'<img[^>]*alt="([^"]+)"', re.IGNORECASE)
+_CONSTITUENCY_RE = re.compile(
+    r'class="cbp-vm-price const_name"[^>]*>(.*?)</div>', re.IGNORECASE | re.DOTALL
+)
+_PARTY_RE = re.compile(
+    r'class="cbp-vm-icon cbp-vm-add"[^>]*>(.*?)</div>', re.IGNORECASE | re.DOTALL
+)
+_MEMBER_ID_RE = re.compile(r"mem_id=(\d+)")
+_CONSTITUENCY_PREFIX_RE = re.compile(r"^\d+\.\s*")
 
 
 class OfficeholderFeedError(RuntimeError):
-    """Raised when officeholder records cannot be processed."""
+    """Raised when the AP Legislative Assembly member report cannot be processed."""
 
 
 class OfficeholderFeedRecord(BaseModel):
     slug: str
+    term_id: int
     person_name_en: str
     person_name_te: str = ""
-    office_title_en: str
+    office_title_en: str = OFFICE_TITLE_EN
     office_title_te: str = ""
-    government_body_en: str
+    government_body_en: str = GOVERNMENT_BODY_EN
     government_body_te: str = ""
     district_en: str
     district_te: str = ""
+    constituency_en: str
+    constituency_te: str = ""
     term_period_en: str
     term_period_te: str = ""
     party_en: str = ""
     party_te: str = ""
+    constituted_on: str = ""
+    member_id: str = ""
 
 
 @dataclass(frozen=True)
 class FeedSnapshot:
+    """Metadata plus raw bytes for one fetched official report."""
+
     key: str
     name: str
     publisher: str
@@ -80,6 +149,8 @@ class FeedSnapshot:
 
 @dataclass(frozen=True)
 class FeedStoreResult:
+    """Counts and identifiers from an officeholder-feed store run."""
+
     snapshots_stored: int
     observations_created: int
     extraction_run_id: UUID
@@ -90,88 +161,178 @@ def _stable(key: str) -> UUID:
     return uuid5(OFFICEHOLDER_INGESTION_NAMESPACE, key)
 
 
-def build_ap_officeholders_snapshot() -> FeedSnapshot:
-    """Create official AP Legislative Assembly term snapshot payload."""
-    data = [
-        {
-            "slug": "n-chandrababu-naidu",
-            "person_name_en": "N. Chandrababu Naidu",
-            "person_name_te": "ఎన్. చంద్రబాబు నాయుడు",
-            "office_title_en": "Chief Minister",
-            "office_title_te": "ముఖ్యమంత్రి",
-            "government_body_en": "Andhra Pradesh Legislative Assembly",
-            "government_body_te": "ఆంధ్రప్రదేశ్ శాసనసభ",
-            "district_en": "Chittoor",
-            "district_te": "చిత్తూరు",
-            "term_period_en": "16th Assembly (2024–present)",
-            "term_period_te": "16వ శాసనసభ (2024–ప్రస్తుతం)",
-            "party_en": "Telugu Desam Party",
-            "party_te": "తెలుగుదేశం పార్టీ",
-        },
-        {
-            "slug": "pawan-kalyan",
-            "person_name_en": "Konidela Pawan Kalyan",
-            "person_name_te": "కొణిదెల పవన్ కళ్యాణ్",
-            "office_title_en": "Deputy Chief Minister",
-            "office_title_te": "ఉప ముఖ్యమంత్రి",
-            "government_body_en": "Andhra Pradesh Legislative Assembly",
-            "government_body_te": "ఆంధ్రప్రదేశ్ శాసనసభ",
-            "district_en": "Kakinada",
-            "district_te": "కాకినాడ",
-            "term_period_en": "16th Assembly (2024–present)",
-            "term_period_te": "16వ శాసనసభ (2024–ప్రస్తుతం)",
-            "party_en": "Jana Sena Party",
-            "party_te": "జనసేన పార్టీ",
-        },
-        {
-            "slug": "ch-ayyanna-patrudu",
-            "person_name_en": "Ch. Ayyanna Patrudu",
-            "person_name_te": "చింతకాయల అయ్యన్న పాత్రుడు",
-            "office_title_en": "Speaker of the Legislative Assembly",
-            "office_title_te": "శాసనసభ సభాపతి",
-            "government_body_en": "Andhra Pradesh Legislative Assembly",
-            "government_body_te": "ఆంధ్రప్రదేశ్ శాసనసభ",
-            "district_en": "Anakapalli",
-            "district_te": "అనకాపల్లి",
-            "term_period_en": "16th Assembly (2024–present)",
-            "term_period_te": "16వ శాసనసభ (2024–ప్రస్తుతం)",
-            "party_en": "Telugu Desam Party",
-            "party_te": "తెలుగుదేశం పార్టీ",
-        },
-        {
-            "slug": "ys-jagan-mohan-reddy",
-            "person_name_en": "Y. S. Jagan Mohan Reddy",
-            "person_name_te": "వై. ఎస్. జగన్ మోహన్ రెడ్డి",
-            "office_title_en": "Member of Legislative Assembly",
-            "office_title_te": "శాసనసభ సభ్యుడు",
-            "government_body_en": "Andhra Pradesh Legislative Assembly",
-            "government_body_te": "ఆంధ్రప్రదేశ్ శాసనసభ",
-            "district_en": "YSR Kadapa",
-            "district_te": "వైఎస్ఆర్ కడప",
-            "term_period_en": "15th–16th Assembly (2019–present)",
-            "term_period_te": "15-16వ శాసనసభ (2019–ప్రస్తుతం)",
-            "party_en": "YSR Congress Party",
-            "party_te": "వైఎస్ఆర్ కాంగ్రెస్ పార్టీ",
-        },
-    ]
-    raw = json.dumps(data, indent=2, ensure_ascii=False).encode("utf-8")
+def _slugify(value: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", value.casefold()).strip("-")
+    return slug or "unknown"
+
+
+def build_officeholders_report_url(term_id: int) -> str:
+    """Build the portlet render URL that selects a specific Assembly term.
+
+    The term choice is a Liferay render parameter, so a plain GET returns the
+    report for the requested term without a form POST.
+    """
+    _validate_term_id(term_id)
+    return (
+        f"{AP_LEGISLATURE_REPORT_URL}?p_p_id={AP_LEGISLATURE_PORTLET_INSTANCE}"
+        "&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view"
+        f"&_{AP_LEGISLATURE_PORTLET_INSTANCE}_term_id={term_id}"
+    )
+
+
+def _validate_term_id(term_id: int) -> None:
+    if term_id not in ASSEMBLY_TERMS:
+        raise OfficeholderFeedError(
+            f"term_id {term_id} is not supported; expected one of {sorted(ASSEMBLY_TERMS)}"
+        )
+
+
+def _looks_like_rate_limit_response(payload: bytes) -> bool:
+    """True when the response is the site's rate-limit "Page Not Found" page.
+
+    The Legislature site responds to repeated portlet requests with an HTTP
+    200 page of a few hundred bytes reading "Page Not Found". A genuine report
+    is hundreds of kilobytes, so a short body is treated as a retryable
+    failure.
+    """
+    return not payload or len(payload) < 4096 or b"Page Not Found" in payload
+
+
+def fetch_ap_officeholders(
+    term_id: int = DEFAULT_TERM_ID,
+    timeout: float = 25.0,
+    max_attempts: int = 3,
+) -> FeedSnapshot:
+    """Fetch the live AP Legislative Assembly member report for one term.
+
+    The Legislature site rate-limits repeated portlet submissions by returning
+    a short HTTP 200 "Page Not Found" page, so such responses are retried with
+    a short backoff before giving up.
+    """
+    _validate_term_id(term_id)
+    url = build_officeholders_report_url(term_id)
+    last_error: Exception | None = None
+    status: int | None = None
+    payload = b""
+    content_type = "text/html"
+    for attempt in range(max_attempts):
+        try:
+            request = Request(url, method="GET")
+            with urlopen(request, timeout=timeout) as response:
+                status = response.status
+                content_type = response.headers.get("Content-Type", "text/html")
+                payload = response.read()
+            if status == 200 and not _looks_like_rate_limit_response(payload):
+                last_error = None
+                break
+            last_error = OfficeholderFeedError(
+                f"{url} returned HTTP {status} with a short or rate-limited body"
+            )
+        except Exception as error:  # noqa: BLE001 - surfaced after retries
+            last_error = error
+        if attempt + 1 < max_attempts:
+            time.sleep(5 * (attempt + 1))
+    if last_error is not None:
+        raise OfficeholderFeedError(f"fetch failed for {url}: {last_error}") from last_error
+    label, _ordinal = ASSEMBLY_TERMS[term_id]
     return FeedSnapshot(
-        key="ap-legislature-officeholders",
-        name="AP Legislative Assembly Members & Officeholders",
+        key=f"ap-legislature-officeholders-term{term_id}",
+        name=f"AP Legislative Assembly member report ({label})",
         publisher="Andhra Pradesh Legislature Secretariat",
-        url=AP_LEGISLATURE_URL,
+        url=url,
         public_url=AP_LEGISLATURE_PUBLIC_URL,
         request_method="GET",
         request_body=None,
-        content_type="application/json",
-        raw=raw,
+        content_type=content_type,
+        raw=payload,
         retrieved_at=datetime.now(UTC),
     )
 
 
-def parse_officeholders(raw: bytes) -> list[OfficeholderFeedRecord]:
-    payload = json.loads(raw.decode("utf-8"))
-    return [OfficeholderFeedRecord(**item) for item in payload]
+def _strip_tags(fragment: str) -> str:
+    return html.unescape(re.sub(r"<[^>]+>", " ", fragment))
+
+
+def _collapse(value: str) -> str:
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def _parse_term_header(raw: bytes, term_id: int) -> str:
+    """Return the constituted date from the report header for the requested term."""
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise OfficeholderFeedError("member report is not valid UTF-8 text") from error
+    match = _TERM_HEADER_RE.search(text)
+    if match is None:
+        raise OfficeholderFeedError(
+            "member report did not contain an Assembly term header; "
+            "the source structure may have changed"
+        )
+    ordinal, constituted_on = match.groups()
+    expected = ASSEMBLY_TERMS[term_id][1]
+    if ordinal != expected:
+        raise OfficeholderFeedError(
+            f"requested term {expected} but the report describes the {ordinal} Assembly; "
+            "the term selector may have changed"
+        )
+    return constituted_on
+
+
+def parse_officeholders(raw: bytes, *, term_id: int) -> list[OfficeholderFeedRecord]:
+    """Validate and normalise the HTML member report for one Assembly term."""
+    _validate_term_id(term_id)
+    constituted_on = _parse_term_header(raw, term_id)
+    text = raw.decode("utf-8", errors="replace")
+    table = _TABLE_RE.search(text)
+    if table is None:
+        raise OfficeholderFeedError("member report did not contain the member table")
+    body = table.group(1)
+
+    label, _ordinal = ASSEMBLY_TERMS[term_id]
+    records: list[OfficeholderFeedRecord] = []
+    for segment in _DISTRICT_H4_RE.split(body)[1:]:
+        district_match = _DISTRICT_NAME_RE.match(segment)
+        district = _collapse(district_match.group(1)) if district_match else ""
+        for member_block in _MEMBER_SPLIT_RE.split(segment)[1:]:
+            name_match = _MEMBER_NAME_RE.search(member_block)
+            name = _collapse(_strip_tags(name_match.group(1))) if name_match else ""
+            if not name:
+                alt_match = _MEMBER_IMG_ALT_RE.search(member_block)
+                name = _collapse(alt_match.group(1)) if alt_match else ""
+            constituency_match = _CONSTITUENCY_RE.search(member_block)
+            constituency = (
+                _collapse(_strip_tags(constituency_match.group(1)))
+                if constituency_match
+                else ""
+            )
+            constituency = _CONSTITUENCY_PREFIX_RE.sub("", constituency)
+            party_match = _PARTY_RE.search(member_block)
+            party = _collapse(_strip_tags(party_match.group(1))) if party_match else ""
+            member_id_match = _MEMBER_ID_RE.search(member_block)
+            member_id = member_id_match.group(1) if member_id_match else ""
+            if not name or not constituency:
+                raise OfficeholderFeedError(
+                    "a member block was missing its name or constituency; "
+                    "the source structure may have changed"
+                )
+            constituency_slug = _slugify(constituency)
+            records.append(
+                OfficeholderFeedRecord(
+                    slug=f"term{term_id}-{member_id}-{constituency_slug}",
+                    term_id=term_id,
+                    person_name_en=name,
+                    district_en=district,
+                    constituency_en=constituency,
+                    term_period_en=f"{label} (constituted {constituted_on})",
+                    party_en=party,
+                    constituted_on=constituted_on,
+                    member_id=member_id,
+                )
+            )
+    if not records:
+        raise OfficeholderFeedError("member report contained no members")
+    return records
 
 
 def _ensure_source_record(
@@ -186,7 +347,7 @@ def _ensure_source_record(
         name=snapshot.name,
         publisher=snapshot.publisher,
         official_domain=urlsplit(snapshot.url).hostname or "aplegislature.org",
-        source_type="api_endpoint",
+        source_type="web_page",
         jurisdiction_code="IN-AP",
         access_method=AccessMethod.HTML,
         licence_status=None,
@@ -206,25 +367,35 @@ def _ensure_document(
     source: SourceRecord,
     snapshot: FeedSnapshot,
     retrieved_on: date,
+    constituted_on: str,
 ) -> SourceDocument:
     document_id = _stable(f"ingestion-document:{snapshot.key}")
     document = session.get(SourceDocument, document_id)
     if document is not None:
         return document
+    constituted_date: date | None = None
+    if constituted_on:
+        try:
+            constituted_date = datetime.strptime(constituted_on, "%d.%m.%Y").date()
+        except ValueError:
+            constituted_date = None
     document = SourceDocument(
         id=document_id,
         source_id=source.id,
         official_url=snapshot.url,
         title=snapshot.name,
-        publication_date=retrieved_on,
-        reporting_period_start=retrieved_on,
-        reporting_period_end=retrieved_on,
+        publication_date=None,
+        reporting_period_start=constituted_date,
+        reporting_period_end=None,
         document_type="web_page",
-        language_code=LanguageCode.TE,
+        language_code=LanguageCode.EN,
         jurisdiction_code="IN-AP",
         document_metadata={
+            "request_method": snapshot.request_method,
             "adapter": "officeholder-feed",
-            "public_source_url": snapshot.public_url,
+            "request_body": snapshot.request_body,
+            **({"constituted_on": constituted_on} if constituted_on else {}),
+            **({"public_source_url": snapshot.public_url} if snapshot.public_url else {}),
         },
     )
     session.add(document)
@@ -249,7 +420,7 @@ def _store_snapshot(
         return existing, False
     snapshot_dir = storage_dir / "snapshots"
     snapshot_dir.mkdir(parents=True, exist_ok=True)
-    target = snapshot_dir / f"{checksum}.json"
+    target = snapshot_dir / f"{checksum}.html"
     if not target.exists():
         target.write_bytes(snapshot.raw)
     stored = SourceSnapshot(
@@ -260,8 +431,12 @@ def _store_snapshot(
         content_type=snapshot.content_type,
         file_size_bytes=len(snapshot.raw),
         sha256=checksum,
-        object_storage_key=f"snapshots/{checksum}.json",
-        retrieval_metadata={"url": snapshot.url},
+        object_storage_key=f"snapshots/{checksum}.html",
+        retrieval_metadata={
+            "url": snapshot.url,
+            "request_method": snapshot.request_method,
+            "request_body": snapshot.request_body,
+        },
     )
     session.add(stored)
     session.flush()
@@ -271,6 +446,7 @@ def _store_snapshot(
 def _ensure_extraction_run(
     session: Session,
     snapshot: SourceSnapshot,
+    *,
     count: int,
     now: datetime,
 ) -> ExtractionRun:
@@ -296,39 +472,15 @@ def _ensure_extraction_run(
     return run
 
 
-def store_officeholders_feed(
+def _write_observations(
     session: Session,
-    storage_dir: Path,
-    snapshot: FeedSnapshot,
-    records: Sequence[OfficeholderFeedRecord],
-) -> FeedStoreResult:
-    retrieved_on = snapshot.retrieved_at.date()
-    rows = [
-        (
-            record.slug,
-            {
-                "slug": record.slug,
-                "person_name_en": record.person_name_en,
-                "person_name_te": record.person_name_te,
-                "office_title_en": record.office_title_en,
-                "office_title_te": record.office_title_te,
-                "government_body_en": record.government_body_en,
-                "government_body_te": record.government_body_te,
-                "district_en": record.district_en,
-                "district_te": record.district_te,
-                "term_period_en": record.term_period_en,
-                "term_period_te": record.term_period_te,
-                "party_en": record.party_en,
-                "party_te": record.party_te,
-            },
-        )
-        for record in records
-    ]
-    source = _ensure_source_record(session, snapshot, retrieved_on)
-    document = _ensure_document(session, source, snapshot, retrieved_on)
-    snapshot_row, stored = _store_snapshot(session, document, snapshot, storage_dir)
-    run = _ensure_extraction_run(session, snapshot_row, len(rows), snapshot.retrieved_at)
-
+    *,
+    document: SourceDocument,
+    snapshot: SourceSnapshot,
+    extraction_run: ExtractionRun,
+    rows: Sequence[tuple[str, dict[str, str]]],
+    retrieved_on: date,
+) -> int:
     created = 0
     for entity_key, fields in rows:
         entity_id = _stable(f"officeholder:{entity_key}")
@@ -346,8 +498,8 @@ def store_officeholders_feed(
                     field_path=field_path,
                     value_text=value,
                     document_id=document.id,
-                    snapshot_id=snapshot_row.id,
-                    extraction_run_id=run.id,
+                    snapshot_id=snapshot.id,
+                    extraction_run_id=extraction_run.id,
                     classification=ValueClassification.OFFICIAL,
                     review_state=ObservationReviewState.PENDING,
                     valid_from=retrieved_on,
@@ -356,11 +508,78 @@ def store_officeholders_feed(
             )
             created += 1
     session.flush()
+    return created
 
-    # Review and publish
+
+def store_officeholders_feed(
+    session: Session,
+    storage_dir: Path,
+    snapshot: FeedSnapshot,
+    records: Sequence[OfficeholderFeedRecord],
+) -> FeedStoreResult:
+    """Persist the raw snapshot, extraction run, and typed official observations."""
+    retrieved_on = snapshot.retrieved_at.date()
+    rows = [
+        (
+            record.slug,
+            {
+                "slug": record.slug,
+                "person_name_en": record.person_name_en,
+                "person_name_te": record.person_name_te,
+                "office_title_en": record.office_title_en,
+                "office_title_te": record.office_title_te,
+                "government_body_en": record.government_body_en,
+                "government_body_te": record.government_body_te,
+                "district_en": record.district_en,
+                "district_te": record.district_te,
+                "constituency_en": record.constituency_en,
+                "constituency_te": record.constituency_te,
+                "term_period_en": record.term_period_en,
+                "term_period_te": record.term_period_te,
+                "party_en": record.party_en,
+                "party_te": record.party_te,
+            },
+        )
+        for record in records
+    ]
+    constituted_on = records[0].constituted_on if records else ""
+    source = _ensure_source_record(session, snapshot, retrieved_on)
+    document = _ensure_document(session, source, snapshot, retrieved_on, constituted_on)
+    snapshot_row, stored = _store_snapshot(session, document, snapshot, storage_dir)
+    run = _ensure_extraction_run(
+        session,
+        snapshot_row,
+        count=len(rows),
+        now=snapshot.retrieved_at,
+    )
+    observations_created = _write_observations(
+        session,
+        document=document,
+        snapshot=snapshot_row,
+        extraction_run=run,
+        rows=rows,
+        retrieved_on=retrieved_on,
+    )
+    session.flush()
+    return FeedStoreResult(
+        snapshots_stored=int(stored),
+        observations_created=observations_created,
+        extraction_run_id=run.id,
+        sha256=sha256(snapshot.raw).hexdigest(),
+    )
+
+
+def review_officeholders_observations(
+    session: Session,
+    *,
+    extraction_run_id: UUID,
+    reviewer_identity: str,
+    decided_at: datetime,
+) -> int:
+    """Approve and publish every pending observation from the officeholder run."""
     pending = session.scalars(
         select(SourceObservation).where(
-            SourceObservation.extraction_run_id == run.id,
+            SourceObservation.extraction_run_id == extraction_run_id,
             SourceObservation.review_state == ObservationReviewState.PENDING,
         )
     ).all()
@@ -369,19 +588,18 @@ def store_officeholders_feed(
             ReviewDecision(
                 id=_stable(f"ingestion-review:{observation.id}"),
                 observation_id=observation.id,
-                reviewer_identity="operator:legislature-ingestion",
+                reviewer_identity=reviewer_identity,
                 decision=ReviewDecisionType.APPROVE,
-                reason="Official AP Legislative Assembly member observation reviewed.",
-                decided_at=snapshot.retrieved_at,
+                reason=(
+                    "Officeholder extraction is deterministic and the values are "
+                    "transcribed from the official AP Legislative Assembly member "
+                    "report. Telugu fields are absent from the English-only source "
+                    "and are intentionally left unpublished."
+                ),
+                decided_at=decided_at,
             )
         )
         observation.review_state = ObservationReviewState.REVIEWED
         observation.is_published = True
     session.flush()
-
-    return FeedStoreResult(
-        snapshots_stored=int(stored),
-        observations_created=created,
-        extraction_run_id=run.id,
-        sha256=sha256(snapshot.raw).hexdigest(),
-    )
+    return len(pending)

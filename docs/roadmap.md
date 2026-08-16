@@ -165,3 +165,16 @@ the review/publish store path, and the `GET /api/v1/budget` catalogue endpoint a
 mirroring the proven schemes pattern; the web budget catalogue slice remains to be upgraded to consume
 that endpoint. Elections ingestion from the official AP Legislature term PDFs (14th/15th/16th terms)
 remains on the roadmap.
+
+Network ingestion then extended to the Andhra Pradesh Legislative Assembly officeholders: the
+`ingest_officeholders` operator fetches the official aplegislature.org member report (a Liferay
+portlet; the term choice is a render parameter, so a plain GET selects the term and avoids the site's
+rate-limiting of portlet form POSTs), stores the raw HTML as an immutable snapshot, extracts typed
+official observations, and publishes reviewed claims for all three supported terms with audited review
+decisions: Term XVI (constituted 06.06.2024) 175 members, Term XV (25.05.2019) 177 members, and Term
+XIV (01.05.2014) 181 members, all verified against the live site on 2026-08-16. The report publishes
+English only, so Telugu fields remain honestly unpublished; seats with by-election replacements (e.g.
+ATMAKUR in Term XV) publish one entity per `mem_id`. The site's PDF export uses a layout-unstable
+template and is not used as a source. `/officeholders` remains a prepared slice until the reviewed
+records are deployed to production and Stage 7 data acceptance is operational; elections ingestion
+from the official AP Legislature term PDFs remains on the roadmap.

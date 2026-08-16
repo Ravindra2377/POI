@@ -1985,3 +1985,39 @@ supported`; department cards opened the AP State Portal `ApOrganizations` JSON e
 
 
 
+### Stage 2.5 — Officeholders Ingestion: Live-Source Validation, Rate-Limit Guard, and Slug Uniqueness (2026-08-16)
+
+- **Source revalidation against the live Legislature site:**
+  - The live PDF export URL today serves a *different, pathological template* than the committed fixtures
+    (`Sixteenth Andhra Pradesh Legislative Assembly / Constituted on 06.06.2024 / 1:SRIKAKULAM`); member
+    columns wrap across lines in an ambiguous, layout-dependent way that cannot be parsed reliably. The
+    HTML portlet report retains the exact validated structure (`<ul class="table1">`, `mem_name`,
+    `const_name`, `mem_id`, `<h4>DISTRICT</h4>`), so the officeholders pipeline stays on the HTML report.
+  - **Term selection moved from POST to GET.** The report is a Liferay portlet whose term choice is a
+    render parameter: `&_{instance}_term_id={term_id}` in the render URL. `fetch_ap_officeholders` now
+    performs a plain GET (no form body), which is both simpler and avoids the site's aggressive
+    rate-limiting of repeated portlet POSTs (which return HTTP 200 + a ~170-byte "Page Not Found" body).
+  - **Rate-limit guard:** `_looks_like_rate_limit_response(payload)` treats an empty body, a body under
+    4096 bytes, or a body containing "Page Not Found" as a retryable failure (a genuine report is
+    430–450 KB). The fetcher retries with `5*(attempt+1)` second backoff and raises `OfficeholderFeedError`
+    when all attempts fail.
+- **Live verification (2026-08-16):**
+  - Term 16 → `SIXTEENTH ANDHRA PRADESH LEGISLATIVE ASSEMBLY CONSTITUTED ON 06.06.2024`, **175 members**,
+    435,678 bytes.
+  - Term 15 → `FIFTEENTH ANDHRA PRADESH LEGISLATIVE ASSEMBLY CONSTITUTED ON 25.05.2019`, **177 members**,
+    438,976 bytes.
+  - Term 14 → `FOURTEENTH ANDHRA PRADESH LEGISLATIVE ASSEMBLY CONSTITUTED ON 01.05.2014`, **181 members**,
+    450,773 bytes.
+  - Every member has a non-empty name, constituency, district, party, and `mem_id`; `mem_id` is unique
+    within each term.
+- **By-election slug fix:** terms 14/15 contain seats with two members (original + by-election
+  replacement, e.g. ATMAKUR: SRI MEKAPATI GOUTHAM REDDY/3146 and SRI MEKAPATI VIKRAM REDDY/3567). The
+  entity slug is now `term{term_id}-{member_id}-{constituency_slug}` (e.g. `term16-3107-ichchapuram`),
+  guaranteeing one entity per member; a regression test asserts two ATMAKUR members parse to distinct
+  slugs.
+- **Verification evidence:** `ruff check --no-cache .` all clean; strict MyPy clean (70 source files);
+  `pytest -p no:cacheprovider` **68 passed, 8 skipped** (postgres-gated tests skip locally because
+  `TEST_DATABASE_URL` is unset); `git diff --check` clean.
+- **Remaining work:** commit the officeholders ingestion changes; document live-run outcomes for the
+  three terms in the operator guide; elections ingestion from the official AP Legislature term PDFs
+  remains on the roadmap.

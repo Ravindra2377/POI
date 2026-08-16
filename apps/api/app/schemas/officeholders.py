@@ -30,6 +30,7 @@ class OfficeholderRecordOut(APIModel):
     office_title: OfficeholderClaimOut[LocalizedTextOut]
     government_body: OfficeholderClaimOut[LocalizedTextOut]
     districts: OfficeholderClaimOut[list[LocalizedTextOut]]
+    constituency: OfficeholderClaimOut[LocalizedTextOut]
     term_period: OfficeholderClaimOut[LocalizedTextOut]
     party: OfficeholderClaimOut[LocalizedTextOut] | None = None
 

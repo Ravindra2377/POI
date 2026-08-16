@@ -917,6 +917,14 @@ class SQLCatalogRepository:
                         else [],
                         source=source,
                     ),
+                    constituency=OfficeholderClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("constituency_en", ""),
+                            te=fields.get("constituency_te", ""),
+                        ),
+                        source=source,
+                    ),
                     term_period=OfficeholderClaimOut(
                         classification="official",
                         value=LocalizedTextOut(
