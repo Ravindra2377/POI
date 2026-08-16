@@ -1,25 +1,17 @@
-import { preparedPublicMoney, type PublicMoneyCatalogResponse } from "@/lib/public-money";
+import {
+  preparedPublicMoney,
+  type PublicMoneyCatalogResponse,
+} from "@/lib/public-money";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-function preparedEmpty(): PublicMoneyCatalogResponse {
-  return {
+// The public-money slice models financial observations across eleven stages
+// (announcement → outcome). No API endpoint currently produces that shape, so
+// this proxy serves the explicitly labelled prepared-only contract instead of
+// type-casting an unrelated payload (e.g. /api/v1/budget BudgetLineOut) into
+// PublicMoneyRecord. Wire a faithful mapping here when a matching endpoint exists.
+export async function GET(): Promise<Response> {
+  const body: PublicMoneyCatalogResponse = {
     data: [...preparedPublicMoney],
     status: "prepared-empty",
   };
-}
-
-export async function GET() {
-  try {
-    const response = await fetch(`${API_URL}/api/v1/budget`, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
-    if (!response.ok) {
-      return Response.json(preparedEmpty());
-    }
-    return Response.json((await response.json()) as PublicMoneyCatalogResponse);
-  } catch {
-    return Response.json(preparedEmpty());
-  }
+  return Response.json(body);
 }

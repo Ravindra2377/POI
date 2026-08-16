@@ -8,13 +8,16 @@ import PublicMoneyPage from "./page";
 afterEach(() => vi.unstubAllGlobals());
 
 describe("public-money routes", () => {
-  it("serves only the explicitly labelled prepared-empty catalogue", async () => {
+  it("serves only the explicitly labelled prepared-empty catalogue without fetching or casting", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
     const response = await GET();
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       data: [],
       status: "prepared-empty",
     });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("renders the public-money directory route", () => {

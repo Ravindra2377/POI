@@ -2151,6 +2151,25 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   included). `npm run format:check` still fails only on the same pre-existing, untouched web files
   listed in Stage 2.7; none are in this changeset. `git diff --check` clean.
 - **Remaining work:** run the budget operator live against Postgres so `/api/v1/budget` returns
-  `status: "reviewed"` with the reviewed AFS lines; reconcile the public-money proxy type-cast with a
-  faithful mapping or an explicit prepared-only contract; complete Stage 7 data acceptance. The
+  `status: "reviewed"` with the reviewed AFS lines; complete Stage 7 data acceptance. The
   projects/procurement official-source assessment remains a separate pending item.
+
+### Stage 2.9 — Public-Money Proxy Reconciliation: Prepared-Only Contract (2026-08-16)
+
+- **Problem:** `apps/web/src/app/api/public-money/route.ts` fetched `/api/v1/budget` and
+  type-cast its `BudgetLineOut` payload into `PublicMoneyRecord`, then the directory read fields
+  (`title`, `stage`, `department`, `districts`, ...) that the budget endpoint does not emit. That
+  was a type lie: production would render undefined values as soon as the budget endpoint returns
+  reviewed lines.
+- **Fix:** the public-money slice models financial observations across eleven stages
+  (announcement → outcome); no API endpoint produces that shape. The proxy now serves the explicit
+  prepared-only contract (`data: [], status: "prepared-empty"`) with no fetch and no cast, so it can
+  never mislabel another endpoint's payload as public-money data. The route documents the condition
+  for wiring a faithful mapping once a matching endpoint exists.
+- **Test:** `PublicMoneyRoutes.test.tsx` now stubs `fetch` and asserts the route serves
+  prepared-empty without calling fetch at all.
+- **Verification evidence:** from `apps/web`: `npm run lint`, `npm run typecheck`, and
+  `npm test` (39 files / 128 tests) all pass; `git diff --check` clean. Committed as
+  `98aaf35` for Stage 2.8 and this stage's fix in a follow-up commit.
+- **Remaining work:** unchanged from Stage 2.8 — production review/publish deployment, Stage 7 data
+  acceptance, and the projects/procurement official-source assessment.
