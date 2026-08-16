@@ -2278,3 +2278,53 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
 - **Remaining work:** the launch page goes live with the election-results deploy (Stage 7 data
   acceptance); share cards are WhatsApp/copy-link only for now, with the community layer deferred to
   the accounts-and-moderation stage.
+
+### Stage 2.13 — Stage 7 Data-Acceptance Dry Run: Seed Guard Fix, Budget Year Fix, Read-Path Indexes (2026-08-16)
+
+- **Scope:** run the full seed plus every operator live against a fresh disposable PostGIS database
+  to produce a scripted, verified data-acceptance runbook and to surface any production-only defect
+  before the deploy window. It found and fixed three release blockers.
+- **Blocker 1 — seed violated the append-only guard on a head-migrated database:** the integration
+  suite had always seeded between the Stage 1 and Stage 2 migrations, hiding that
+  `app/seeds/seed_stage1.py` created its 28 `source_reference` observations directly as
+  `reviewed`/published — which the `guard_observation_review_transition` trigger forbids. On a
+  database at head (`alembic upgrade head` → `seed`) the command failed. Fix
+  (`app/seeds/seed_stage1.py`): insert observations pending and unpublished, record the `approve`
+  `ReviewDecision` (matching the `system:stage2-legacy-backfill` backfill), then transition through
+  the guarded review path. New integration test `tests/integration/test_seed_postgres.py` proves
+  seed-on-head publishes exactly 28 reviewed observations and re-runs create nothing.
+- **Blocker 2 — `ingest_budget --years` rejected fiscal-year shorthand:** the manifest lists full-form
+  years (`2014-2015`) while the CLI help implies `2014-15`; exact matching meant a filtered run
+  reported "no Annual Financial Statement years discovered". Fix (`app/commands/ingest_budget.py`):
+  `_year_matches` accepts both forms by comparing start years, covered by a new unit test in
+  `tests/test_ingest_budget.py`.
+- **Blocker 3 — public read path degraded quadratically:** the `published_source_observations` view's
+  correlated latest-decision subquery and every repository join on `review_decisions` scanned the
+  whole decision table per observation (no index on `review_decisions.observation_id`, and none on
+  `observation_corrections.incorrect_observation_id`). At 62,486 rows the published count timed out
+  (> 150 s). Fix: revision `20260816_0003` adds `ix_review_decisions_observation_id`
+  (`(observation_id, decided_at DESC, created_at DESC, id DESC)`),
+  `ix_observation_corrections_incorrect_observation_id`, and
+  `ix_source_observations_published`; the same count now returns in ~1 s and the review-chain guard
+  trigger benefits from the same index.
+- **Live full-run evidence (disposable `ap_civic_stage7_test`):** seed first run 28 sources / 27
+  geographies / 16 aliases / 29 relationships / 4 government bodies / 3 departments, re-run all
+  zeros, 28 published `source_reference` observations; districts 28/28 seen, 168 observations, two
+  deferred districts (Markapuram, Polavaram) published; schemes 20, 100 observations; officeholders
+  terms 16/15/14 = 175/177/181 members, 2,625/2,655/2,715 observations; elections terms 16/15/14 =
+  175/177/179 results, 2,275/2,301/2,327 observations; budget 3,175 lines across 13 fiscal years
+  (2014-2015 → 2026-2027), 36,740 observations created by the final full run (2014-2015 and
+  2015-2016 had been stored by an interrupted earlier run and 2025-2026 by a single-year probe,
+  3,736). Final state: 50 sources, 50 documents, 22 snapshots, 22 extraction runs, 62,486 published
+  observations, 62,486 `approve` review decisions, 0 corrections.
+- **Catalogue verification:** every endpoint returns `status: "reviewed"` — states 1; districts under
+  Andhra Pradesh 28; schemes 20; budget 3,175 lines; officeholders 533 across terms 14/15/16;
+  election results 531 across terms 14/15/16. `list_representatives()` returns 0 by design: no
+  operator populates `representatives`/`public_offices` yet and `/government` shows that honestly as
+  prepared-empty.
+- **Documentation:** `docs/operations-and-recovery.md` gains the ordered Stage 7 data-acceptance
+  runbook (seed step, operator order, per-step expected counts, idempotency and public checks);
+  `docs/roadmap.md` records the dry run and the three blockers.
+- **Verification evidence:** from `apps/api`: `ruff check --no-cache .` clean, `mypy --no-incremental
+  app tests` clean (75 source files), and `pytest -p no:cacheprovider` with `TEST_DATABASE_URL` set —
+  **90 passed** (79 unit + 11 integration, including the new seed-on-head test).

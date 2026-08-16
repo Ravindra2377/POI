@@ -128,3 +128,57 @@ recorded run, no private columns in `published_source_observations`, and HTTP ev
 both language searches, `Vizag`, frontend routes, and public absence of storage keys/reviewer
 identities. If the district feed has not been run, the four zero-count checks for
 snapshots/extraction runs/corrections/review candidates still apply.
+
+## Stage 7 data acceptance runbook
+
+Revision `20260816_0003` adds the three supporting indexes
+(`ix_review_decisions_observation_id`, `ix_observation_corrections_incorrect_observation_id`,
+`ix_source_observations_published`) that the public read path needs: the correlated latest-decision
+subquery, the correction exclusion, and every repository join on `review_decisions` previously
+scanned the whole table per observation and degraded quadratically. On the disposable database the
+`published_source_observations` count went from timing out (> 150 s) to ~1 s at 62,486 rows. Record
+this revision in every acceptance note.
+
+Two 2026-08-16 fixes make the seeded production path safe and the budget operator usable:
+
+- `seed` previously published its 28 `source_reference` observations directly as `reviewed`/published,
+  which the Stage 2 guard trigger forbids on a head-migrated database (the integration suite only
+  passed because it seeded between migrations). It now inserts pending and unpublished, records an
+  `approve` review decision, and transitions through the guarded review path, matching the migration
+  backfill. `python -m app.commands.seed` on a head database is idempotent: expect 28 sources, 27
+  geographies, 16 aliases, 29 relationships, 4 government bodies, 3 departments on first run and
+  zeros on re-run, with exactly 28 published `source_reference` observations.
+- `ingest_budget --years` now matches both `2025-26` and `2025-2026` forms of a fiscal year (the
+  manifest lists full-form years such as `2014-2015`).
+
+Ordered production data-acceptance sequence after the release gates pass, in one maintenance window:
+
+1. Pre-flight: record database name/ID, instance plan/region, revision (head must include
+   `20260816_0003`), PITR/backup capability, current logical size, active/max connections, and a
+   fresh `pg_dump`; name the operator and rollback authority. Render's pre-deploy runs
+   `cd apps/api && alembic upgrade head`.
+2. Run `python -m app.commands.seed --reviewer <operator>` (the command reads `DATABASE_URL`). Verify
+   the 28-source/27-geography first-run counts, the zero re-run, and 28 published observations.
+3. Run the operators in dependency order, storing raw snapshots under a versioned storage directory:
+   `ingest_districts`, `ingest_schemes`, `ingest_officeholders --term 16` then `--term 15` then
+   `--term 14`, `ingest_elections --pdf term14.pdf --pdf term15.pdf --pdf term16.pdf`, then
+   `ingest_budget` (all manifest years). Record every JSON summary.
+4. Verify every catalogue endpoint returns `status: "reviewed"` with real records: states 1;
+   districts under Andhra Pradesh 28; schemes 20; budget 3,175 lines across 13 fiscal years
+   (2014-2015 through 2026-2027); officeholders 533 across terms 14/15/16; election results 531
+   across terms 14/15/16. Expect 50 sources, 50 documents, 22 snapshots, 22 extraction runs, zero
+   corrections, and every observation carrying an `approve` review decision.
+5. Verify idempotency: re-running each operator stores zero new snapshots and creates zero new
+   observations.
+6. Public checks: `published_source_observations` excludes private columns (object storage keys,
+   reviewer identities) and its count equals the reviewed published total; feed-status endpoint
+   responds; health and both-language searches return HTTP 200.
+
+The disposable run (2026-08-16, database `ap_civic_stage7_test`) stored term16/term15/term14
+election results with 2,275/2,301/2,327 published observations, the three officeholder terms with
+2,625/2,655/2,715, districts with 168, schemes with 100, and budget with 36,740 observations created
+by the final full run (an interrupted earlier run had already stored 2014-2015 and 2015-2016, and the
+single-year 2025-2026 probe stored 3,736), totalling 62,486 published observations. The
+`Representative`/`public_offices` directory is not yet populated by any operator; the `/government`
+page shows that honestly as prepared-empty, so `list_representatives()` returning 0 is expected
+until that adapter exists.

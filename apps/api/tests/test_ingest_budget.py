@@ -122,3 +122,13 @@ def test_reconcile_head_names_fixes_only_garbled_names() -> None:
 def test_reconcile_head_names_keeps_name_when_no_canonical() -> None:
     rows = [_line(name_en="")]
     assert reconcile_head_names(rows, {})[0].name_en == ""
+
+
+def test_year_matches_accepts_long_and_short_fiscal_year_forms() -> None:
+    from app.commands.ingest_budget import _year_matches
+
+    assert _year_matches("2025-26", "2025-2026")
+    assert _year_matches("2025-2026", "2025-2026")
+    assert _year_matches(" 2014-15 ", "2014-2015")
+    assert not _year_matches("2024-25", "2025-2026")
+    assert not _year_matches("budget", "2025-2026")

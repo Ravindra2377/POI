@@ -213,6 +213,26 @@ remain the outstanding release steps; the live-fetching `ingest_officeholders`/`
 `ingest_budget`/`ingest_schemes` operators stay gated on the operations release criteria (private
 object storage, restore drill, LGD access review, monitoring).
 
+The Stage 7 data-acceptance dry run (2026-08-16) then ran the full seed plus every operator live
+against the disposable Postgres database and exposed three release blockers that are now fixed:
+(1) `seed` published its 28 `source_reference` observations directly as reviewed, which the Stage 2
+append-only guard forbids on a head-migrated database (the integration suite had only passed because
+it seeded between migrations); it now records an `approve` decision and transitions through the
+guarded review path, idempotently, on a head database. (2) `ingest_budget --years` required the
+manifest's full-form year (`2014-2015`) and rejected `2014-15`; it now accepts both. (3) the
+`published_source_observations` view and every repository join on `review_decisions` lacked an index,
+so the public read path scanned the decision table per observation and timed out beyond ~50k rows;
+revision `20260816_0003` adds the supporting indexes, taking the published count from > 150 s to ~1 s
+at 62,486 rows. With those fixes the disposable run produced a fully reviewed catalogue: seed (28
+sources, 27 geographies), districts 28/28 with the two deferred districts published, schemes 20
+(100 observations), officeholders 533 across terms 14/15/16 (2,715 / 2,655 / 2,625 observations),
+election results 531 across the three terms (2,327 / 2,301 / 2,275 observations), and budget 3,175
+lines across 13 fiscal years (2014-2015 through 2026-2027, 36,740 observations in the final full
+run), totalling 62,486 published observations, 50 sources, 50 documents, 22 snapshots, and zero
+corrections. Every catalogue endpoint returns `status: "reviewed"` with real records. The only
+remaining release steps are the operations gates and the production deploy; the `Representative`/
+`public_offices` directory stays honestly prepared-empty until an adapter ingests it.
+
 The launch hook is the constituency-first `/know-your-constituency` page: bilingual search and
 district selection (kept in the web address, no precise location), the current Assembly's seats for
 the chosen district, and a per-seat profile card with per-claim `Official · Reviewed` provenance and

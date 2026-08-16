@@ -51,6 +51,33 @@ def _pdf_to_layout(pdf: bytes) -> str:
         return text_path.read_text(encoding="utf-8", errors="replace")
 
 
+def _year_matches(user_input: str, manifest_year: str) -> bool:
+    """Match a user-supplied year against a manifest year.
+
+    The manifest lists fiscal years as ``2014-2015``; accept either that
+    form or the common shorthand ``2014-15`` by comparing start years.
+    """
+
+    def _start_year(value: str) -> int | None:
+        parts = value.strip().split("-")
+        if len(parts) != 2:
+            return None
+        try:
+            return int(parts[0])
+        except ValueError:
+            return None
+
+    if manifest_year == user_input.strip():
+        return True
+    user_start = _start_year(user_input)
+    manifest_start = _start_year(manifest_year)
+    return (
+        user_start is not None
+        and manifest_start is not None
+        and user_start == manifest_start
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Ingest the official AP Annual Financial Statements"
@@ -79,7 +106,11 @@ def main() -> None:
     years = parse_afs_manifest(manifest_html)
     if args.years:
         selected = {year.strip() for year in args.years.split(",")}
-        years = [year for year in years if year.fiscal_year in selected]
+        years = [
+            year
+            for year in years
+            if any(_year_matches(selection, year.fiscal_year) for selection in selected)
+        ]
     if not years:
         raise BudgetFeedError("no Annual Financial Statement years discovered in the manifest")
 

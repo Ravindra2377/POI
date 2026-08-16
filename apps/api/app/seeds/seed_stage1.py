@@ -180,9 +180,9 @@ def _ensure_source_provenance(session: Session, source: SourceReference) -> None
             document_id=source.id,
             legacy_source_reference_id=source.id,
             classification=ValueClassification.OFFICIAL,
-            review_state=ObservationReviewState.REVIEWED,
+            review_state=ObservationReviewState.PENDING,
             valid_from=source.effective_date,
-            is_published=True,
+            is_published=False,
         )
         session.add(observation)
         session.flush()
@@ -203,6 +203,14 @@ def _ensure_source_provenance(session: Session, source: SourceReference) -> None
                 decided_at=reviewed_at,
             )
         )
+        session.flush()
+
+    if (
+        observation.review_state != ObservationReviewState.REVIEWED
+        or not observation.is_published
+    ):
+        observation.review_state = ObservationReviewState.REVIEWED
+        observation.is_published = True
         session.flush()
 
 
