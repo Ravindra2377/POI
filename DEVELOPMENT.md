@@ -2264,7 +2264,9 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   states, and a link to the full directory); `ConstituencyProfileCard.tsx` (bilingual card with
   per-claim `OfficialElectionResultClaim` provenance plus WhatsApp share and copy-link actions);
   `know-your-constituency.module.css`; `loading.tsx` / `error.tsx`.
-  `apps/web/src/components/SiteHeader.tsx` gains "Know Your Constituency" in the primary navigation.
+  `apps/web/src/components/SiteHeader.tsx` gains "Know Your Constituency" in the primary navigation,
+  and the home page wires the launch hook: a primary hero CTA plus the feature as the first quick
+  link (the quick-links grid becomes six columns with matching tablet/mobile border rules).
 - **Honesty constraints honored:** no precise location (district/seat choice only, kept in the web
   address); claims stay `Official · Reviewed` and source-linked; a bye-election remains a distinct
   result; the page shows an intentionally empty prepared state until reviewed records exist.

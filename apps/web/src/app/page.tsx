@@ -8,6 +8,11 @@ import { UniversalRecordSearch } from "@/components/UniversalRecordSearch";
 
 const quickLinks = [
   {
+    label: "Know Your Constituency",
+    href: "/know-your-constituency",
+    note: "Find your MLA",
+  },
+  {
     label: "Andhra Pradesh",
     href: "/government-explorer",
     note: "28 Districts Verified",
@@ -51,6 +56,18 @@ export default function Home() {
             Because development is a claim until the public can inspect the
             record.
           </p>
+          <div className="launch-cta" role="group" aria-label="Launch feature">
+            <Link
+              className="button button--primary"
+              href="/know-your-constituency"
+            >
+              Know Your Constituency <span aria-hidden="true">→</span>
+            </Link>
+            <p>
+              Find your district, your seat and your MLA from reviewed,
+              source-linked records.
+            </p>
+          </div>
           <UniversalRecordSearch />
           <nav className="quick-links" aria-label="Quick record links">
             {quickLinks.map((item) => (

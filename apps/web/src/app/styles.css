@@ -290,6 +290,23 @@ h3 {
   padding-left: 13px;
 }
 
+.launch-cta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+  margin-top: 26px;
+}
+.launch-cta .button {
+  font-size: 0.92rem;
+}
+.launch-cta p {
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+  margin: 0;
+  max-width: 480px;
+}
+
 .record-search {
   align-items: end;
   border: 1px solid var(--line-dark);
@@ -361,7 +378,7 @@ h3 {
 .quick-links {
   border-top: 1px solid var(--line);
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   margin-top: 28px;
 }
 .quick-links a {
@@ -1041,7 +1058,7 @@ td strong {
   .quick-links {
     grid-template-columns: repeat(3, 1fr);
   }
-  .quick-links a:nth-child(3) {
+  .quick-links a:nth-child(3n) {
     border-right: 0;
   }
   .quick-links a:nth-child(n + 4) {
