@@ -21,6 +21,7 @@ const secondaryNavigation = [
   { href: "/procurement", label: "Procurement" },
   { href: "/officeholders", label: "Officeholders" },
   { href: "/election-results", label: "Election Results" },
+  { href: "/budget", label: "Budget" },
   { href: "/sources", label: "Sources" },
   { href: "/ingestion", label: "Ingestion" },
   { href: "/community", label: "Community" },

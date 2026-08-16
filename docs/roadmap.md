@@ -162,9 +162,12 @@ F Public Debt, G Public Account Disbursements). Values are decoded to rupees usi
 declared unit, and corpus-canonical head-name reconciliation resolves the wrapped-name ambiguities that
 a per-year parser cannot. The operator CLI (`python -m app.commands.ingest_budget --reviewer <name>`),
 the review/publish store path, and the `GET /api/v1/budget` catalogue endpoint are implemented,
-mirroring the proven schemes pattern; the web budget catalogue slice remains to be upgraded to consume
-that endpoint. Elections ingestion from the official AP Legislature term PDFs (14th/15th/16th terms)
-remains on the roadmap.
+mirroring the proven schemes pattern. The web `/budget` slice now consumes that endpoint honestly,
+with a bilingual directory (statement/fiscal-year/unit filters), per-line detail pages with the
+amount columns (raw value token plus decoded rupees), and prepared-empty honesty labels until
+reviewed lines are deployed to production and Stage 7 data acceptance is operational. Elections
+ingestion from the official AP Legislature term PDFs (14th/15th/16th terms) then landed on the same
+pattern (see below).
 
 Network ingestion then extended to the Andhra Pradesh Legislative Assembly officeholders: the
 `ingest_officeholders` operator fetches the official aplegislature.org member report (a Liferay

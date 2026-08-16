@@ -7,7 +7,8 @@
 production stabilization, public-utility frontend, legal-basis page, scalable language selector,
 the locally integration-tested Stage 2A provenance contract and Stage 2B schema/compatibility implementation,
 the prepared AP Schemes and AP Projects website slices, elections ingestion from the official AP
-Legislature term PDFs, and the API + web election-results catalogue slice
+Legislature term PDFs, the API + web election-results catalogue slice, and the web budget catalogue
+slice wired to `/api/v1/budget`
 
 ## Acceptance status
 
@@ -2116,3 +2117,40 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   endpoint returns `status: "reviewed"` with real data, and complete Stage 7 data acceptance; the
   projects/procurement official-source assessment (gating/documenting where no verifiable source
   exists) is still a separate pending item.
+
+### Stage 2.8 — Web Budget Catalogue Wired to `/api/v1/budget` (2026-08-16)
+
+- **Scope:** the existing web "public money" slice typed its proxy response with a
+  `PublicMoneyRecord` shape that does not match the API's `BudgetLineOut` payload (it type-casts the
+  response and then reads fields such as `title`/`stage`/`department` that the budget endpoint does
+  not emit). Rather than perpetuate that type lie, a dedicated `/budget` catalogue slice now consumes
+  `GET /api/v1/budget` honestly and faithfully, mirroring the officeholders and election-results
+  patterns. The public-money slice is left untouched; it is a different conceptual model (eleven
+  financial stages) and its proxy type-cast is tracked as a separate follow-up.
+- **Web lib (`apps/web/src/lib/budget.ts`):** `BudgetLine`/`BudgetClaim<T>`/`BudgetAmountItem`/
+  `BudgetSourceRecord`/`BudgetCatalogResponse` types mirroring the API schema exactly (including
+  `rupees` accepted as `number | string` because FastAPI serialises `Decimal` as a JSON string),
+  `preparedBudget = []`, `preparedBudgetLineBySlug`, `filterBudget` (statement/fiscal-year/unit),
+  `localizedBudgetText`, `formatRupees` (Indian grouping; non-finite values fall back to the raw
+  token), and `getBudget`.
+- **Proxy (`apps/web/src/app/api/budget/route.ts`):** mirrors the officeholders proxy — fetches
+  `/api/v1/budget`, passes through reviewed data, and returns the explicitly labelled prepared-empty
+  catalogue on any failure. **Honest typing:** no field is read that the endpoint does not emit.
+- **Web slice (`apps/web/src/app/budget/`):** `page.tsx` + `BudgetDirectory.tsx` (bilingual
+  directory with statement/fiscal-year/unit filters, statement label mapping for the seven AFS
+  statements in EN/TE, `OfficialBudgetClaim` provenance chips, a static prepared notice, an honest
+  distinction between *no lines published* and *no lines match filters*, and an error/retry state);
+  `[slug]/page.tsx` + `BudgetDetail.tsx` (overview with budget-estimate claim, detail claims for
+  fiscal year/statement/code/unit, and the amount-columns table showing each column's raw
+  `value_text` token plus decoded `rupees`, all under the line's `SourceRecord`); `loading.tsx` /
+  `error.tsx`; `budget.module.css` (copy of the election-results module plus amounts-table styles);
+  `Budget.test.tsx` (10 tests) and `BudgetRoutes.test.tsx` (3 tests).
+  `apps/web/src/components/SiteHeader.tsx` secondary navigation gains "Budget".
+- **Verification evidence:** from `apps/web`: `npm run lint` clean (0 errors, 0 warnings);
+  `npm run typecheck` clean; `npm test` **39 files / 128 tests passed** (10 new budget tests
+  included). `npm run format:check` still fails only on the same pre-existing, untouched web files
+  listed in Stage 2.7; none are in this changeset. `git diff --check` clean.
+- **Remaining work:** run the budget operator live against Postgres so `/api/v1/budget` returns
+  `status: "reviewed"` with the reviewed AFS lines; reconcile the public-money proxy type-cast with a
+  faithful mapping or an explicit prepared-only contract; complete Stage 7 data acceptance. The
+  projects/procurement official-source assessment remains a separate pending item.
