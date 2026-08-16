@@ -2,11 +2,12 @@
 
 **Product:** India-wide public intelligence and civic participation platform, launching with Andhra Pradesh
 **Initial analysis date:** 11 August 2026
-**Last updated:** 15 August 2026
+**Last updated:** 16 August 2026
 **Development covered:** Product definition, Stage 0 foundation, Stage 1 implementation and acceptance,
 production stabilization, public-utility frontend, legal-basis page, scalable language selector,
 the locally integration-tested Stage 2A provenance contract and Stage 2B schema/compatibility implementation,
-and the prepared AP Schemes and AP Projects website slices
+the prepared AP Schemes and AP Projects website slices, elections ingestion from the official AP
+Legislature term PDFs, and the API + web election-results catalogue slice
 
 ## Acceptance status
 
@@ -2056,3 +2057,62 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   database, then wire the election-results catalogue into the web model and `/api/v1`; the 14th-term
   report covers post-reorganisation Andhra Pradesh only, and the reports are English-only (Telugu
   fields stay unpublished by design).
+
+### Stage 2.7 — Election-Results Catalogue: API Slice and Web Slice (2026-08-16)
+
+- **Scope:** expose the reviewed, source-backed `election_result` observations published by the
+  `ingest_elections` operator (Stage 2.6) as a first-class catalogue, with an `/api/v1` endpoint and a
+  bilingual web slice mirroring the officeholders pattern. No schema change, so no migration was
+  required; rule 9 (add migrations/tests/documentation for schema changes) is satisfied by the
+  schema-adjacent API tests and this record.
+- **API slice:**
+  - `apps/api/app/schemas/elections.py` — `ElectionResultSourceOut`, generic `ElectionResultClaimOut[T]`
+    (classification `official` + value + source), and `ElectionResultRecordOut` with plain fields
+    `slug`, `term_id`, `member_sl_no`, `constituency_no`, `reserved_category` and official claims
+    `member_name`, `constituency`, `district`, `party` (nullable), `term_period`, `elected_via`,
+    `seat_status`, `annotation` (nullable). `ElectionResultCatalogOut` carries `status`
+    (`prepared-empty`|`reviewed`) and `telugu_reviewed` so clients can never mistake prepared data for
+    reviewed content.
+  - `apps/api/app/repositories.py` — protocol `list_election_results` and
+    `SQLCatalogRepository.list_election_results`: groups published `entity_type=="election_result"`
+    observations by entity id, reading `slug, term_id, member_name_en/_te, constituency_en/_te,
+    district_en/_te, party_en/_te, term_period_en/_te, annotation_en/_te, elected_via, seat_status`
+    field paths with the existing `_as_*` helpers plus a new `_as_int` for `member_sl_no` and
+    `constituency_no`; the shared source record is resolved once per result.
+  - `apps/api/app/api/v1/elections.py` (`GET /api/v1/election-results`, registered in `router.py`
+    between officeholders and projects) and `apps/api/tests/test_api.py`
+    `test_election_results_catalogue_endpoint` asserting 200, `status == "prepared-empty"`,
+    `telugu_reviewed is False`, and an empty `data` list. `tests/conftest.py` `FakeCatalog` gains a
+    matching `list_election_results`.
+- **Web slice:**
+  - `apps/web/src/lib/election-results.ts` — `ElectionResultRecord`/`ElectionResultCatalogResponse`
+    types, `localizedElectionResultText`, `filterElectionResults` (district/party/term/seat-status),
+    `preparedElectionResults = []`, `preparedElectionResultBySlug`, `getElectionResults`.
+  - `apps/web/src/app/api/election-results/route.ts` — proxy to the API catalogue with an explicit
+    prepared-empty fallback (never substitutes data), exactly like the officeholders proxy.
+  - `apps/web/src/app/election-results/` — `page.tsx` + `ElectionResultsDirectory.tsx` (bilingual
+    directory, district/party/term/seat-status filters, `OptionFilter`, elected-via/seat-status label
+    helpers, provenance labels on every claim, an honest notice distinguishing *no results published*
+    from *no results match filters*); `[slug]/page.tsx` + `ElectionResultsDetail.tsx` (overview +
+    detail claim grid with per-claim `SourceRecord` provenance, annotation display, and an explicit
+    "record unavailable" state so an address never implies a result exists); `OfficialElectionResultClaim.tsx`
+    (the "Official · Reviewed" provenance chip); `loading.tsx`/`error.tsx` with retry; and
+    `election-results.module.css` mirroring the officeholders styles.
+  - `apps/web/src/components/SiteHeader.tsx` — secondary navigation gains "Election Results".
+- **Web tests:** `ElectionResults.test.tsx` (filter combinations; prepared-empty rendering; bilingual
+  claims + all four native filters; failure/retry/filtered-empty; detail unavailable state; every
+  claim on a by-election record renders its provenance) and `ElectionResultsRoutes.test.tsx`
+  (prepared-empty proxy payload, directory route, honest unavailable dynamic route), mirroring the
+  officeholders route tests.
+- **Verification evidence:** from `apps/api`: `ruff check --no-cache .` all clean; strict MyPy clean
+  (**76 source files**); `pytest -p no:cacheprovider` **79 passed, 9 skipped**. From the repo root:
+  `npm run lint` clean; `npm run typecheck` clean; `npm test` **37 files / 118 tests passed** (9 new
+  election-results tests included). `npm run format:check` still fails only on pre-existing, untouched
+  web files (`apps/web/src/app/lists/*`, `styles.css`, `CivicPosterCard.*`,
+  `CivicPosterGridSection.tsx`, `LogCivicActionModal.tsx`, `activity/page.tsx`,
+  `api/{officeholders,procurement,public-money}/route.ts`, `CivicLetterboxdUi.test.tsx`,
+  `lists.module.css`); none are in this changeset. `git diff --check` clean.
+- **Remaining work:** deploy the review/publish path and run the operator live against Postgres so the
+  endpoint returns `status: "reviewed"` with real data, and complete Stage 7 data acceptance; the
+  projects/procurement official-source assessment (gating/documenting where no verifiable source
+  exists) is still a separate pending item.

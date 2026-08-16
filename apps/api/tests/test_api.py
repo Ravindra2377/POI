@@ -121,6 +121,16 @@ def test_budget_catalogue_endpoint(client: TestClient) -> None:
     assert line["source"]["review_status"] == "reviewed"
 
 
+def test_election_results_catalogue_endpoint(client: TestClient) -> None:
+    response = client.get("/api/v1/election-results")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "prepared-empty"
+    assert body["telugu_reviewed"] is False
+    assert body["data"] == []
+
+
 def test_live_and_ready_health_are_distinct(client: TestClient) -> None:
     assert client.get("/health/live").json()["status"] == "ok"
     ready = client.get("/health/ready")

@@ -188,5 +188,9 @@ by-elections: Nandigama, Allagadda, Madakasira, Tirupathi). By-election rows inh
 original row; deaths, resignations, and disqualifications are recorded as seat status on the original
 result. The reports are English-only, so Telugu fields remain honestly unpublished; one Term XVI row
 (Kovur) omits its constituency number in the source and is published with an empty constituency number;
-the 14th-term report's NOMINATED placeholder rows carry no member name and are not transcribed. The web
-catalogue slice for election results and its `/api/v1` endpoint remain on the roadmap.
+the 14th-term report's NOMINATED placeholder rows carry no member name and are not transcribed. The
+`/api/v1/election-results` catalogue endpoint now serves the published `election_result` observations as
+official claims grouped by result, mirroring the officeholders pattern; the web `/election-results`
+slice is live with a bilingual directory, district/party/term/seat-status filters, per-record
+detail pages, and the same prepared-empty honesty labels until reviewed records are deployed to
+production and Stage 7 data acceptance is operational.

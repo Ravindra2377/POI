@@ -36,6 +36,12 @@ from app.schemas.budget import (
     BudgetSourceOut,
 )
 from app.schemas.common import AliasSummary, PageMeta, ProvenanceSummary
+from app.schemas.elections import (
+    ElectionResultCatalogOut,
+    ElectionResultClaimOut,
+    ElectionResultRecordOut,
+    ElectionResultSourceOut,
+)
 from app.schemas.geography import GeographyOut
 from app.schemas.government import (
     GovernmentBodyOut,
@@ -146,6 +152,8 @@ class CatalogRepository(Protocol):
 
     def list_officeholders(self) -> OfficeholderCatalogOut: ...
 
+    def list_election_results(self) -> ElectionResultCatalogOut: ...
+
     def list_projects(self) -> ProjectCatalogOut: ...
 
     def list_procurement(self) -> ProcurementCatalogOut: ...
@@ -156,6 +164,13 @@ def _parse_uuid(identifier: str) -> UUID | None:
         return UUID(identifier)
     except ValueError:
         return None
+
+
+def _as_int(value: str) -> int:
+    try:
+        return int(value)
+    except ValueError:
+        return 0
 
 
 def _active_clause(
@@ -953,6 +968,120 @@ class SQLCatalogRepository:
         source = self.session.get(SourceRecord, document.source_id) if document else None
         snapshot = self.session.get(SourceSnapshot, observation.snapshot_id)
         return OfficeholderSourceOut(
+            source_record_id=source.id if source else observation.entity_id,
+            source_name=source.name if source else "AP Legislative Assembly",
+            official_source_url=document.official_url if document else "https://aplegislature.org",
+            public_source_url=_document_public_url(document) if document else None,
+            retrieval_date=snapshot.retrieved_at.date() if snapshot else date.today(),
+            review_status=source.review_status if source else ReviewStatus.REVIEWED,
+        )
+
+    def list_election_results(self) -> ElectionResultCatalogOut:
+        observations = self.session.scalars(
+            select(SourceObservation)
+            .where(
+                SourceObservation.entity_type == "election_result",
+                SourceObservation.is_published.is_(True),
+            )
+            .order_by(SourceObservation.entity_id, SourceObservation.field_path)
+        ).all()
+        if not observations:
+            return ElectionResultCatalogOut(
+                data=[], status="prepared-empty", telugu_reviewed=False
+            )
+
+        grouped: dict[UUID, dict[str, str]] = {}
+        for observation in observations:
+            grouped.setdefault(observation.entity_id, {})[observation.field_path] = (
+                observation.value_text or ""
+            )
+
+        source = self._election_result_feed_source(observations[0])
+        records: list[ElectionResultRecordOut] = []
+        for entity_id in sorted(grouped):
+            fields = grouped[entity_id]
+            annotation_en = fields.get("annotation_en", "")
+            records.append(
+                ElectionResultRecordOut(
+                    slug=fields.get("slug", ""),
+                    term_id=_as_int(fields.get("term_id", "0")),
+                    member_sl_no=fields.get("member_sl_no", ""),
+                    constituency_no=fields.get("constituency_no", ""),
+                    reserved_category=fields.get("reserved_category", ""),
+                    member_name=ElectionResultClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("member_name_en", ""),
+                            te=fields.get("member_name_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    constituency=ElectionResultClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("constituency_en", ""),
+                            te=fields.get("constituency_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    district=ElectionResultClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("district_en", ""),
+                            te=fields.get("district_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    party=ElectionResultClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("party_en", ""),
+                            te=fields.get("party_te", ""),
+                        ),
+                        source=source,
+                    )
+                    if fields.get("party_en")
+                    else None,
+                    term_period=ElectionResultClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=fields.get("term_period_en", ""),
+                            te=fields.get("term_period_te", ""),
+                        ),
+                        source=source,
+                    ),
+                    elected_via=ElectionResultClaimOut(
+                        classification="official",
+                        value=fields.get("elected_via", ""),
+                        source=source,
+                    ),
+                    seat_status=ElectionResultClaimOut(
+                        classification="official",
+                        value=fields.get("seat_status", ""),
+                        source=source,
+                    ),
+                    annotation=ElectionResultClaimOut(
+                        classification="official",
+                        value=LocalizedTextOut(
+                            en=annotation_en,
+                            te=fields.get("annotation_te", ""),
+                        ),
+                        source=source,
+                    )
+                    if annotation_en
+                    else None,
+                )
+            )
+        status = "reviewed" if records else "prepared-empty"
+        return ElectionResultCatalogOut(data=records, status=status)
+
+    def _election_result_feed_source(
+        self, observation: SourceObservation
+    ) -> ElectionResultSourceOut:
+        document = self.session.get(SourceDocument, observation.document_id)
+        source = self.session.get(SourceRecord, document.source_id) if document else None
+        snapshot = self.session.get(SourceSnapshot, observation.snapshot_id)
+        return ElectionResultSourceOut(
             source_record_id=source.id if source else observation.entity_id,
             source_name=source.name if source else "AP Legislative Assembly",
             official_source_url=document.official_url if document else "https://aplegislature.org",

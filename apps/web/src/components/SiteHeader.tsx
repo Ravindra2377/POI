@@ -20,6 +20,7 @@ const secondaryNavigation = [
   { href: "/explore-data", label: "Explore Data" },
   { href: "/procurement", label: "Procurement" },
   { href: "/officeholders", label: "Officeholders" },
+  { href: "/election-results", label: "Election Results" },
   { href: "/sources", label: "Sources" },
   { href: "/ingestion", label: "Ingestion" },
   { href: "/community", label: "Community" },
@@ -33,7 +34,7 @@ export function SiteHeader() {
   const [moreOpen, setMoreOpen] = useState(false);
 
   const isSecondaryActive = secondaryNavigation.some((item) =>
-    pathname.startsWith(item.href)
+    pathname.startsWith(item.href),
   );
 
   return (
@@ -92,10 +93,7 @@ export function SiteHeader() {
                   ▾
                 </span>
               </button>
-              <div
-                className="more-menu-popover"
-                data-open={moreOpen || open}
-              >
+              <div className="more-menu-popover" data-open={moreOpen || open}>
                 {secondaryNavigation.map((item) => (
                   <Link
                     aria-current={
