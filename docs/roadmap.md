@@ -257,4 +257,9 @@ plus a per-seat card at `/og/constituency/[seat]/…`), per-district dynamic met
 `metadataBase` from `NEXT_PUBLIC_SITE_URL`; a community submit-link section moves users from the
 launch page to the prepared-closed `/community` charter. The production deploy sequence is written
 down in `docs/deployment-runbook.md` and remains gated on the `operations-and-recovery.md` release
-gates (private object storage, restore drill, LGD access review, monitoring).
+gates (private object storage, restore drill, LGD access review, monitoring). The code side of the
+object-storage gate is now in place: raw snapshots write through the `app/storage.py` abstraction
+(local backend by default, S3-compatible backend via `SNAPSHOT_STORAGE_BACKEND=s3`), and
+`python -m app.commands.storage_info` reports the backend, a probe round-trip, and object
+count/bytes without echoing credentials; the remaining step is the external provider setup (private
+bucket + cost approval + credential provisioning).

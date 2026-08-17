@@ -95,6 +95,36 @@ Useful read-only PostgreSQL checks include `pg_database_size(current_database())
 `pg_stat_activity` counts. Provider monitoring remains the source of truth for plan limits,
 backup health, and object-storage billing.
 
+## Snapshot object storage
+
+Operators store every raw snapshot behind a small store abstraction
+(`app/storage.py`) so the immutable bytes survive a database restore and the
+`SourceSnapshot.object_storage_key` always holds the same relative key
+(`snapshots/<sha256>.<html|pdf|json>`). The backend is selected per operator run
+by `SNAPSHOT_STORAGE_BACKEND`:
+
+- `local` (default): filesystem root given by the operator's `--storage-dir`
+  (default `storage`). Used by tests, disposable runs, and local operators.
+- `s3`: private S3-compatible bucket required by `S3_BUCKET`, with
+  `S3_ENDPOINT_URL` (e.g. MinIO/Cloudflare R2) and `S3_REGION` (default
+  `us-east-1`) overrides; credentials come from the standard AWS environment
+  (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`). The SDK is loaded lazily from
+  the optional dependency group (`pip install -e '.[s3]'`), so the base install
+  has no AWS dependency.
+
+`python -m app.commands.storage_info [--storage-dir storage]` prints the
+backend, a probe round-trip result, and the object count and total bytes in the
+store (without echoing credentials). It feeds the monitoring gate's "object
+count and bytes by storage class" line and is the pre-ingestion reachability
+check for a configured bucket.
+
+Code-side status: the abstraction, the local backend, the S3 backend, the
+`storage_info` operator, and the operator refactor are complete and tested
+(unit tests in `tests/test_storage.py`; every operator integration test writes
+through the abstraction). Remaining external gates are unchanged: a private
+bucket must be created and its cost limits approved, and credentials must be
+provisioned to the operator environment only.
+
 ## Release gate
 
 Stage 2 network ingestion must not begin until the disposable database check passes, a restore drill
@@ -102,9 +132,11 @@ passes, private object storage and its cost limits are approved, and the LGD acc
 recorded. Schema development and local contract tests may proceed before these external gates.
 
 The `python -m app.commands.ingest_districts` command is the first network-ingestion surface. It is
-an explicit, manual operator action (never a request path) and currently writes raw snapshots to a
-local `storage/` directory; production use remains gated on the criteria above and on private object
-storage being configured for `SourceSnapshot.object_storage_key`.
+an explicit, manual operator action (never a request path) and writes raw snapshots through the
+`app/storage.py` abstraction: the local filesystem backend by default, or a private S3-compatible
+bucket when `SNAPSHOT_STORAGE_BACKEND=s3` and `S3_BUCKET` are configured. Production use remains
+gated on the criteria above and on private object storage being configured for
+`SourceSnapshot.object_storage_key`.
 
 ## Controlled Stage 2A/2B deployment worksheet
 

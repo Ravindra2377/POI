@@ -2426,3 +2426,40 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
 - **Remaining work:** unchanged — operations release gates (private object storage, restore drill,
   LGD access review, monitoring) and the production deploy; `/government` now lights up with
   reviewed records once the adapter is run on a deployed, head-migrated database.
+
+### Stage 2.16 — Snapshot Object-Storage Abstraction and Storage Ops Command (2026-08-17)
+
+- **Storage abstraction:** `apps/api/app/storage.py` introduces a `SnapshotStore` interface
+  (`put`/`get`/`exists`/`list`/`delete`/`probe`) with a local filesystem backend (default: tests,
+  disposable runs, local operators) and an S3-compatible backend selected by
+  `SNAPSHOT_STORAGE_BACKEND=s3` with `S3_BUCKET`, optional `S3_ENDPOINT_URL`/`S3_REGION`, and
+  standard AWS credential env vars. The S3 SDK is loaded lazily from the new optional dependency
+  group `pip install -e '.[s3]'`, so the base install stays dependency-free. Every operator now
+  writes its immutable raw snapshots through `get_snapshot_store()`, and `SourceSnapshot
+  .object_storage_key` is always the same relative key (`snapshots/<sha256>.<html|pdf|json>`) via
+  `snapshot_key()`, regardless of backend. `_store_snapshot` was deduplicated in all five operators
+  (`officeholders`, `districts`, `schemes`, `budget`, `elections`) to use the store instead of a
+  private local-directory write.
+- **Storage ops command:** `python -m app.commands.storage_info [--storage-dir storage]` prints the
+  backend, a probe round-trip result (write/read/delete), and the object count and total bytes in
+  the store, without echoing credentials. It feeds the monitoring gate's "object count and bytes by
+  storage class" line and is the pre-ingestion reachability check for a configured bucket.
+- **Probe hygiene:** `probe()` deletes its probe object after a successful round-trip so operator
+  inventory counts reflect real snapshots only. `LocalSnapshotStore` rejects keys that escape its
+  root.
+- **Tests:** `tests/test_storage.py` covers `snapshot_key`, local store put/get/exists/list/delete/
+  probe and overwrite semantics, root-escape rejection, factory backend selection, the missing-bucket
+  error, unknown-backend rejection, and the missing-SDK error path. The five operator integration
+  tests now exercise the abstraction.
+- **Verification evidence:** from `apps/api`, `ruff check --no-cache .` clean, `mypy --no-incremental
+  --cache-dir=<tmp> app tests` clean (82 source files), `pytest -p no:cacheprovider tests` —
+  **105 passed** with `TEST_DATABASE_URL` set. Live run against the disposable database: a first
+  `ingest_elections --pdf term16.pdf` stored 1 snapshot (sha256
+  `8771b794914a085071bbde20d6eabef3ecf0be296d1234a59d0c0ec754122c42`, matching the committed
+  snapshot), and a re-run stored 0 and created 0 observations; `storage_info` reported the local
+  backend, a passing probe, and 1 object / 217,549 bytes for that directory. `git diff --check`
+  clean.
+- **Remaining work:** the object-storage gate still needs the external provider step (create the
+  private bucket, approve cost limits, provision credentials) plus the restore drill, LGD access
+  review, and provider monitoring before network ingestion is authorized; the code-side abstraction
+  and ops command are complete.

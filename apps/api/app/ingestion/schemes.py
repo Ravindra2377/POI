@@ -45,6 +45,7 @@ from app.models.provenance import (
     SourceRecord,
     SourceSnapshot,
 )
+from app.storage import SnapshotStore, get_snapshot_store, snapshot_key
 
 SCHEME_INGESTION_NAMESPACE = UUID("c7f2a9b4-1d3e-4f6a-8b5c-9e1d2f3a4b5c")
 ADAPTER_VERSION = "1.0.0"
@@ -257,7 +258,7 @@ def _store_snapshot(
     session: Session,
     document: SourceDocument,
     snapshot: FeedSnapshot,
-    storage_dir: Path,
+    store: SnapshotStore,
 ) -> tuple[SourceSnapshot, bool]:
     checksum = sha256(snapshot.raw).hexdigest()
     existing = session.scalar(
@@ -268,11 +269,9 @@ def _store_snapshot(
     )
     if existing is not None:
         return existing, False
-    snapshot_dir = storage_dir / "snapshots"
-    snapshot_dir.mkdir(parents=True, exist_ok=True)
-    target = snapshot_dir / f"{checksum}.json"
-    if not target.exists():
-        target.write_bytes(snapshot.raw)
+    key = snapshot_key(checksum, ".json")
+    if not store.exists(key):
+        store.put(key, snapshot.raw)
     stored = SourceSnapshot(
         id=_stable(f"ingestion-snapshot:{snapshot.key}:{checksum}"),
         document_id=document.id,
@@ -281,7 +280,7 @@ def _store_snapshot(
         content_type=snapshot.content_type,
         file_size_bytes=len(snapshot.raw),
         sha256=checksum,
-        object_storage_key=f"snapshots/{checksum}.json",
+        object_storage_key=key,
         retrieval_metadata={
             "url": snapshot.url,
             "request_method": snapshot.request_method,
@@ -388,7 +387,8 @@ def store_scheme_feed(
     ]
     source = _ensure_source_record(session, snapshot, retrieved_on)
     document = _ensure_document(session, source, snapshot, retrieved_on)
-    snapshot_row, stored = _store_snapshot(session, document, snapshot, storage_dir)
+    store = get_snapshot_store(storage_dir=storage_dir)
+    snapshot_row, stored = _store_snapshot(session, document, snapshot, store)
     run = _ensure_extraction_run(
         session,
         snapshot_row,
