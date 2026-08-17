@@ -10,6 +10,7 @@ from app.api.v1.officeholders import router as officeholders_router
 from app.api.v1.procurement import router as procurement_router
 from app.api.v1.projects import router as projects_router
 from app.api.v1.schemes import router as schemes_router
+from app.api.v1.states import router as states_router
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(geographies_router)
@@ -22,4 +23,4 @@ router.include_router(elections_router)
 router.include_router(projects_router)
 router.include_router(procurement_router)
 router.include_router(community_router)
-
+router.include_router(states_router)

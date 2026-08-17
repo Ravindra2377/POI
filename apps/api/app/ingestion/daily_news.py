@@ -1,9 +1,11 @@
 """Read-only automated daily news & official press release ingestion.
 
-Fetches official government press bulletins (e.g. AP IP&PR, PIB India AP) and
-verified news RSS/JSON feeds, stores raw snapshots in SnapshotStore, extracts typed
-observations, and tags evidence as OFFICIAL, INFERRED, or COMMUNITY_REPORTED per
-Non-negotiable Rules #1, #3, and #4.
+Fetches official government press bulletins and verified news RSS/JSON feeds,
+stores raw snapshots in SnapshotStore, extracts typed observations, and tags
+evidence as OFFICIAL, INFERRED, or COMMUNITY_REPORTED per Non-negotiable Rules
+#1, #3, and #4. Feed sources are registered per State or Union Territory in
+``app.ingestion.state_feeds`` so each jurisdiction ingests only its own official
+feeds.
 """
 
 import json
@@ -42,27 +44,8 @@ from app.models.provenance import (
 from app.storage import get_snapshot_store, snapshot_key
 
 DAILY_NEWS_NAMESPACE = UUID("a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d")
-ADAPTER_VERSION = "1.0.0"
-SOFTWARE_REVISION = "daily-news-ingestor-1.0.0"
-
-DEFAULT_NEWS_FEEDS = [
-    {
-        "key": "ap-ippr-bulletins",
-        "name": "AP Information & Public Relations Official Bulletins",
-        "publisher": "Information & Public Relations Dept, Govt of AP",
-        "url": "https://ipr.ap.gov.in/feed/press-releases",
-        "official_domain": "ipr.ap.gov.in",
-        "default_classification": ValueClassification.OFFICIAL,
-    },
-    {
-        "key": "pib-ap-news",
-        "name": "Press Information Bureau - Andhra Pradesh Bureau",
-        "publisher": "Press Information Bureau, Govt of India",
-        "url": "https://pib.gov.in/RssFeed.aspx?region=AP",
-        "official_domain": "pib.gov.in",
-        "default_classification": ValueClassification.OFFICIAL,
-    },
-]
+ADAPTER_VERSION = "1.1.0"
+SOFTWARE_REVISION = "daily-news-ingestor-1.1.0"
 
 
 class DailyNewsError(RuntimeError):
@@ -95,6 +78,8 @@ class NewsFeedSnapshot:
     raw: bytes
     retrieved_at: datetime
     default_classification: ValueClassification
+    jurisdiction_code: str = "IN-AP"
+    language_code: LanguageCode = LanguageCode.EN
 
 
 @dataclass(frozen=True)
@@ -109,6 +94,20 @@ class NewsIngestionResult:
 
 def _stable(key: str) -> UUID:
     return uuid5(DAILY_NEWS_NAMESPACE, key)
+
+
+def feed_meta_from_registry(feed: Any) -> dict[str, Any]:
+    """Convert a StateFeed registry record into a feed metadata mapping."""
+    return {
+        "key": feed.key,
+        "name": feed.name,
+        "publisher": feed.publisher,
+        "url": feed.url,
+        "official_domain": feed.official_domain,
+        "jurisdiction_code": feed.jurisdiction_code,
+        "language_code": feed.language_code,
+        "default_classification": "official",
+    }
 
 
 def fetch_news_feed(
@@ -144,6 +143,8 @@ def fetch_news_feed(
         default_classification=feed_meta.get(
             "default_classification", ValueClassification.OFFICIAL
         ),
+        jurisdiction_code=feed_meta.get("jurisdiction_code", "IN-AP"),
+        language_code=LanguageCode(feed_meta.get("language_code", "en")),
     )
 
 
@@ -277,9 +278,9 @@ def store_daily_news(
             id=source_id,
             name=snapshot.name,
             publisher=snapshot.publisher,
-            official_domain=urlsplit(snapshot.url).hostname or "news.ap.gov.in",
+            official_domain=urlsplit(snapshot.url).hostname or "pib.gov.in",
             source_type="press_release_feed",
-            jurisdiction_code="IN-AP",
+            jurisdiction_code=snapshot.jurisdiction_code,
             access_method=AccessMethod.API,
             active_from=retrieved_on,
             review_status=ReviewStatus.REVIEWED,
@@ -298,9 +299,12 @@ def store_daily_news(
             reporting_period_start=retrieved_on,
             reporting_period_end=retrieved_on,
             document_type="news_feed",
-            language_code=LanguageCode.EN,
-            jurisdiction_code="IN-AP",
-            document_metadata={"adapter": "daily-news-ingestor"},
+            language_code=snapshot.language_code,
+            jurisdiction_code=snapshot.jurisdiction_code,
+            document_metadata={
+                "adapter": "daily-news-ingestor",
+                "pib_office": snapshot.publisher,
+            },
         )
         session.add(document)
         session.flush()

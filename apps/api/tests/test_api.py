@@ -150,3 +150,18 @@ def test_readiness_failure_does_not_break_liveness(client: TestClient) -> None:
     ready = client.get("/health/ready")
     assert ready.status_code == 503
     assert ready.json()["status"] == "not_ready"
+
+
+def test_all_states_catalogue_exposes_local_languages(client: TestClient) -> None:
+    response = client.get("/api/v1/states")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 36
+    assert body["states_count"] == 28
+    assert body["union_territories_count"] == 8
+    assert body["languages_available"] >= 21
+    codes = {language["code"] for language in body["languages"]}
+    assert {"te", "ta", "bn", "gu", "kn", "ml", "mr"} <= codes
+    ap = next(item for item in body["data"] if item["iso_code"] == "IN-AP")
+    assert ap["official_languages"] == ["te", "en"]

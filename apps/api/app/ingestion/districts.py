@@ -1,12 +1,17 @@
-"""Read-only network ingestion for the official Andhra Pradesh district feeds.
+"""Read-only network ingestion for the official district feeds of every State and UT.
 
-The operator-facing command fetches the live Local Government Directory
-district list (POST) and the Andhra Pradesh State Portal district directory
-(GET), stores the raw responses as immutable snapshots, extracts typed official
-observations, reviews and publishes them, and finally publishes the two
-districts the Stage 1 baseline deliberately deferred (Markapuram and
-Polavaram). Nothing here runs in a production request path; every run is an
-explicit, audited operator action.
+The Andhra Pradesh flow fetches the live Local Government Directory district
+list (POST) and the Andhra Pradesh State Portal district directory (GET), stores
+the raw responses as immutable snapshots, extracts typed official observations,
+reviews and publishes them, and finally publishes the two districts the Stage 1
+baseline deliberately deferred (Markapuram and Polavaram).
+
+The national flow serves every other State and UT with the single verified LGD
+district-list feed (POST ``stateCode=<lgd code>``), storing raw snapshots,
+typed observations, and publishing each district as a Geography under the
+seeded state, with the LGD local name retained as a native-language alias.
+Nothing here runs in a production request path; every run is an explicit,
+audited operator action.
 """
 
 import json
@@ -23,8 +28,10 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.ingestion.all_states import StateRecord
 from app.models.enums import (
     AccessMethod,
+    AliasType,
     ExtractionStatus,
     GeographyRelationshipType,
     GeographyType,
@@ -34,7 +41,11 @@ from app.models.enums import (
     ReviewStatus,
     ValueClassification,
 )
-from app.models.geography import Geography, GeographyRelationship
+from app.models.geography import (
+    Geography,
+    GeographyAlias,
+    GeographyRelationship,
+)
 from app.models.provenance import (
     ExtractionRun,
     ReviewDecision,
@@ -127,6 +138,20 @@ class FeedStoreResult:
     lgd_extraction_run_id: UUID
 
 
+@dataclass(frozen=True)
+class StateDistrictIngestResult:
+    """Counts and identifiers from one state's national district-ingestion run."""
+
+    state_iso: str
+    districts_seen: int
+    snapshots_stored: int
+    observations_created: int
+    observations_reviewed: int
+    geographies_published: int
+    snapshot_sha256: str
+    extraction_run_id: UUID
+
+
 def _stable(key: str) -> UUID:
     return uuid5(INGESTION_NAMESPACE, key)
 
@@ -150,6 +175,11 @@ def _fetch(url: str, *, method: str, body: bytes | None, timeout: float) -> tupl
     if status != 200:
         raise DistrictFeedError(f"{url} returned HTTP {status}")
     return payload, content_type
+
+
+def lgd_request_body(lgd_code: str) -> str:
+    """The LGD district-list POST body for a given LGD state code."""
+    return f"stateCode={lgd_code}"
 
 
 def fetch_district_sources(timeout: float = 25.0) -> tuple[FeedSnapshot, FeedSnapshot]:
@@ -191,6 +221,33 @@ def fetch_district_sources(timeout: float = 25.0) -> tuple[FeedSnapshot, FeedSna
             raw=ap_payload,
             retrieved_at=now,
         ),
+    )
+
+
+def fetch_lgd_district_feed(lgd_code: str, timeout: float = 25.0) -> FeedSnapshot:
+    """Fetch the live LGD district list for a single State or UT.
+
+    The LGD endpoint is national and requires a POST with the form field
+    ``stateCode=<lgd state code>``; a GET returns the documented 434 error.
+    """
+    now = datetime.now(UTC)
+    payload, content_type = _fetch(
+        LGD_DISTRICT_URL,
+        method="POST",
+        body=lgd_request_body(lgd_code).encode(),
+        timeout=timeout,
+    )
+    return FeedSnapshot(
+        key=f"lgd-district-list-{lgd_code}",
+        name=f"Local Government Directory district list (LGD state code {lgd_code})",
+        publisher="Local Government Directory (LGD)",
+        url=LGD_DISTRICT_URL,
+        public_url=LGD_PUBLIC_URL,
+        request_method="POST",
+        request_body=lgd_request_body(lgd_code),
+        content_type=content_type,
+        raw=payload,
+        retrieved_at=now,
     )
 
 
@@ -271,7 +328,11 @@ def attach_portal_codes(
 
 
 def _ensure_source_record(
-    session: Session, snapshot: FeedSnapshot, retrieved_on: date
+    session: Session,
+    snapshot: FeedSnapshot,
+    retrieved_on: date,
+    *,
+    jurisdiction_code: str = "IN-AP",
 ) -> SourceRecord:
     source_id = _stable(f"ingestion-source:{snapshot.key}")
     source = session.get(SourceRecord, source_id)
@@ -283,7 +344,7 @@ def _ensure_source_record(
         publisher=snapshot.publisher,
         official_domain=urlsplit(snapshot.url).hostname or "unknown.invalid",
         source_type="api_endpoint",
-        jurisdiction_code="IN-AP",
+        jurisdiction_code=jurisdiction_code,
         access_method=AccessMethod.API,
         licence_status=None,
         reuse_status=None,
@@ -302,6 +363,9 @@ def _ensure_document(
     source: SourceRecord,
     snapshot: FeedSnapshot,
     retrieved_on: date,
+    *,
+    jurisdiction_code: str = "IN-AP",
+    language_code: LanguageCode = LanguageCode.EN,
 ) -> SourceDocument:
     document_id = _stable(f"ingestion-document:{snapshot.key}")
     document = session.get(SourceDocument, document_id)
@@ -316,8 +380,8 @@ def _ensure_document(
         reporting_period_start=retrieved_on,
         reporting_period_end=retrieved_on,
         document_type="api_response",
-        language_code=LanguageCode.EN,
-        jurisdiction_code="IN-AP",
+        language_code=language_code,
+        jurisdiction_code=jurisdiction_code,
         document_metadata={
             "request_method": snapshot.request_method,
             "request_body": snapshot.request_body,
@@ -509,6 +573,69 @@ def store_district_feed(
     )
 
 
+def store_state_district_feed(
+    session: Session,
+    storage_dir: Path,
+    *,
+    snapshot: FeedSnapshot,
+    records: Sequence[DistrictFeedRecord],
+    jurisdiction_code: str,
+    language_code: LanguageCode = LanguageCode.EN,
+    software_revision: str = SOFTWARE_REVISION,
+) -> FeedStoreResult:
+    """Persist one state's LGD raw snapshot, extraction run, and observations."""
+    retrieved_on = snapshot.retrieved_at.date()
+    rows = [
+        (
+            record.lgd_code,
+            {
+                "name_en": record.name_en,
+                "name_local": record.name_local,
+                "lgd_code": record.lgd_code,
+            },
+        )
+        for record in records
+    ]
+    store = get_snapshot_store(storage_dir=storage_dir)
+    source = _ensure_source_record(
+        session, snapshot, retrieved_on, jurisdiction_code=jurisdiction_code
+    )
+    document = _ensure_document(
+        session,
+        source,
+        snapshot,
+        retrieved_on,
+        jurisdiction_code=jurisdiction_code,
+        language_code=language_code,
+    )
+    snapshot_row, stored = _store_snapshot(session, document, snapshot, store)
+    checksum = sha256(snapshot.raw).hexdigest()
+    run = _ensure_extraction_run(
+        session,
+        snapshot_row,
+        adapter_name=f"{snapshot.key}-adapter",
+        count=len(rows),
+        now=snapshot.retrieved_at,
+    )
+    observations_created = _write_observations(
+        session,
+        document=document,
+        snapshot=snapshot_row,
+        extraction_run=run,
+        entity_type="lgd_district",
+        rows=rows,
+        retrieved_on=retrieved_on,
+    )
+    session.flush()
+    return FeedStoreResult(
+        snapshots_stored=int(stored),
+        observations_created=observations_created,
+        extraction_run_ids=(run.id,),
+        lgd_sha256=checksum,
+        lgd_extraction_run_id=run.id,
+    )
+
+
 def review_feed_observations(
     session: Session,
     *,
@@ -685,6 +812,10 @@ def _audit_geography_publication(
     document: SourceDocument,
     snapshot: SourceSnapshot,
     extraction_run: ExtractionRun,
+    reason: str = (
+        "Resolves the Stage 1 coverage caveat by publishing the district the "
+        "live LGD feed records; raw response is stored in the district feed."
+    ),
 ) -> bool:
     observation_id = _stable(f"ingestion-geography-review:{geography.slug}")
     observation = session.get(SourceObservation, observation_id)
@@ -717,10 +848,7 @@ def _audit_geography_publication(
             observation_id=observation.id,
             reviewer_identity=reviewer_identity,
             decision=ReviewDecisionType.APPROVE,
-            reason=(
-                "Resolves the Stage 1 coverage caveat by publishing the district the "
-                "live LGD feed records; raw response is stored in the district feed."
-            ),
+            reason=reason,
             decided_at=decided_at,
         )
     )
@@ -785,3 +913,286 @@ def publish_deferred_districts(
         )
     session.flush()
     return published
+
+
+def _district_slug(state_iso: str, record: DistrictFeedRecord) -> str:
+    """Stable, globally unique slug for a state's district geography."""
+    return f"{state_iso.lower()}-{_normalise(record.name_en)}"
+
+
+def _ensure_district_source(
+    session: Session,
+    *,
+    state_iso: str,
+    record: DistrictFeedRecord,
+    retrieval_date: date,
+    snapshot_sha256: str,
+    request_body: str,
+) -> SourceReference:
+    source_id = _stable(f"source:district:{state_iso.lower()}:{record.lgd_code}")
+    source = session.get(SourceReference, source_id)
+    if source is not None:
+        return source
+    source = SourceReference(
+        id=source_id,
+        source_name=f"LGD district list for {record.name_en}",
+        official_source_url=LGD_DISTRICT_URL,
+        retrieval_date=retrieval_date,
+        publication_date=None,
+        effective_date=None,
+        review_status=ReviewStatus.REVIEWED,
+        is_fixture=False,
+        citation_metadata={
+            "request_method": "POST",
+            "request_body": request_body,
+            "lgd_code": record.lgd_code,
+            "state_iso_code": state_iso,
+            "snapshot_sha256": snapshot_sha256,
+            "public_source_url": LGD_PUBLIC_URL,
+        },
+        notes=(
+            "Published from the live LGD district-list feed for the state jurisdiction; "
+            "the English name and LGD code carry provenance, and the LGD local rendering "
+            "is retained as a native-language alias."
+        ),
+    )
+    session.add(source)
+    session.flush()
+    return source
+
+
+def _ensure_district_geography(
+    session: Session,
+    *,
+    state: Geography,
+    record: DistrictFeedRecord,
+    slug: str,
+    valid_from: date,
+    source: SourceReference,
+    native_language: str,
+) -> Geography:
+    geography = session.scalar(select(Geography).where(Geography.slug == slug))
+    if geography is not None:
+        return geography
+    geography = Geography(
+        id=_stable(f"geography:{slug}"),
+        slug=slug,
+        entity_type=GeographyType.DISTRICT,
+        name_en=record.name_en,
+        name_te=record.name_local if native_language == "te" else None,
+        official_code=record.lgd_code,
+        official_code_scheme="LGD district code",
+        parent_id=state.id,
+        valid_from=valid_from,
+        valid_to=None,
+        is_active=True,
+        is_pilot=False,
+        coverage_note=(
+            "Boundary not reviewed; the native-language label is the local rendering "
+            "reported by the LGD district-list feed."
+        ),
+        point=None,
+        boundary=None,
+        boundary_precision=None,
+        boundary_valid_from=None,
+        boundary_valid_to=None,
+        boundary_source_id=None,
+        source_id=source.id,
+    )
+    session.add(geography)
+    session.flush()
+    return geography
+
+
+def _ensure_district_native_alias(
+    session: Session,
+    *,
+    geography: Geography,
+    record: DistrictFeedRecord,
+    native_language: str,
+    source: SourceReference,
+) -> bool:
+    if native_language == "te":
+        return False
+    existing = session.scalar(
+        select(GeographyAlias).where(
+            GeographyAlias.geography_id == geography.id,
+            GeographyAlias.alias == record.name_local,
+            GeographyAlias.language_code == LanguageCode(native_language),
+            GeographyAlias.alias_type == AliasType.ALTERNATE,
+        )
+    )
+    if existing is not None:
+        return False
+    session.add(
+        GeographyAlias(
+            id=_stable(
+                f"geography-alias:{geography.slug}:{native_language}:{record.lgd_code}"
+            ),
+            geography_id=geography.id,
+            alias=record.name_local,
+            language_code=LanguageCode(native_language),
+            alias_type=AliasType.ALTERNATE,
+            valid_from=geography.valid_from,
+            valid_to=None,
+            source_id=source.id,
+        )
+    )
+    session.flush()
+    return True
+
+
+def publish_district_geographies(
+    session: Session,
+    *,
+    state_iso: str,
+    lgd_code: str,
+    native_language: str,
+    lgd_records: Sequence[DistrictFeedRecord],
+    valid_from: date,
+    reviewer_identity: str,
+    decided_at: datetime,
+    snapshot_sha256: str,
+    lgd_extraction_run_id: UUID,
+) -> int:
+    """Publish every LGD-recorded district as a Geography under the state.
+
+    Districts already published under the same parent with the same LGD code are
+    left untouched; only new districts are created, each with a reviewed source
+    reference, a native-language alias, an audited review, and a containment
+    relationship to the state.
+    """
+    state = session.scalar(
+        select(Geography).where(
+            Geography.entity_type == GeographyType.STATE,
+            Geography.official_code == lgd_code,
+        )
+    )
+    if state is None:
+        raise DistrictFeedError(
+            f"the state geography for LGD state code {lgd_code} has not been seeded"
+        )
+    document, snapshot, extraction_run = _resolve_feed_provenance(session, lgd_extraction_run_id)
+    request_body = lgd_request_body(lgd_code)
+    published = 0
+    for record in lgd_records:
+        existing = session.scalar(
+            select(Geography).where(
+                Geography.entity_type == GeographyType.DISTRICT,
+                Geography.official_code == record.lgd_code,
+                Geography.parent_id == state.id,
+            )
+        )
+        if existing is not None:
+            existing_source = session.get(SourceReference, existing.source_id)
+            if existing_source is not None:
+                _ensure_state_relationship(
+                    session,
+                    state=state,
+                    district=existing,
+                    valid_from=valid_from,
+                    source=existing_source,
+                )
+            continue
+
+        source = _ensure_district_source(
+            session,
+            state_iso=state_iso,
+            record=record,
+            retrieval_date=decided_at.date(),
+            snapshot_sha256=snapshot_sha256,
+            request_body=request_body,
+        )
+        geography = _ensure_district_geography(
+            session,
+            state=state,
+            record=record,
+            slug=_district_slug(state_iso, record),
+            valid_from=valid_from,
+            source=source,
+            native_language=native_language,
+        )
+        _ensure_district_native_alias(
+            session,
+            geography=geography,
+            record=record,
+            native_language=native_language,
+            source=source,
+        )
+        _ensure_state_relationship(
+            session,
+            state=state,
+            district=geography,
+            valid_from=valid_from,
+            source=source,
+        )
+        published += int(
+            _audit_geography_publication(
+                session,
+                geography=geography,
+                reviewer_identity=reviewer_identity,
+                decided_at=decided_at,
+                snapshot_sha256=snapshot_sha256,
+                document=document,
+                snapshot=snapshot,
+                extraction_run=extraction_run,
+                reason=(
+                    "Publishes the district from the reviewed LGD district-list feed for "
+                    "the state jurisdiction; the raw API response is stored as a snapshot."
+                ),
+            )
+        )
+    session.flush()
+    return published
+
+
+def ingest_state_districts(
+    session: Session,
+    storage_dir: Path,
+    *,
+    state: StateRecord,
+    reviewer_identity: str,
+    decided_at: datetime,
+    valid_from: date,
+    timeout: float = 25.0,
+) -> StateDistrictIngestResult:
+    """Fetch, store, review, and publish one State or UT's districts end-to-end."""
+    lgd_code = str(state.lgd_code)
+    snapshot = fetch_lgd_district_feed(lgd_code, timeout=timeout)
+    records = parse_lgd_districts(snapshot.raw)
+    stored = store_state_district_feed(
+        session,
+        storage_dir,
+        snapshot=snapshot,
+        records=records,
+        jurisdiction_code=state.iso_code,
+    )
+    reviewed = review_feed_observations(
+        session,
+        extraction_run_ids=stored.extraction_run_ids,
+        reviewer_identity=reviewer_identity,
+        decided_at=decided_at,
+    )
+    published = publish_district_geographies(
+        session,
+        state_iso=state.iso_code,
+        lgd_code=lgd_code,
+        native_language=state.native_language,
+        lgd_records=records,
+        valid_from=valid_from,
+        reviewer_identity=reviewer_identity,
+        decided_at=decided_at,
+        snapshot_sha256=stored.lgd_sha256,
+        lgd_extraction_run_id=stored.lgd_extraction_run_id,
+    )
+    session.flush()
+    return StateDistrictIngestResult(
+        state_iso=state.iso_code,
+        districts_seen=len(records),
+        snapshots_stored=stored.snapshots_stored,
+        observations_created=stored.observations_created,
+        observations_reviewed=reviewed,
+        geographies_published=published,
+        snapshot_sha256=stored.lgd_sha256,
+        extraction_run_id=stored.lgd_extraction_run_id,
+    )

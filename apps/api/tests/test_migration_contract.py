@@ -30,3 +30,36 @@ def test_historical_terms_and_relationships_include_validity() -> None:
     assert "CREATE TABLE IF NOT EXISTS representative_terms" in text
     assert "CREATE TABLE IF NOT EXISTS government_body_relationships" in text
     assert text.count("valid_from DATE") >= 10
+
+
+def test_all_languages_migration_widens_language_check_constraints() -> None:
+    migration = (
+        Path(__file__).parents[1]
+        / "alembic"
+        / "versions"
+        / "20260817_0005_all_local_languages.py"
+    )
+    text = migration.read_text(encoding="utf-8")
+
+    assert "geography_aliases" in text
+    assert "government_body_aliases" in text
+    assert "public_office_aliases" in text
+    assert "source_documents" in text
+    # The widened constraint must accept every Eighth Schedule language code.
+    eighth_schedule_codes = (
+        '"as"',
+        '"bn"',
+        '"gu"',
+        '"hi"',
+        '"kn"',
+        '"ml"',
+        '"mr"',
+        '"or"',
+        '"pa"',
+        '"ta"',
+        '"ur"',
+    )
+    for code in eighth_schedule_codes:
+        assert code in text
+    # The widened upgrade constraint must no longer be restricted to en/te/und.
+    assert "language_code IN ('en', 'te', 'und')" not in text.split("def downgrade")[0]

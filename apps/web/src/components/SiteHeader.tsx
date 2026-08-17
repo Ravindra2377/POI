@@ -18,6 +18,8 @@ const primaryNavigation = [
 ];
 
 const secondaryNavigation = [
+  { href: "/states", label: "All-India States" },
+  { href: "/geographies", label: "Districts & Geographies" },
   { href: "/explore-data", label: "Explore Data" },
   { href: "/procurement", label: "Procurement" },
   { href: "/officeholders", label: "Officeholders" },

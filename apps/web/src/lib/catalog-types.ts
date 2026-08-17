@@ -1,5 +1,33 @@
 export type Locale = "en" | "te";
 
+/** All language codes the platform can carry, per the Indian language registry. */
+export type LanguageCode =
+  | "en"
+  | "te"
+  | "und"
+  | "as"
+  | "bn"
+  | "brx"
+  | "doi"
+  | "gu"
+  | "hi"
+  | "kn"
+  | "ks"
+  | "kok"
+  | "mai"
+  | "ml"
+  | "mni"
+  | "mr"
+  | "mzo"
+  | "ne"
+  | "or"
+  | "pa"
+  | "sa"
+  | "sat"
+  | "sd"
+  | "ta"
+  | "ur";
+
 export interface ProvenanceSummary {
   source_id: string;
   source_name: string;
@@ -14,7 +42,7 @@ export interface ProvenanceSummary {
 
 export interface AliasSummary {
   value: string;
-  language: "en" | "te" | "und";
+  language: LanguageCode;
   kind: "alternate" | "historical";
 }
 

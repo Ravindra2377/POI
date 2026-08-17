@@ -69,7 +69,35 @@ class AliasType(StrEnum):
 class LanguageCode(StrEnum):
     EN = "en"
     TE = "te"
+    # 22 Eighth Schedule official languages of India
+    AS = "as"  # Assamese
+    BN = "bn"  # Bengali
+    BRX = "brx"  # Bodo
+    DOI = "doi"  # Dogri
+    GU = "gu"  # Gujarati
+    HI = "hi"  # Hindi
+    KN = "kn"  # Kannada
+    KS = "ks"  # Kashmiri
+    KOK = "kok"  # Konkani
+    MAI = "mai"  # Maithili
+    ML = "ml"  # Malayalam
+    MNI = "mni"  # Manipuri (Meitei)
+    MR = "mr"  # Marathi
+    NE = "ne"  # Nepali
+    OR = "or"  # Odia
+    PA = "pa"  # Punjabi
+    SA = "sa"  # Sanskrit
+    SAT = "sat"  # Santali
+    SD = "sd"  # Sindhi
+    TA = "ta"  # Tamil
+    UR = "ur"  # Urdu
+    # Widely used official languages outside the Eighth Schedule
+    MZO = "mzo"  # Mizo
     UND = "und"
+
+
+# All language codes that must persist in database columns and CHECK constraints.
+ALL_LANGUAGE_CODE_VALUES = tuple(member.value for member in LanguageCode)
 
 
 class GeographyRelationshipType(StrEnum):

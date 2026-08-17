@@ -32,6 +32,21 @@ export function getDistricts(
   return request(`/api/v1/geographies?${params.toString()}`, signal);
 }
 
+export function getDistrictsByState(
+  stateIsoCode: string,
+  query = "",
+  signal?: AbortSignal,
+): Promise<PageResponse<GeographyRecord>> {
+  const params = new URLSearchParams({
+    entity_type: "district",
+    page_size: "100",
+  });
+  // State geographies are keyed by their lower-cased ISO-3166-2 slug.
+  if (stateIsoCode) params.set("parent", stateIsoCode.toLowerCase());
+  if (query) params.set("q", query);
+  return request(`/api/v1/geographies?${params.toString()}`, signal);
+}
+
 export function getDepartments(
   query: string,
   signal?: AbortSignal,
