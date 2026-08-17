@@ -37,7 +37,9 @@ describe("Civic Letterboxd for Politics features", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "Polavaram National Irrigation Project" }),
+      screen.getByRole("heading", {
+        name: "Polavaram National Irrigation Project",
+      }),
     ).toBeVisible();
     expect(screen.getByText("Official · Reviewed")).toBeVisible();
     expect(screen.getByText("Project")).toBeVisible();
@@ -85,7 +87,9 @@ describe("Civic Letterboxd for Politics features", () => {
 
   it("renders Civic Watchlists page with curated dossiers", () => {
     render(<CivicListsPage />);
-    expect(screen.getByRole("heading", { name: "Civic Watchlists & Dossiers" })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Civic Watchlists & Dossiers" }),
+    ).toBeVisible();
     expect(
       screen.getByText("Rayalaseema Irrigation & Water Resources Watch"),
     ).toBeVisible();
@@ -96,7 +100,9 @@ describe("Civic Letterboxd for Politics features", () => {
 
   it("renders Civic Activity Stream page with live feeds and community badges", () => {
     render(<CivicActivityPage />);
-    expect(screen.getByRole("heading", { name: "Civic Activity Stream" })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Civic Activity Stream" }),
+    ).toBeVisible();
     expect(screen.getAllByText("Official Feed").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Community Reported").length).toBeGreaterThan(0);
   });

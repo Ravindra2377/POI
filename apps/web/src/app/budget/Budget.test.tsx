@@ -167,7 +167,9 @@ describe("BudgetDirectory", () => {
         name: "విద్య, క్రీడలు, కళ మరియు సంస్కృతి",
       }),
     ).toBeVisible();
-    expect(screen.getAllByText(/రెవెన్యూ రశీదులు/).length).toBeGreaterThanOrEqual(2);
+    expect(
+      screen.getAllByText(/రెవెన్యూ రశీదులు/).length,
+    ).toBeGreaterThanOrEqual(2);
     expect(screen.getByLabelText("ప్రకటన")).toHaveValue("revenue_receipts");
   });
 

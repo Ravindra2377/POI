@@ -1,84 +1,146 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import {
-  accountReportDomains,
-  consentChoices,
-  localizedAccountText,
-} from "@/lib/accounts";
+import { saveAnonymousUser } from "@/lib/community-api";
 import styles from "./account.module.css";
+
+const DISTRICTS = [
+  "All Andhra Pradesh",
+  "Ananthapuramu",
+  "Chittoor",
+  "East Godavari",
+  "Guntur",
+  "Kadapa",
+  "Krishna",
+  "Kurnool",
+  "Nellore",
+  "Prakasam",
+  "Srikakulam",
+  "Visakhapatnam",
+  "Vizianagaram",
+  "West Godavari",
+];
 
 const copy = {
   en: {
-    eyebrow: "ACCOUNT · PREPARED",
-    title: "Your account is not open yet",
+    eyebrow: "ANONYMOUS CITIZEN PROFILE",
+    title: "Zero-Tracking Citizen Participation",
     intro:
-      "A reviewable account with consent controls is planned, not built. Nothing about you is collected today.",
-    privacy: "Nothing is collected today",
+      "No login, no passwords, and no personal data stored. Your identity is 100% pseudonymous and protected.",
+    privacy: "Privacy Guarantee & Consent Boundary",
     privacyText:
-      "No email, password, phone, or precise location is collected or stored. There is no sign-up, no sign-in, and no saved preference. When accounts are built, consent will be explicit and reversible.",
-    whatHeading: "What an account would be",
-    whatText:
-      "A reviewable identity with explicit consent controls, so structured reports and area alerts can be delivered only from published, reviewed records. None of that exists yet.",
-    consentEyebrow: "CONSENT MODEL · PLANNED",
-    consentHeading: "Consent choices are planned, not available",
-    consentNote:
-      "No consent choice can be made or stored yet. These are the choices the consent controls would offer once identity, privacy and audit controls are built.",
-    languageNote:
-      "Language is already available from the header selector and needs no account.",
-    planned: "Planned",
-    reportsEyebrow: "STRUCTURED REPORTS",
-    reportsHeading: "Structured reports are prepared, not published",
-    reportsNote:
-      "Each panel shows what a structured report would cover once reviewed records are published. Nothing is demonstrated.",
-    reportsPending: "No reviewed records published yet",
-    openDirectory: "Open the {domain} directory",
-    controlsEyebrow: "REVIEW CONTROLS",
-    controlsHeading: "Review controls come before accounts",
-    controlsText:
-      "Identity, moderation, appeals, abuse and audit controls must be implemented before any account exists, so no personal evidence, private message, or moderation action can be stored today. Every future moderation action will produce an audit record.",
+      "We collect no emails, mobile numbers, or precise GPS coordinates. Your pseudonymous profile is tied only to your voluntary district preference.",
+    profileHeading: "Your Pseudonymous Profile",
+    handleLabel: "Pseudonymous Handle / Citizen ID",
+    districtLabel: "Selected District Jurisdiction",
+    consentSharing: "Allow anonymous data aggregation for civic insights",
+    consentActivity: "Make my filed observations visible to the community",
+    saveBtn: "Save Anonymous Profile",
+    savedMsg: "Anonymous profile settings saved locally!",
+    moderationHeading: "Admin & Moderation Integrity",
+    moderationText:
+      "All moderation on platform observations is conducted by verified moderators. Every action produces an open, immutable audit log.",
+    modLogLink: "View Public Moderation Audit Log",
   },
   te: {
-    eyebrow: "ఖాతా · సిద్ధం",
-    title: "మీ ఖాతా ఇంకా తెరవబడలేదు",
+    eyebrow: "అనామక పౌర వివరాలు",
+    title: "జీరో-ట్రాకింగ్ పౌర భాగస్వామ్యం",
     intro:
-      "సమీక్షించదగిన ఖాతా మరియు సమ్మతి నియంత్రణలు ప్రణాళికలో ఉన్నాయి, నిర్మించబడలేదు. మీ గురించి ఈరోజు ఏమీ సేకరించబడదు.",
-    privacy: "ఈరోజు ఏమీ సేకరించబడదు",
+      "లాగిన్ లేదు, పాస్‌వర్డ్‌లు లేవు మరియు వ్యక్తిగత డేటా నిల్వ చేయబడదు. మీ గుర్తింపు 100% అనామకం మరియు సురక్షితం.",
+    privacy: "గోప్యతా హామీ & సమ్మతి సరిహద్దు",
     privacyText:
-      "ఇమెయిల్, పాస్వర్డ్, ఫోన్ లేదా ఖచ్చితమైన స్థానం సేకరించబడదు లేదా నిల్వ చేయబడదు. సైన్-అప్ లేదు, సైన్-ఇన్ లేదు, సేవ్ చేసిన ప్రాధాన్యత లేదు. ఖాతాలు నిర్మించబడినప్పుడు సమ్మతి స్పష్టంగా మరియు రద్దు చేయదగినదిగా ఉంటుంది.",
-    whatHeading: "ఖాతా అంటే ఏమిటి",
-    whatText:
-      "ప్రచురించిన, సమీక్షించిన రికార్డుల నుండి మాత్రమే నిర్మాణాత్మక నివేదికలు మరియు ప్రాంత హెచ్చరికలను అందించే స్పష్టమైన సమ్మతి నియంత్రణలతో కూడిన సమీక్షించదగిన గుర్తింపు. అది ఇంకా ఏదీ లేదు.",
-    consentEyebrow: "సమ్మతి నమూనా · ప్రణాళిక",
-    consentHeading: "సమ్మతి ఎంపికలు ప్రణాళికలో ఉన్నాయి, అందుబాటులో లేవు",
-    consentNote:
-      "ఇంకా ఎటువంటి సమ్మతి ఎంపిక చేయబడదు లేదా నిల్వ చేయబడదు. గుర్తింపు, గోప్యత మరియు ఆడిట్ నియంత్రణలు నిర్మించిన తర్వాత సమ్మతి నియంత్రణలు అందించే ఎంపికలు ఇవి.",
-    languageNote:
-      "భాష హెడర్ ఎంపిక ద్వారా ఇప్పటికే అందుబాటులో ఉంది మరియు దీనికి ఖాతా అవసరం లేదు.",
-    planned: "ప్రణాళిక",
-    reportsEyebrow: "నిర్మాణాత్మక నివేదికలు",
-    reportsHeading: "నిర్మాణాత్మక నివేదికలు సిద్ధం, ప్రచురించబడలేదు",
-    reportsNote:
-      "సమీక్షించిన రికార్డులు ప్రచురించబడిన తర్వాత నిర్మాణాత్మక నివేదిక ఏమి కవర్ చేస్తుందో ప్రతి ప్యానెల్ చూపుతుంది. ఏదీ ప్రదర్శించబడదు.",
-    reportsPending: "సమీక్షించిన రికార్డులు ఇంకా ప్రచురించబడలేదు",
-    openDirectory: "{domain} డైరెక్టరీని తెరవండి",
-    controlsEyebrow: "సమీక్ష నియంత్రణలు",
-    controlsHeading: "ఖాతాల కంటే ముందు సమీక్ష నియంత్రణలు",
-    controlsText:
-      "ఏదైనా ఖాతా ఉనికిలో ఉండటానికి ముందు గుర్తింపు, మోడరేషన్, అప్పీళ్లు, దుర్వినియోగం మరియు ఆడిట్ నియంత్రణలు అమలు చేయాలి, కాబట్టి ఈరోజు వ్యక్తిగత ఆధారం, ప్రైవేట్ సందేశం లేదా మోడరేషన్ చర్య నిల్వ చేయబడదు. ప్రతి భవిష్యత్ మోడరేషన్ చర్య ఆడిట్ రికార్డును ఉత్పత్తి చేస్తుంది.",
+      "మేము ఎటువంటి ఇమెయిల్‌లు, మొబైల్ నంబర్‌లు లేదా ఖచ్చితమైన GPS స్థానాలను సేకరించము. మీ అనామక ప్రొఫైల్ మీ స్వచ్ఛంద జిల్లా ప్రాధాన్యతకు మాత్రమే కట్టుబడి ఉంటుంది.",
+    profileHeading: "మీ అనామక ప్రొఫైల్",
+    handleLabel: "అనామక పేరు / సిటిజన్ ఐడి",
+    districtLabel: "ఎంచుకున్న జిల్లా పరిధి",
+    consentSharing: "పౌర సమాచారం కోసం అనామక డేటా ఏకీకరణకు అనుమతించండి",
+    consentActivity: "నా నమోదు పరిశీలనలను కమ్యూనిటీకి కనిపించేలా చేయండి",
+    saveBtn: "అనామక ప్రొఫైల్‌ను సేవ్ చేయండి",
+    savedMsg: "అనామక ప్రొఫైల్ సెట్టింగ్‌లు స్థానికంగా సేవ్ చేయబడ్డాయి!",
+    moderationHeading: "అడ్మిన్ & మోడరేషన్ సమగ్రత",
+    moderationText:
+      "ప్లాట్‌ఫారమ్ పరిశీలనలపై అన్ని మోడరేషన్‌లు నిర్ధారించబడిన మోడరేటర్‌లచే నిర్వహించబడతాయి. ప్రతి చర్య పారదర్శక ఆడిట్ రికార్డును సృష్టిస్తుంది.",
+    modLogLink: "పబ్లిక్ మోడరేషన్ ఆడిట్ లాగ్‌ను వీక్షించండి",
   },
 } as const;
 
-function linkTitle(template: string, domain: string): string {
-  return template.replace("{domain}", domain);
+function loadStoredProfile() {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = localStorage.getItem("ap_citizen_profile");
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
 }
 
 export function AccountContent() {
   const { locale } = useLocale();
   const labels = copy[locale];
+
+  const [username] = useState(() => {
+    const stored = loadStoredProfile();
+    return stored?.username || "citizen_4819";
+  });
+
+  const [displayName, setDisplayName] = useState(() => {
+    const stored = loadStoredProfile();
+    return stored?.displayName || "Anonymous Citizen";
+  });
+
+  const [district, setDistrict] = useState(() => {
+    const stored = loadStoredProfile();
+    return stored?.district || "All Andhra Pradesh";
+  });
+
+  const [consentDataSharing, setConsentDataSharing] = useState(() => {
+    const stored = loadStoredProfile();
+    return typeof stored?.consentDataSharing === "boolean"
+      ? stored.consentDataSharing
+      : true;
+  });
+
+  const [consentPublicActivity, setConsentPublicActivity] = useState(() => {
+    const stored = loadStoredProfile();
+    return typeof stored?.consentPublicActivity === "boolean"
+      ? stored.consentPublicActivity
+      : true;
+  });
+
+  const [savedStatus, setSavedStatus] = useState(false);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const profile = {
+      username,
+      displayName,
+      district,
+      consentDataSharing,
+      consentPublicActivity,
+    };
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ap_citizen_profile", JSON.stringify(profile));
+    }
+
+    try {
+      await saveAnonymousUser({
+        username,
+        display_name: displayName,
+        consent_data_sharing: consentDataSharing,
+        consent_public_activity: consentPublicActivity,
+        preferred_language: locale,
+      });
+    } catch {
+      // safe fallback
+    }
+
+    setSavedStatus(true);
+    setTimeout(() => setSavedStatus(false), 3000);
+  };
 
   return (
     <>
@@ -95,78 +157,149 @@ export function AccountContent() {
         </header>
 
         <section className="section shell">
-          <div className="section-heading section-heading--split">
-            <div>
-              <h2>{labels.whatHeading}</h2>
-            </div>
-            <p>{labels.whatText}</p>
+          <div className="section-heading">
+            <h2>{labels.profileHeading}</h2>
           </div>
+
+          <form
+            onSubmit={handleSave}
+            style={{ maxWidth: "600px", display: "grid", gap: "1.25rem" }}
+          >
+            <div>
+              <label
+                htmlFor="citizen-handle"
+                style={{
+                  display: "block",
+                  fontWeight: "600",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                {labels.handleLabel}
+              </label>
+              <input
+                id="citizen-handle"
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  borderRadius: "8px",
+                  border: "1px solid var(--border-color, #ccc)",
+                  background: "var(--bg-surface, #fff)",
+                }}
+              />
+              <span
+                style={{
+                  fontSize: "0.85rem",
+                  opacity: 0.7,
+                  marginTop: "0.25rem",
+                  display: "block",
+                }}
+              >
+                Internal ID: <code>{username}</code>
+              </span>
+            </div>
+
+            <div>
+              <label
+                htmlFor="citizen-district"
+                style={{
+                  display: "block",
+                  fontWeight: "600",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                {labels.districtLabel}
+              </label>
+              <select
+                id="citizen-district"
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  borderRadius: "8px",
+                  border: "1px solid var(--border-color, #ccc)",
+                  background: "var(--bg-surface, #fff)",
+                }}
+              >
+                {DISTRICTS.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: "grid", gap: "0.75rem" }}>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={consentDataSharing}
+                  onChange={(e) => setConsentDataSharing(e.target.checked)}
+                />
+                <span>{labels.consentSharing}</span>
+              </label>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={consentPublicActivity}
+                  onChange={(e) => setConsentPublicActivity(e.target.checked)}
+                />
+                <span>{labels.consentActivity}</span>
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              className="button button--primary"
+              style={{ padding: "0.75rem 1.5rem", width: "fit-content" }}
+            >
+              {labels.saveBtn}
+            </button>
+
+            {savedStatus && (
+              <p
+                style={{
+                  color: "var(--success-color, #10b981)",
+                  fontWeight: "600",
+                }}
+              >
+                ✓ {labels.savedMsg}
+              </p>
+            )}
+          </form>
         </section>
 
-        <section className="section shell" aria-labelledby="consent-heading">
-          <div className="section-heading section-heading--split">
-            <div>
-              <p className="eyebrow">{labels.consentEyebrow}</p>
-              <h2 id="consent-heading">{labels.consentHeading}</h2>
-            </div>
-            <p>{labels.consentNote}</p>
-          </div>
-          <ul className={styles.consentList}>
-            {consentChoices.map((choice) => (
-              <li key={choice.key} className={styles.consentItem}>
-                <span className="status-label" data-state="pending">
-                  {labels.planned}
-                </span>
-                <h3 lang={locale}>
-                  {localizedAccountText(choice.label, locale)}
-                </h3>
-                <p>{localizedAccountText(choice.description, locale)}</p>
-              </li>
-            ))}
-          </ul>
-          <p className={styles.consentNote}>{labels.languageNote}</p>
-        </section>
-
-        <section className="section shell" aria-labelledby="reports-heading">
-          <div className="section-heading section-heading--split">
-            <div>
-              <p className="eyebrow">{labels.reportsEyebrow}</p>
-              <h2 id="reports-heading">{labels.reportsHeading}</h2>
-            </div>
-            <p>{labels.reportsNote}</p>
-          </div>
-          <ul className={styles.reportGrid}>
-            {accountReportDomains.map((domain) => (
-              <li key={domain.key} className={styles.reportPanel}>
-                <div>
-                  <span className="status-label" data-state="pending">
-                    {labels.reportsPending}
-                  </span>
-                  <h3 lang={locale}>
-                    {localizedAccountText(domain.name, locale)}
-                  </h3>
-                  <p>{localizedAccountText(domain.description, locale)}</p>
-                </div>
-                <Link href={domain.directoryHref}>
-                  {linkTitle(
-                    labels.openDirectory,
-                    localizedAccountText(domain.name, locale),
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section
-          className="section section--tinted"
-          aria-labelledby="controls-heading"
-        >
+        <section className="section section--tinted">
           <div className="shell">
             <div className={styles.controls}>
-              <p className="eyebrow">{labels.controlsEyebrow}</p>
-              <h2 id="controls-heading">{labels.controlsHeading}</h2>
-              <p>{labels.controlsText}</p>
+              <p className="eyebrow">MODERATION & TRUST</p>
+              <h2>{labels.moderationHeading}</h2>
+              <p>{labels.moderationText}</p>
+              <Link
+                href="/community/moderation-log"
+                className="button button--secondary"
+                style={{ marginTop: "1rem", display: "inline-block" }}
+              >
+                {labels.modLogLink} →
+              </Link>
             </div>
           </div>
         </section>

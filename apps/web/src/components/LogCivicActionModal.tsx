@@ -82,7 +82,11 @@ export function LogCivicActionModal({
               Record a public observation, scheme application, or project status
             </p>
           </div>
-          <button type="button" className={styles.closeButton} onClick={onClose}>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={onClose}
+          >
             ×
           </button>
         </div>
@@ -90,7 +94,8 @@ export function LogCivicActionModal({
         {submitted ? (
           <div className={styles.modalBody}>
             <div className={styles.successMessage}>
-              ✓ Civic action recorded! Audit trace registered under Community Reported provenance.
+              ✓ Civic action recorded! Audit trace registered under Community
+              Reported provenance.
             </div>
           </div>
         ) : (
@@ -104,11 +109,15 @@ export function LogCivicActionModal({
                   id="entityType"
                   className={styles.select}
                   value={entityType}
-                  onChange={(e) => setEntityType(e.target.value as CivicEntityType)}
+                  onChange={(e) =>
+                    setEntityType(e.target.value as CivicEntityType)
+                  }
                 >
                   <option value="scheme">Welfare Scheme</option>
                   <option value="project">Infrastructure Project</option>
-                  <option value="officeholder">Legislative Officeholder / MLA</option>
+                  <option value="officeholder">
+                    Legislative Officeholder / MLA
+                  </option>
                   <option value="procurement">e-Procurement Tender</option>
                   <option value="budget">Budget Allocation</option>
                 </select>
@@ -177,12 +186,19 @@ export function LogCivicActionModal({
               </div>
 
               <div className={styles.auditNotice}>
-                <strong>Audited Community Observation:</strong> Your entry will be published with a visible <em>Community Reported</em> badge and audit trace. It is never presented as official government data or a representative poll.
+                <strong>Audited Community Observation:</strong> Your entry will
+                be published with a visible <em>Community Reported</em> badge
+                and audit trace. It is never presented as official government
+                data or a representative poll.
               </div>
             </div>
 
             <div className={styles.modalFooter}>
-              <button type="button" className={styles.cancelButton} onClick={onClose}>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={onClose}
+              >
                 Cancel
               </button>
               <button type="submit" className={styles.submitButton}>

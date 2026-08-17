@@ -1,4 +1,12 @@
 from app.models.base import Base
+from app.models.community import (
+    CommunityComment,
+    CommunityPoll,
+    CommunityReport,
+    ModerationAuditRecord,
+    PollVote,
+    UserAccount,
+)
 from app.models.geography import Geography, GeographyAlias, GeographyRelationship
 from app.models.government import (
     Department,
@@ -25,6 +33,9 @@ from app.models.source import SourceReference
 
 __all__ = [
     "Base",
+    "CommunityComment",
+    "CommunityPoll",
+    "CommunityReport",
     "Correction",
     "Department",
     "ExtractionRun",
@@ -34,8 +45,10 @@ __all__ = [
     "GovernmentBody",
     "GovernmentBodyAlias",
     "GovernmentBodyRelationship",
+    "ModerationAuditRecord",
     "OfficeJurisdiction",
     "OfficialRole",
+    "PollVote",
     "PublicOffice",
     "PublicOfficeAlias",
     "Representative",
@@ -46,4 +59,5 @@ __all__ = [
     "SourceRecord",
     "SourceSnapshot",
     "SourceReference",
+    "UserAccount",
 ]

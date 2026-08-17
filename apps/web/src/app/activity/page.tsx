@@ -25,11 +25,13 @@ const SAMPLE_ACTIVITY: ActivityItem[] = [
     actor: "Official AP Ingestion Pipeline",
     avatar: "🏛️",
     actionVerb: "ingested new e-Procurement contract award",
-    targetTitle: "Construction & Widening of State Highway 41 (Kakinada Corridor)",
+    targetTitle:
+      "Construction & Widening of State Highway 41 (Kakinada Corridor)",
     targetUrl: "/procurement",
     targetType: "Tender",
     district: "Kakinada",
-    notes: "EPC contract awarded. Raw snapshot archived & observations reviewed.",
+    notes:
+      "EPC contract awarded. Raw snapshot archived & observations reviewed.",
     timestamp: "2 hours ago",
     isOfficial: true,
   },
@@ -42,7 +44,8 @@ const SAMPLE_ACTIVITY: ActivityItem[] = [
     targetUrl: "/projects",
     targetType: "Project",
     district: "Eluru",
-    notes: "Canal concrete lining work underway near Right Main Canal Section 4. Progress verified in field.",
+    notes:
+      "Canal concrete lining work underway near Right Main Canal Section 4. Progress verified in field.",
     timestamp: "4 hours ago",
     isOfficial: false,
   },
@@ -68,7 +71,8 @@ const SAMPLE_ACTIVITY: ActivityItem[] = [
     targetUrl: "/schemes",
     targetType: "Scheme",
     district: "Guntur",
-    notes: "Direct benefit transfer received by 142 registered farmers in Guntur revenue division.",
+    notes:
+      "Direct benefit transfer received by 142 registered farmers in Guntur revenue division.",
     timestamp: "12 hours ago",
     isOfficial: false,
   },
@@ -83,7 +87,8 @@ export default function CivicActivityPage() {
         <div className="shell">
           <h1 className={styles.heroTitle}>Civic Activity Stream</h1>
           <p className={styles.heroSubtitle}>
-            Live updates combining official state data ingestion feeds with audited community observations across Andhra Pradesh.
+            Live updates combining official state data ingestion feeds with
+            audited community observations across Andhra Pradesh.
           </p>
           <button
             type="button"
@@ -116,7 +121,9 @@ export default function CivicActivityPage() {
                   {item.isOfficial ? (
                     <span className={styles.officialBadge}>Official Feed</span>
                   ) : (
-                    <span className={styles.communityBadge}>Community Reported</span>
+                    <span className={styles.communityBadge}>
+                      Community Reported
+                    </span>
                   )}
                   <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
                     • {item.district}

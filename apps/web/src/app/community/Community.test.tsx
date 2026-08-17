@@ -1,56 +1,53 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocaleProvider } from "@/components/LocaleProvider";
-import {
-  charterRules,
-  evidenceClasses,
-  localizedCommunityText,
-  participationModes,
-  pollDisclosures,
-  readinessGates,
-} from "@/lib/community";
 import { CommunityContent } from "./CommunityContent";
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "",
+  usePathname: () => "/community",
 }));
 
-describe("community domain configuration", () => {
-  it("configures only planned participation, disclosures and readiness gates", () => {
-    expect(participationModes).toHaveLength(2);
-    for (const mode of participationModes) {
-      expect(mode.planned).toBe(true);
-      expect(mode.title.en.length).toBeGreaterThan(0);
-      expect(mode.title.te.length).toBeGreaterThan(0);
-    }
-    expect(readinessGates).toHaveLength(7);
-    for (const gate of readinessGates) {
-      expect(gate.planned).toBe(true);
-      expect(gate.title.en.length).toBeGreaterThan(0);
-      expect(gate.title.te.length).toBeGreaterThan(0);
-      expect(gate.description.en.length).toBeGreaterThan(0);
-    }
-    expect(pollDisclosures).toHaveLength(4);
-    for (const disclosure of pollDisclosures) {
-      expect(disclosure.planned).toBe(true);
-      expect(disclosure.title.en.length).toBeGreaterThan(0);
-      expect(disclosure.title.te.length).toBeGreaterThan(0);
-    }
-    expect(evidenceClasses).toHaveLength(4);
-    expect(charterRules).toHaveLength(4);
-    for (const rule of charterRules) {
-      expect(rule.planned).toBe(true);
-      expect(rule.title.en.length).toBeGreaterThan(0);
-    }
-    expect(localizedCommunityText(readinessGates[0].title, "te")).toBe(
-      "సమీక్షించదగిన గుర్తింపు",
-    );
-  });
+beforeEach(() => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockImplementation((url: string) => {
+      if (url.includes("/polls")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [
+            {
+              id: "11111111-1111-1111-1111-111111111111",
+              title_en: "Rythu Bharosa Disbursement Experience",
+              description_en: "Have you received assistance?",
+              options: [
+                {
+                  id: "opt_full",
+                  label_en: "Yes, full amount received",
+                  vote_count: 42,
+                },
+              ],
+              total_votes: 42,
+              is_active: true,
+              non_representative_disclaimer:
+                "Non-representative Community Pulse — Opinions recorded here",
+              created_at: new Date().toISOString(),
+            },
+          ],
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => [],
+      });
+    }),
+  );
 });
 
+afterEach(() => vi.unstubAllGlobals());
+
 describe("CommunityContent", () => {
-  it("renders a prepared community shell that is closed and never representative", () => {
+  it("renders interactive Civic Pulse polls and Rule #5 legal disclaimer", async () => {
     render(
       <LocaleProvider>
         <CommunityContent />
@@ -60,46 +57,50 @@ describe("CommunityContent", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Public experience, clearly separate from official fact.",
+        name: "Anonymous Field Reality & Citizen Observations",
       }),
     ).toBeVisible();
-    expect(
-      screen.getByRole("complementary", {
-        name: "Community participation is not yet open",
-      }),
-    ).toBeVisible();
+
     expect(
       screen.getByRole("heading", {
-        name: "Participation modes are planned, not open",
+        name: "Civic Pulse Polls",
       }),
     ).toBeVisible();
-    expect(screen.getAllByText("Planned")).toHaveLength(13);
+
+    const disclaimer = await screen.findByText(
+      /Non-representative Community Pulse/,
+    );
+    expect(disclaimer).toBeInTheDocument();
+
     expect(
-      screen.getByRole("heading", {
-        name: "No poll result here represents India or Andhra Pradesh",
-      }),
-    ).toBeVisible();
-    expect(
-      screen.getByText(
-        /never be described as representative of Andhra Pradesh/,
-      ),
-    ).toBeVisible();
-    expect(
-      screen.getByRole("heading", {
-        name: "What must exist before participation opens",
-      }),
-    ).toBeVisible();
-    expect(
-      screen.getByText(
-        /Every future moderation action will produce an immutable audit record/,
-      ),
-    ).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: "Read the community charter" }),
-    ).toHaveAttribute("href", "/community/charter");
+      screen.getByRole("button", { name: "+ Log Field Observation" }),
+    ).toBeInTheDocument();
   });
 
-  it("switches the prepared community copy to Telugu", async () => {
+  it("opens modal for logging citizen field observations", async () => {
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <CommunityContent />
+      </LocaleProvider>,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "+ Log Field Observation" }),
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Log a Citizen Field Observation",
+      }),
+    ).toBeVisible();
+
+    expect(
+      screen.getByRole("button", { name: "Submit Observation" }),
+    ).toBeInTheDocument();
+  });
+
+  it("switches community copy to Telugu", async () => {
     const user = userEvent.setup();
     render(
       <LocaleProvider>
@@ -111,16 +112,9 @@ describe("CommunityContent", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "భాగస్వామ్య మార్గాలు ప్రణాళికలో ఉన్నాయి, తెరవబడలేదు",
+        level: 1,
+        name: "అనామక క్షేత్ర వాస్తవికత & పౌరుల పరిశీలనలు",
       }),
     ).toBeVisible();
-    expect(
-      screen.getByRole("heading", {
-        name: "భాగస్వామ్యం తెరవడానికి ముందు ఏమి ఉండాలి",
-      }),
-    ).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: "కమ్యూనిటీ చార్టర్ చదవండి" }),
-    ).toHaveAttribute("href", "/community/charter");
   });
 });

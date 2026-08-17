@@ -66,7 +66,8 @@ export default function CivicListsPage() {
         <div className="shell">
           <h1 className={styles.heroTitle}>Civic Watchlists & Dossiers</h1>
           <p className={styles.heroSubtitle}>
-            Curated collections of public schemes, infrastructure projects, budget heads, and tenders compiled by citizens and civic analysts.
+            Curated collections of public schemes, infrastructure projects,
+            budget heads, and tenders compiled by citizens and civic analysts.
           </p>
           <button
             type="button"

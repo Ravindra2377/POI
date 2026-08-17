@@ -1,4 +1,7 @@
-import { preparedOfficeholders, type OfficeholderCatalogResponse } from "@/lib/officeholders";
+import {
+  preparedOfficeholders,
+  type OfficeholderCatalogResponse,
+} from "@/lib/officeholders";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -18,7 +21,9 @@ export async function GET() {
     if (!response.ok) {
       return Response.json(preparedEmpty());
     }
-    return Response.json((await response.json()) as OfficeholderCatalogResponse);
+    return Response.json(
+      (await response.json()) as OfficeholderCatalogResponse,
+    );
   } catch {
     return Response.json(preparedEmpty());
   }

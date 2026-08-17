@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.budget import router as budget_router
+from app.api.v1.community import router as community_router
 from app.api.v1.elections import router as elections_router
 from app.api.v1.geographies import router as geographies_router
 from app.api.v1.government import router as government_router
@@ -20,3 +21,5 @@ router.include_router(officeholders_router)
 router.include_router(elections_router)
 router.include_router(projects_router)
 router.include_router(procurement_router)
+router.include_router(community_router)
+

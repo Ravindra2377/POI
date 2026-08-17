@@ -1,4 +1,7 @@
-import { preparedProcurement, type ProcurementCatalogResponse } from "@/lib/procurement";
+import {
+  preparedProcurement,
+  type ProcurementCatalogResponse,
+} from "@/lib/procurement";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 

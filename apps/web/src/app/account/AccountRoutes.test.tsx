@@ -4,11 +4,11 @@ import { LocaleProvider } from "@/components/LocaleProvider";
 import AccountPage from "./page";
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "",
+  usePathname: () => "/account",
 }));
 
 describe("account route", () => {
-  it("renders the Account route as a prepared, honest shell", () => {
+  it("renders the Account route as zero-tracking anonymous profile", () => {
     render(
       <LocaleProvider>
         <AccountPage />
@@ -17,13 +17,11 @@ describe("account route", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Your account is not open yet",
+        name: "Zero-Tracking Citizen Participation",
       }),
     ).toBeVisible();
     expect(
-      screen.getByText(
-        /There is no sign-up, no sign-in, and no saved preference/,
-      ),
+      screen.getByText(/No login, no passwords, and no personal data stored/),
     ).toBeVisible();
   });
 });

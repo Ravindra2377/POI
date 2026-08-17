@@ -78,7 +78,8 @@ export function CivicPosterGridSection() {
           <p className={styles.eyebrow}>DISCOVER & LOG</p>
           <h2 className={styles.title}>Civic Entities & Public Records</h2>
           <p className={styles.subtitle}>
-            Explore reviewed government datasets or log your own verified community observation.
+            Explore reviewed government datasets or log your own verified
+            community observation.
           </p>
         </div>
         <Link href="/explore-data" className={styles.viewAllLink}>

@@ -14,6 +14,7 @@ describe("officeholder routes", () => {
     expect(await response.json()).toEqual({
       data: [],
       status: "prepared-empty",
+      telugu_reviewed: false,
     });
   });
 

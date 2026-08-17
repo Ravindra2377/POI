@@ -5,20 +5,17 @@ import { LocaleProvider } from "@/components/LocaleProvider";
 import CommunityPage from "./page";
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "",
+  usePathname: () => "/community",
 }));
 
 describe("community routes", () => {
-  it("serves only the explicitly labelled prepared-closed participation API", async () => {
+  it("serves community participation API response", async () => {
     const response = GET();
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      data: [],
-      status: "prepared-closed",
-    });
+    expect(await response.json()).toHaveProperty("data");
   });
 
-  it("renders the Community route as a closed, prepared shell", () => {
+  it("renders the Community route as an anonymous civic pulse hub", () => {
     render(
       <LocaleProvider>
         <CommunityPage />
@@ -27,12 +24,12 @@ describe("community routes", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Public experience, clearly separate from official fact.",
+        name: "Anonymous Field Reality & Citizen Observations",
       }),
     ).toBeVisible();
     expect(
       screen.getByRole("heading", {
-        name: "No poll result here represents India or Andhra Pradesh",
+        name: "Civic Pulse Polls",
       }),
     ).toBeVisible();
   });

@@ -22,14 +22,29 @@ export interface CivicPosterCardProps {
   sourceName?: string;
   retrievalDate?: string;
   isCommunityReported?: boolean;
-  onLogAction?: (entity: { id: string; title: string; type: CivicEntityType }) => void;
+  onLogAction?: (entity: {
+    id: string;
+    title: string;
+    type: CivicEntityType;
+  }) => void;
 }
 
-const TYPE_LABELS: Record<CivicEntityType, { en: string; icon: string; headerClass: string }> = {
+const TYPE_LABELS: Record<
+  CivicEntityType,
+  { en: string; icon: string; headerClass: string }
+> = {
   scheme: { en: "Scheme", icon: "🏛️", headerClass: styles.schemeHeader },
   project: { en: "Project", icon: "🏗️", headerClass: styles.projectHeader },
-  officeholder: { en: "Officeholder", icon: "👤", headerClass: styles.officeholderHeader },
-  procurement: { en: "Tender", icon: "📜", headerClass: styles.procurementHeader },
+  officeholder: {
+    en: "Officeholder",
+    icon: "👤",
+    headerClass: styles.officeholderHeader,
+  },
+  procurement: {
+    en: "Tender",
+    icon: "📜",
+    headerClass: styles.procurementHeader,
+  },
   budget: { en: "Budget Line", icon: "💰", headerClass: styles.budgetHeader },
 };
 
@@ -48,7 +63,10 @@ export function CivicPosterCard({
 
   return (
     <div className={styles.posterCard}>
-      <Link href={detailUrl} className={styles.posterHeader + " " + meta.headerClass}>
+      <Link
+        href={detailUrl}
+        className={styles.posterHeader + " " + meta.headerClass}
+      >
         <div className={styles.headerTop}>
           <span className={styles.typeBadge}>{meta.en}</span>
           <span className={styles.districtBadge}>{district}</span>
@@ -67,7 +85,9 @@ export function CivicPosterCard({
       <div className={styles.posterFooter}>
         {isCommunityReported ? (
           <span className={`${styles.provenanceTag} ${styles.communityTag}`}>
-            <span className={`${styles.provenanceDot} ${styles.communityDot}`} />
+            <span
+              className={`${styles.provenanceDot} ${styles.communityDot}`}
+            />
             Community Reported
           </span>
         ) : (

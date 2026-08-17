@@ -99,3 +99,19 @@ class AppointmentType(StrEnum):
     ELECTED = "elected"
     APPOINTED = "appointed"
     EX_OFFICIO = "ex_officio"
+
+
+class ModerationAction(StrEnum):
+    APPROVE = "approve"
+    FLAG = "flag"
+    HIDE = "hide"
+    EDIT = "edit"
+    RESTORE = "restore"
+
+
+class ReportStatus(StrEnum):
+    PENDING_REVIEW = "pending_review"
+    PUBLISHED = "published"
+    FLAGGED = "flagged"
+    ARCHIVED = "archived"
+

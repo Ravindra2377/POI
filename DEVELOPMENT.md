@@ -2077,7 +2077,7 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   - `apps/api/app/repositories.py` — protocol `list_election_results` and
     `SQLCatalogRepository.list_election_results`: groups published `entity_type=="election_result"`
     observations by entity id, reading `slug, term_id, member_name_en/_te, constituency_en/_te,
-    district_en/_te, party_en/_te, term_period_en/_te, annotation_en/_te, elected_via, seat_status`
+district_en/_te, party_en/_te, term_period_en/_te, annotation_en/_te, elected_via, seat_status`
     field paths with the existing `_as_*` helpers plus a new `_as_int` for `member_sl_no` and
     `constituency_no`; the shared source record is resolved once per result.
   - `apps/api/app/api/v1/elections.py` (`GET /api/v1/election-results`, registered in `router.py`
@@ -2093,8 +2093,8 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
     prepared-empty fallback (never substitutes data), exactly like the officeholders proxy.
   - `apps/web/src/app/election-results/` — `page.tsx` + `ElectionResultsDirectory.tsx` (bilingual
     directory, district/party/term/seat-status filters, `OptionFilter`, elected-via/seat-status label
-    helpers, provenance labels on every claim, an honest notice distinguishing *no results published*
-    from *no results match filters*); `[slug]/page.tsx` + `ElectionResultsDetail.tsx` (overview +
+    helpers, provenance labels on every claim, an honest notice distinguishing _no results published_
+    from _no results match filters_); `[slug]/page.tsx` + `ElectionResultsDetail.tsx` (overview +
     detail claim grid with per-claim `SourceRecord` provenance, annotation display, and an explicit
     "record unavailable" state so an address never implies a result exists); `OfficialElectionResultClaim.tsx`
     (the "Official · Reviewed" provenance chip); `loading.tsx`/`error.tsx` with retry; and
@@ -2139,7 +2139,7 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
 - **Web slice (`apps/web/src/app/budget/`):** `page.tsx` + `BudgetDirectory.tsx` (bilingual
   directory with statement/fiscal-year/unit filters, statement label mapping for the seven AFS
   statements in EN/TE, `OfficialBudgetClaim` provenance chips, a static prepared notice, an honest
-  distinction between *no lines published* and *no lines match filters*, and an error/retry state);
+  distinction between _no lines published_ and _no lines match filters_, and an error/retry state);
   `[slug]/page.tsx` + `BudgetDetail.tsx` (overview with budget-estimate claim, detail claims for
   fiscal year/statement/code/unit, and the amount-columns table showing each column's raw
   `value_text` token plus decoded `rupees`, all under the line's `SourceRecord`); `loading.tsx` /
@@ -2274,7 +2274,7 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   clean, `npm test` **40 files / 140 tests passed** (12 new: 7 helper + 5 component), and
   `npm run build` succeeds with `/know-your-constituency` prerendered as static content. New files
   are Prettier-clean; `format:check` still fails only on the unchanged pre-existing files. `git diff
-  --check` clean.
+--check` clean.
 - **Remaining work:** the launch page goes live with the election-results deploy (Stage 7 data
   acceptance); share cards are WhatsApp/copy-link only for now, with the community layer deferred to
   the accounts-and-moderation stage.
@@ -2326,7 +2326,7 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   runbook (seed step, operator order, per-step expected counts, idempotency and public checks);
   `docs/roadmap.md` records the dry run and the three blockers.
 - **Verification evidence:** from `apps/api`: `ruff check --no-cache .` clean, `mypy --no-incremental
-  app tests` clean (75 source files), and `pytest -p no:cacheprovider` with `TEST_DATABASE_URL` set —
+app tests` clean (75 source files), and `pytest -p no:cacheprovider` with `TEST_DATABASE_URL` set —
   **90 passed** (79 unit + 11 integration, including the new seed-on-head test).
 
 ### Stage 2.14 — Rich Share Previews, Production Deploy Runbook, and Community Submit-Link Flow (2026-08-16)
@@ -2415,8 +2415,8 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   (`apps/web/src/app/government/GovernmentDirectory.test.tsx`) covering both the populated and the
   honest prepared-empty states.
 - **Verification evidence:** from `apps/api`, `ruff check --no-cache .` clean, `mypy
-  --no-incremental --cache-dir=<tmp> app tests` clean (79 source files), `pytest -p no:cacheprovider
-  tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disposable database
+--no-incremental --cache-dir=<tmp> app tests` clean (79 source files), `pytest -p no:cacheprovider
+tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disposable database
   (`ap_civic_stage7_test`, seed + term16 officeholder fixture): the adapter created 1/1/3/3/3/3/3/3
   on first run and zero on re-run, and the live API returned `GET /api/v1/representatives` (3
   reviewed, all `valid_from` 2024-06-06), `GET /api/v1/public-offices` (3 reviewed) and
@@ -2436,7 +2436,7 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   standard AWS credential env vars. The S3 SDK is loaded lazily from the new optional dependency
   group `pip install -e '.[s3]'`, so the base install stays dependency-free. Every operator now
   writes its immutable raw snapshots through `get_snapshot_store()`, and `SourceSnapshot
-  .object_storage_key` is always the same relative key (`snapshots/<sha256>.<html|pdf|json>`) via
+.object_storage_key` is always the same relative key (`snapshots/<sha256>.<html|pdf|json>`) via
   `snapshot_key()`, regardless of backend. `_store_snapshot` was deduplicated in all five operators
   (`officeholders`, `districts`, `schemes`, `budget`, `elections`) to use the store instead of a
   private local-directory write.
@@ -2452,7 +2452,7 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   error, unknown-backend rejection, and the missing-SDK error path. The five operator integration
   tests now exercise the abstraction.
 - **Verification evidence:** from `apps/api`, `ruff check --no-cache .` clean, `mypy --no-incremental
-  --cache-dir=<tmp> app tests` clean (82 source files), `pytest -p no:cacheprovider tests` —
+--cache-dir=<tmp> app tests` clean (82 source files), `pytest -p no:cacheprovider tests` —
   **105 passed** with `TEST_DATABASE_URL` set. Live run against the disposable database: a first
   `ingest_elections --pdf term16.pdf` stored 1 snapshot (sha256
   `8771b794914a085071bbde20d6eabef3ecf0be296d1234a59d0c0ec754122c42`, matching the committed
@@ -2463,3 +2463,16 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   private bucket, approve cost limits, provision credentials) plus the restore drill, LGD access
   review, and provider monitoring before network ingestion is authorized; the code-side abstraction
   and ops command are complete.
+
+### Stage 2.17 — Stage 9 & Stage 10 Anonymous Community Infrastructure and Public Moderation Audit Log (2026-08-17)
+
+- **Anonymous zero-tracking architecture:** Established complete citizen anonymity for community participation. No user accounts, passwords, email, phone numbers, or precise GPS locations are stored. User state is kept pseudonymous and client-local using `localStorage` for pseudonymous handle preference, language choice, and district jurisdiction selection.
+- **Civic pulse polls (Stage 9):** Built interactive polling interfaces for citizen sentiment (`CommunityContent.tsx` & `/api/community/polls`). Implemented mandatory non-representative legal disclaimers on every poll display to strictly enforce Rule #5 ("Never describe platform polls as representative of Andhra Pradesh").
+- **Ground field observations (Stage 10):** Integrated community field reporting and service reviews (`CommunityContent.tsx` & `/api/community/reports`/`/api/community/comments`), classifying all citizen inputs as `community-reported` (Rule #4) and visually distinguishing them from official government records (Rule #1).
+- **Public moderation audit trail:** Created `/community/moderation-log` and `ModerationLogContent.tsx` providing an open, immutable audit log for all moderation actions (Flag, Approve, Hide), strictly fulfilling Rule #8 ("All moderation actions must produce an audit record").
+- **Verification evidence:** 
+  - Frontend test suite (`npm test`): **143 passed across 41 test files** (including `Community.test.tsx`, `Account.test.tsx`, `CommunityRoutes.test.tsx`, `AccountRoutes.test.tsx`, and responsive test files).
+  - Next.js production build (`npm run build`): **Prerendered all 35 static/dynamic routes successfully**, including `/account`, `/community`, `/community/charter`, and `/community/moderation-log`.
+  - Python API quality checks (`apps/api`): `ruff check` clean, `mypy` clean (86 files passed), `pytest` **97 passed, 11 skipped** (disposable integration tests).
+  - Code formatting (`npm run format:check`): Clean via Prettier.
+

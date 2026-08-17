@@ -24,11 +24,11 @@ not replace the release gates in `operations-and-recovery.md` — it assumes the
 
 These are `sync: false` in `render.yaml`, so they must be created manually:
 
-| Service | Key | Value |
-| --- | --- | --- |
-| ap-civic-web | `NEXT_PUBLIC_API_URL` | Public base URL of the API service (e.g. `https://ap-civic-api.onrender.com`) |
+| Service      | Key                    | Value                                                                                                                                                                                                                 |
+| ------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ap-civic-web | `NEXT_PUBLIC_API_URL`  | Public base URL of the API service (e.g. `https://ap-civic-api.onrender.com`)                                                                                                                                         |
 | ap-civic-web | `NEXT_PUBLIC_SITE_URL` | Public base URL of the web service (e.g. `https://ap-civic-web.onrender.com`); feeds `metadataBase` so generated `og:image` URLs are absolute. If unset, `RENDER_EXTERNAL_URL` is used, then `http://localhost:3000`. |
-| ap-civic-api | `CORS_ORIGINS` | Comma-separated origins allowed by the API, including the web service public URL |
+| ap-civic-api | `CORS_ORIGINS`         | Comma-separated origins allowed by the API, including the web service public URL                                                                                                                                      |
 
 `DATABASE_URL` is wired from `ap-civic-db` automatically. `APP_ENV=production` is declared in the
 Blueprint. Runtime `RENDER_EXTERNAL_URL` is set by Render for the web service.
