@@ -2470,9 +2470,18 @@ tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disp
 - **Civic pulse polls (Stage 9):** Built interactive polling interfaces for citizen sentiment (`CommunityContent.tsx` & `/api/community/polls`). Implemented mandatory non-representative legal disclaimers on every poll display to strictly enforce Rule #5 ("Never describe platform polls as representative of Andhra Pradesh").
 - **Ground field observations (Stage 10):** Integrated community field reporting and service reviews (`CommunityContent.tsx` & `/api/community/reports`/`/api/community/comments`), classifying all citizen inputs as `community-reported` (Rule #4) and visually distinguishing them from official government records (Rule #1).
 - **Public moderation audit trail:** Created `/community/moderation-log` and `ModerationLogContent.tsx` providing an open, immutable audit log for all moderation actions (Flag, Approve, Hide), strictly fulfilling Rule #8 ("All moderation actions must produce an audit record").
-- **Verification evidence:** 
+- **Verification evidence:**
   - Frontend test suite (`npm test`): **143 passed across 41 test files** (including `Community.test.tsx`, `Account.test.tsx`, `CommunityRoutes.test.tsx`, `AccountRoutes.test.tsx`, and responsive test files).
   - Next.js production build (`npm run build`): **Prerendered all 35 static/dynamic routes successfully**, including `/account`, `/community`, `/community/charter`, and `/community/moderation-log`.
   - Python API quality checks (`apps/api`): `ruff check` clean, `mypy` clean (86 files passed), `pytest` **97 passed, 11 skipped** (disposable integration tests).
   - Code formatting (`npm run format:check`): Clean via Prettier.
 
+### Stage 2.18 — Daily News & Official Press Release Automated Ingestion Pipeline (2026-08-17)
+
+- **Automated Daily Ingestion Domain (`apps/api/app/ingestion/daily_news.py`):** Implemented automated press release and daily news feed acquisition adapters for official government press portals (AP IP&PR, PIB India AP) and public news feeds.
+- **Strict Evidence Classification (Rule #4):** Configured automatic tagging of observations derived directly from official government bulletins as `OFFICIAL`, news reporting as `INFERRED`, and citizen tips as `COMMUNITY_REPORTED`.
+- **Raw Document Snapshot Storage (Rule #3):** Every daily news item stores an immutable raw HTML/XML snapshot in `SnapshotStore` prior to observation extraction, keyed by SHA-256 hash to ensure zero duplicate snapshot storage.
+- **Background Worker & Operator CLI:** Built background polling worker (`workers/ingestion/daily_news_ingestor.py`) and operator CLI command (`python -m app.commands.ingest_daily_news`) to execute daily automated feed polling on demand or on a cron schedule.
+- **Verification Evidence:**
+  - `apps/api` Python checks: `ruff check --no-cache .` clean, `mypy` clean (89 source files passed), `pytest` unit tests (`test_daily_news_ingestor.py`) **2 passed in 0.04s**.
+  - Web quality suite (`npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build`): **41 test files passed (143 tests)**, Next.js build succeeded for all routes.

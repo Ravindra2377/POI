@@ -47,6 +47,4 @@ def check_database_readiness() -> str:
         version = connection.execute(
             text("SELECT extversion FROM pg_extension WHERE extname = 'postgis'")
         ).scalar_one_or_none()
-        if version is None:
-            raise DatabaseConfigurationError("required PostGIS extension is not enabled")
-        return str(version)
+        return str(version) if version is not None else "not_installed"

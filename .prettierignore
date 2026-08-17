@@ -6,3 +6,6 @@ build
 coverage
 *.min.js
 *.min.css
+*.py
+apps/api
+workers/**/*.py
