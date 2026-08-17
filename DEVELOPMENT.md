@@ -2376,3 +2376,53 @@ LEGISLATIVE ASSEMBLY`), and parses wrapped, annotated rows. Handles rows whose c
   data reaches the card; the served page emits
   `og:image`/`twitter:image` = `/og/constituency/term16-5-srikakulam/…` for a seat selection and the
   generic `/opengraph-image` otherwise. `git diff --check` clean.
+
+### Stage 2.15 — Representative and Public-Office Adapter Lights Up `/government` (2026-08-17)
+
+- **Composition adapter:** `apps/api/app/ingestion/representatives.py` reads only published
+  `entity_type="officeholder"` observations (the reviewed `ingest_officeholders` output) and
+  materializes the `government` schema rows the public directory needs: the
+  `andhra-pradesh-legislative-assembly` GovernmentBody (child of the seeded
+  `government-of-andhra-pradesh`), the shared `member-of-legislative-assembly` OfficialRole, one
+  assembly-constituency Geography per seat with an `ELECTORAL_CONTAINS` relationship to its district
+  (falling back to the state when no district matches), one `mla-<seat>` PublicOffice per seat with
+  an OfficeJurisdiction to its constituency, one Representative per person (deduped by normalized
+  name, earliest `valid_from` wins across terms), and one time-bound RepresentativeTerm per person
+  per term (`valid_from` parsed from `term_period_en`, e.g. `Term XVI (constituted 06.06.2024)` →
+  2024-06-06). All IDs derive deterministically from `REPRESENTATIVES_NAMESPACE`; the adapter is
+  idempotent (re-run creates zero rows) and takes `reviewer_identity` without making new review
+  decisions.
+- **Provenance wiring (design finding):** the `government`/`geography` tables reference
+  `source_references` (the curated `SourceReference` view), not the ingestion `sources` table, so
+  the adapter creates one reviewed `SourceReference` per Assembly term that names the official AP
+  Legislature member report, its retrieval date, and the underlying officeholder `SourceRecord` id
+  in `citation_metadata`. This keeps the public catalog's reviewed-source gate
+  (`_reviewed_source_clause`) applied unchanged. The report is English-only, so Telugu labels are
+  intentionally absent and the reference notes say so.
+- **Legacy district-name aliases:** the officeholder report predates the 2022 district
+  reorganization and uses legacy names (ANANTAPUR, ONGOLE, NELLORE, KADAPA); a curated alias map
+  resolves them to the 26 post-reorganization district names (Ananthapuramu, Prakasam, Sri Potti
+  Sriramulu Nellore, YSR Kadapa) so constituency relationships attach to the correct district.
+- **Operator CLI:** `python -m app.commands.ingest_representatives --reviewer <identity>` prints a
+  JSON run summary; it is offline, deterministic, and idempotent.
+- **Tests:** unit tests for the pure helpers
+  (`tests/test_ingest_representatives.py`); a Postgres integration test
+  (`tests/integration/test_ingest_representatives_postgres.py`) that prepares the schema, stores and
+  reviews the term16 fixture feed, runs the adapter, and asserts first-run counts (1 body / 1 role /
+  3 representatives / 3 terms / 3 offices / 3 jurisdictions / 3 geographies / 3 relationships),
+  catalog totals, `valid_from == 2024-06-06`, `provenance.review_status == "reviewed"`, and a
+  zero-created re-run. The web gains a government-directory test
+  (`apps/web/src/app/government/GovernmentDirectory.test.tsx`) covering both the populated and the
+  honest prepared-empty states.
+- **Verification evidence:** from `apps/api`, `ruff check --no-cache .` clean, `mypy
+  --no-incremental --cache-dir=<tmp> app tests` clean (79 source files), `pytest -p no:cacheprovider
+  tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disposable database
+  (`ap_civic_stage7_test`, seed + term16 officeholder fixture): the adapter created 1/1/3/3/3/3/3/3
+  on first run and zero on re-run, and the live API returned `GET /api/v1/representatives` (3
+  reviewed, all `valid_from` 2024-06-06), `GET /api/v1/public-offices` (3 reviewed) and
+  `GET /api/v1/government-bodies` (5 reviewed including the new Assembly body). From `apps/web`,
+  `eslint .` clean, `tsc --noEmit` clean, `npm test` — **143 passed** (41 files, including the new
+  government-directory test), `npm run build` succeeds. `git diff --check` clean.
+- **Remaining work:** unchanged — operations release gates (private object storage, restore drill,
+  LGD access review, monitoring) and the production deploy; `/government` now lights up with
+  reviewed records once the adapter is run on a deployed, head-migrated database.

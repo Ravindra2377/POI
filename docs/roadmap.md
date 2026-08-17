@@ -233,6 +233,19 @@ corrections. Every catalogue endpoint returns `status: "reviewed"` with real rec
 remaining release steps are the operations gates and the production deploy; the `Representative`/
 `public_offices` directory stays honestly prepared-empty until an adapter ingests it.
 
+The `Representative`/`public_offices` directory is no longer prepared-empty: the
+`ingest_representatives` adapter (`python -m app.commands.ingest_representatives --reviewer <name>`)
+composes normalized records from the already-reviewed officeholder observations — the Assembly body,
+the shared MLA role, one assembly-constituency geography per seat (with a district relationship via
+curated 2022-reorganization name aliases), one `mla-<seat>` public office with its jurisdiction, one
+representative per person, and one time-bound term per person per Assembly term — all referencing a
+reviewed `source_references` row per term so the catalog's reviewed-source gate applies unchanged.
+It is offline, deterministic, and idempotent (re-run creates zero rows). Verified live against the
+disposable database: `GET /api/v1/representatives`, `/api/v1/public-offices`, and
+`/api/v1/government-bodies` all return reviewed records, and the `/government` page now renders them
+(web test added for the populated and prepared-empty states). The web `/officeholders` slice stays a
+separate prepared history view; the adapter feeds the structured directory only.
+
 The launch hook is the constituency-first `/know-your-constituency` page: bilingual search and
 district selection (kept in the web address, no precise location), the current Assembly's seats for
 the chosen district, and a per-seat profile card with per-claim `Official · Reviewed` provenance and
