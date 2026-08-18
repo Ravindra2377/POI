@@ -276,7 +276,7 @@ class FakeCatalog:
     def list_children(
         self, *, identifier: str, page: int, page_size: int
     ) -> CatalogPage[GeographyOut]:
-        if identifier != "andhra-pradesh":
+        if identifier not in {"andhra-pradesh", "in-ap"}:
             raise CatalogNotFound(f"geography '{identifier}' was not found")
         return CatalogPage(
             data=[geography()],

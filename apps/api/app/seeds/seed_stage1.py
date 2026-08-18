@@ -468,6 +468,9 @@ def seed_stage1(session: Session) -> SeedResult:
         ),
     )
     result.geographies_created += int(created)
+    result.aliases_created += int(
+        _ensure_geography_alias(session, state, "in-ap", state_source.id)
+    )
 
     for district_seed in manifest.districts:
         district_source, created = _ensure_source(

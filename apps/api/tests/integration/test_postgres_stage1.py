@@ -305,6 +305,11 @@ def test_stage1_seed_upgrade_backfill_and_reupgrade_are_idempotent() -> None:
         assert [item.slug for item in telugu_results.data] == ["visakhapatnam"]
         assert departments.meta.total == 3
 
+        ap_by_iso = catalog.get_geography("in-ap")
+        assert ap_by_iso.slug == "andhra-pradesh"
+        ap_children = catalog.list_children(identifier="in-ap", page=1, page_size=100)
+        assert ap_children.meta.total == 26
+
     with pytest.raises(DBAPIError), engine.begin() as connection:
         connection.execute(text("UPDATE source_observations SET field_path = 'tampered'"))
 

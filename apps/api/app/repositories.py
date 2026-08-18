@@ -324,7 +324,13 @@ class SQLCatalogRepository:
 
     def _resolve_geography(self, identifier: str) -> Geography:
         parsed = _parse_uuid(identifier)
-        predicate = Geography.id == parsed if parsed else Geography.slug == identifier
+        if parsed is not None:
+            predicate = Geography.id == parsed
+        else:
+            predicate = or_(
+                Geography.slug == identifier,
+                Geography.aliases.any(GeographyAlias.alias == identifier),
+            )
         item = self.session.scalar(
             select(Geography)
             .where(predicate, _reviewed_source_clause(Geography.source_id))
