@@ -4,21 +4,22 @@ Each stage is a bounded task. A stage is complete only after changed files, migr
 commands, results, visual checks, security/privacy implications, limitations, and documentation are
 reported.
 
-| Stage | Outcome                                  | Completion evidence                                                 |
-| ----- | ---------------------------------------- | ------------------------------------------------------------------- |
-| 0     | Product contract and runnable foundation | Health checks and all baseline quality commands pass                |
-| 1     | Geography and government entities        | Accepted with documented seed-rerun evidence waiver                 |
-| 2     | Append-only provenance                   | In progress: schema/backfill local; operational gates remain        |
-| 3     | AP schemes and eligibility               | Source-cited bilingual rules and explicit eligibility semantics     |
-| 4     | AP projects and responsible offices      | Reviewed project history, geography, status, and ownership          |
-| 5     | Public financial observations            | Budget, release, utilisation, and expenditure remain distinct       |
-| 6     | Tenders and contracts                    | Procurement stages and contractor relationships retain provenance   |
-| 7     | Ministers and officeholder history       | Reviewed, time-bounded roles and terms                              |
-| 8     | Search, alerts, and My Area              | Bilingual search and coarse user-selected geography                 |
-| 9     | Accounts and structured reports          | Consent, private evidence, privacy, and review controls             |
-| 10    | Polls, comments, and moderation          | Non-representative labels and immutable moderation audit            |
-| 11    | Additional states                        | Reuse the accepted Andhra Pradesh provenance and ingestion pipeline |
-| 12    | Controlled beta                          | Readiness report with no unresolved blocking risk                   |
+| Stage | Outcome                                  | Completion evidence                                                         |
+| ----- | ---------------------------------------- | --------------------------------------------------------------------------- |
+| 0     | Product contract and runnable foundation | Health checks and all baseline quality commands pass                        |
+| 1     | Geography and government entities        | Accepted with documented seed-rerun evidence waiver                         |
+| 2     | Append-only provenance                   | In progress: schema/backfill local; operational gates remain                |
+| 3     | AP schemes and eligibility               | Source-cited bilingual rules and explicit eligibility semantics             |
+| 4     | AP projects and responsible offices      | Reviewed project history, geography, status, and ownership                  |
+| 5     | Public financial observations            | Budget, release, utilisation, and expenditure remain distinct               |
+| 6     | Tenders and contracts                    | Procurement stages and contractor relationships retain provenance           |
+| 7     | Ministers and officeholder history       | Reviewed, time-bounded roles and terms                                      |
+| 8     | Search, alerts, and My Area              | Bilingual search and coarse user-selected geography                         |
+| 9     | Accounts and structured reports          | Consent, private evidence, privacy, and review controls                     |
+| 10    | Polls, comments, and moderation          | Non-representative labels and immutable moderation audit                    |
+| 11    | Additional states                        | Reuse the accepted Andhra Pradesh provenance and ingestion pipeline         |
+| 12    | Controlled beta                          | Readiness report with no unresolved blocking risk                           |
+| 13    | Claims-vs-records verification           | Calculated comparisons pair reviewed official claims with recorded outcomes |
 
 ## Delivery principles
 

@@ -63,3 +63,28 @@ def test_all_languages_migration_widens_language_check_constraints() -> None:
         assert code in text
     # The widened upgrade constraint must no longer be restricted to en/te/und.
     assert "language_code IN ('en', 'te', 'und')" not in text.split("def downgrade")[0]
+
+
+def test_comparison_migration_pairs_claim_and_record_observations() -> None:
+    migration = (
+        Path(__file__).parents[1]
+        / "alembic"
+        / "versions"
+        / "20260817_0006_claim_record_comparisons.py"
+    )
+    text = migration.read_text(encoding="utf-8")
+
+    assert "claim_record_comparisons" in text
+    assert "CREATE TABLE" in text or "op.create_table" in text
+    # Both sides of a comparison must reference reviewed source observations.
+    assert "claim_observation_id" in text
+    assert "record_observation_id" in text
+    assert 'sa.ForeignKey("source_observations.id"' in text
+    # Verdict is bounded to the three calculated outcomes.
+    assert "verdict IN ('consistent', 'divergent', 'insufficient_data')" in text
+    # A published comparison must always have been reviewed.
+    assert "NOT is_published OR review_state = 'reviewed'" in text
+    # One comparison per kind/entity keeps rebuilds idempotent.
+    assert "UniqueConstraint" in text
+    assert "comparison_kind" in text
+    assert "entity_id" in text

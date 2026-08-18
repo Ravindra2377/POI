@@ -55,28 +55,26 @@ _LANGUAGE_CHECK_TABLES = (
 
 
 def upgrade() -> None:
+    # Migration 20260810_0001 created these CHECK constraints inline in raw SQL,
+    # so PostgreSQL auto-named them `<table>_language_code_check`. The alembic
+    # naming convention would re-prefix a name passed to op.drop_constraint, so
+    # drop them by their exact on-disk names.
     for table in _LANGUAGE_CHECK_TABLES:
-        op.drop_constraint(
-            f"{table}_language_code_check",
-            table,
-            type_="check",
+        op.execute(
+            f"ALTER TABLE {table} DROP CONSTRAINT {table}_language_code_check"
         )
-        op.create_check_constraint(
-            f"{table}_language_code_check",
-            table,
-            f"language_code IN {_LANGUAGE_IN}",
+        op.execute(
+            f"ALTER TABLE {table} ADD CONSTRAINT {table}_language_code_check "
+            f"CHECK (language_code IN {_LANGUAGE_IN})"
         )
 
 
 def downgrade() -> None:
     for table in _LANGUAGE_CHECK_TABLES:
-        op.drop_constraint(
-            f"{table}_language_code_check",
-            table,
-            type_="check",
+        op.execute(
+            f"ALTER TABLE {table} DROP CONSTRAINT {table}_language_code_check"
         )
-        op.create_check_constraint(
-            f"{table}_language_code_check",
-            table,
-            "language_code IN ('en', 'te', 'und')",
+        op.execute(
+            f"ALTER TABLE {table} ADD CONSTRAINT {table}_language_code_check "
+            "CHECK (language_code IN ('en', 'te', 'und'))"
         )

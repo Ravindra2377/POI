@@ -1,5 +1,6 @@
 import json
 import os
+from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -47,6 +48,29 @@ KA_PAYLOAD = json.dumps(
         },
     ]
 ).encode("utf-8")
+
+_WIDE_LANGUAGE_TABLES = (
+    "geography_aliases",
+    "government_body_aliases",
+    "public_office_aliases",
+    "source_documents",
+)
+
+
+@pytest.fixture(autouse=True)
+def _remove_wide_language_rows_after_module() -> Iterator[None]:
+    # These tests seed native-language aliases (e.g. Kannada). Migration
+    # 20260817_0005's downgrade cannot restore the narrow en/te/und
+    # constraint while such rows exist, so leave the shared test database
+    # in a downgrade-compatible state once this module has finished.
+    yield
+    if not TEST_DATABASE_URL:
+        return
+    with create_engine(normalize_database_url(TEST_DATABASE_URL)).begin() as conn:
+        for table in _WIDE_LANGUAGE_TABLES:
+            conn.exec_driver_sql(
+                f"DELETE FROM {table} WHERE language_code NOT IN ('en', 'te', 'und')"
+            )
 
 
 def _alembic_config() -> Config:
@@ -151,7 +175,10 @@ def test_seed_states_geographies_and_district_ingestion_for_karnataka(tmp_path: 
         assert (tmp_path / "snapshots" / f"{stored.lgd_sha256}.json").exists()
 
         ka_source = session.scalar(
-            select(SourceRecord).where(SourceRecord.jurisdiction_code == "IN-KA")
+            select(SourceRecord).where(
+                SourceRecord.jurisdiction_code == "IN-KA",
+                SourceRecord.source_type == "api_endpoint",
+            )
         )
         assert ka_source is not None
         assert ka_source.source_type == "api_endpoint"

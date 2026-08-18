@@ -26,6 +26,7 @@ from app.schemas.budget import (
     BudgetSourceOut,
 )
 from app.schemas.common import AliasSummary, PageMeta, ProvenanceSummary
+from app.schemas.comparisons import ComparisonCatalogOut
 from app.schemas.elections import ElectionResultCatalogOut
 from app.schemas.geography import GeographyOut
 from app.schemas.government import (
@@ -351,6 +352,9 @@ class FakeCatalog:
 
     def list_election_results(self) -> ElectionResultCatalogOut:
         return ElectionResultCatalogOut(data=[], status="prepared-empty")
+
+    def list_comparisons(self) -> ComparisonCatalogOut:
+        return ComparisonCatalogOut(data=[], status="prepared-empty")
 
 
 @pytest.fixture

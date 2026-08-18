@@ -143,3 +143,13 @@ class ReportStatus(StrEnum):
     FLAGGED = "flagged"
     ARCHIVED = "archived"
 
+
+class ComparisonVerdict(StrEnum):
+    CONSISTENT = "consistent"
+    DIVERGENT = "divergent"
+    INSUFFICIENT_DATA = "insufficient_data"
+
+
+class ComparisonKind(StrEnum):
+    BUDGET_ESTIMATE_VS_ACTUALS = "budget_estimate_vs_actuals"
+

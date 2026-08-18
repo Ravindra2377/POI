@@ -9,6 +9,7 @@ from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import InstrumentedAttribute, Session, selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
+from app.models.comparison import ClaimRecordComparison
 from app.models.enums import GeographyType, GovernmentBodyType, ReviewStatus
 from app.models.geography import Geography, GeographyAlias
 from app.models.government import (
@@ -36,6 +37,11 @@ from app.schemas.budget import (
     BudgetSourceOut,
 )
 from app.schemas.common import AliasSummary, PageMeta, ProvenanceSummary
+from app.schemas.comparisons import (
+    ClaimRecordComparisonOut,
+    ComparisonCatalogOut,
+    ComparisonObservationOut,
+)
 from app.schemas.elections import (
     ElectionResultCatalogOut,
     ElectionResultClaimOut,
@@ -157,6 +163,8 @@ class CatalogRepository(Protocol):
     def list_projects(self) -> ProjectCatalogOut: ...
 
     def list_procurement(self) -> ProcurementCatalogOut: ...
+
+    def list_comparisons(self) -> ComparisonCatalogOut: ...
 
 
 def _parse_uuid(identifier: str) -> UUID | None:
@@ -1257,6 +1265,102 @@ class SQLCatalogRepository:
             )
         status = "reviewed" if records else "prepared-empty"
         return ProcurementCatalogOut(data=records, status=status)
+
+    def list_comparisons(self) -> ComparisonCatalogOut:
+        """Reconstruct reviewed calculated claims-vs-records comparisons."""
+        comparisons = self.session.scalars(
+            select(ClaimRecordComparison).where(
+                ClaimRecordComparison.is_published.is_(True)
+            )
+        ).all()
+        if not comparisons:
+            return ComparisonCatalogOut(data=[], status="prepared-empty")
+
+        data: list[ClaimRecordComparisonOut] = []
+        for comparison in comparisons:
+            claim = self._comparison_observation_out(
+                comparison, claim_side=True
+            )
+            record = self._comparison_observation_out(
+                comparison, claim_side=False
+            )
+            data.append(
+                ClaimRecordComparisonOut(
+                    id=comparison.id,
+                    comparison_kind=comparison.comparison_kind,
+                    entity_type=comparison.entity_type,
+                    entity_id=comparison.entity_id,
+                    entity_label=LocalizedTextOut(
+                        en=comparison.entity_label_en,
+                        te=comparison.entity_label_te or "",
+                    ),
+                    verdict=comparison.verdict,
+                    claim=claim,
+                    record=record,
+                    difference=comparison.difference,
+                    difference_percent=comparison.difference_percent,
+                    tolerance_percent=comparison.tolerance_percent,
+                    method=LocalizedTextOut(
+                        en=comparison.method_en,
+                        te=comparison.method_te or "",
+                    ),
+                    reviewer_identity=comparison.reviewer_identity,
+                    decided_at=comparison.decided_at,
+                    created_at=comparison.created_at,
+                )
+            )
+        return ComparisonCatalogOut(data=data, status="reviewed")
+
+    def _comparison_observation_out(
+        self,
+        comparison: ClaimRecordComparison,
+        *,
+        claim_side: bool,
+    ) -> ComparisonObservationOut:
+        observation_id = (
+            comparison.claim_observation_id
+            if claim_side
+            else comparison.record_observation_id
+        )
+        observation = self.session.get(SourceObservation, observation_id)
+        document = (
+            self.session.get(SourceDocument, observation.document_id)
+            if observation is not None
+            else None
+        )
+        source = (
+            self.session.get(SourceRecord, document.source_id)
+            if document is not None
+            else None
+        )
+        return ComparisonObservationOut(
+            observation_id=observation_id,
+            label=LocalizedTextOut(
+                en=comparison.claim_label_en if claim_side else comparison.record_label_en,
+                te=(
+                    comparison.claim_label_te
+                    if claim_side
+                    else comparison.record_label_te
+                )
+                or "",
+            ),
+            value=LocalizedTextOut(
+                en=(
+                    observation.value_text
+                    if observation is not None and observation.value_text
+                    else (
+                        str(observation.value_number)
+                        if observation is not None and observation.value_number is not None
+                        else ""
+                    )
+                ),
+                te="",
+            ),
+            source_name=source.name if source else "",
+            official_source_url=document.official_url if document else None,
+            public_source_url=_document_public_url(document) if document else None,
+            review_status=source.review_status if source else ReviewStatus.PENDING,
+        )
 
     def _procurement_feed_source(self, observation: SourceObservation) -> ProcurementSourceOut:
         document = self.session.get(SourceDocument, observation.document_id)
