@@ -172,7 +172,7 @@ ALL_INDIA_STATES_UTS: list[StateRecord] = [
     ),
     StateRecord(
         iso_code="IN-DH",
-        lgd_code=26,
+        lgd_code=38,
         name_en="Dadra & Nagar Haveli & Daman & Diu",
         name_native="दादरा नगर हवेली",
         native_language="hi",

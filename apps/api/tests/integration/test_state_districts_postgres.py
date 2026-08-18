@@ -286,3 +286,93 @@ def test_ingest_state_districts_end_to_end(tmp_path: Path, monkeypatch: pytest.M
             .where(Geography.entity_type == GeographyType.DISTRICT)
         ) == 26 + 2
     engine.dispose()
+
+
+def test_empty_local_name_uses_english_rendering_without_native_alias(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    engine = _prepare_database()
+    now = datetime.now(UTC)
+    jammu_kashmir = next(
+        state for state in ALL_INDIA_STATES_UTS if state.iso_code == "IN-JK"
+    )
+    jk_payload = json.dumps(
+        [
+            {
+                "districtCode": 2,
+                "districtNameEnglish": "Budgam",
+                "districtNameLocal": "",
+            },
+            {
+                "districtCode": 5,
+                "districtNameEnglish": "Jammu",
+                "districtNameLocal": "JAMMU",
+            },
+        ]
+    ).encode("utf-8")
+
+    def jk_snapshot(lgd_code: str, timeout: float = 25.0) -> FeedSnapshot:
+        return FeedSnapshot(
+            key=f"lgd-district-list-{lgd_code}",
+            name=f"Local Government Directory district list (LGD state code {lgd_code})",
+            publisher="Local Government Directory (LGD)",
+            url="https://lgdirectory.gov.in/webservices/lgdws/districtList",
+            public_url="https://lgdirectory.gov.in/",
+            request_method="POST",
+            request_body=f"stateCode={lgd_code}",
+            content_type="application/json",
+            raw=jk_payload,
+            retrieved_at=now,
+        )
+
+    monkeypatch.setattr(
+        "app.ingestion.districts.fetch_lgd_district_feed",
+        jk_snapshot,
+    )
+
+    with Session(engine) as session, session.begin():
+        records = parse_lgd_districts(jk_payload)
+        assert records[0].name_local == "Budgam"
+
+        result = ingest_state_districts(
+            session,
+            tmp_path,
+            state=jammu_kashmir,
+            reviewer_identity="integration:state-districts",
+            decided_at=now,
+            valid_from=now.date(),
+        )
+
+        assert result.districts_seen == 2
+        assert result.geographies_published == 2
+
+        state = session.scalar(
+            select(Geography).where(
+                Geography.entity_type == GeographyType.STATE,
+                Geography.official_code == "1",
+            )
+        )
+        assert state is not None
+
+        districts = session.scalars(
+            select(Geography).where(
+                Geography.entity_type == GeographyType.DISTRICT,
+                Geography.parent_id == state.id,
+            )
+        ).all()
+        assert len(districts) == 2
+        by_code = {item.official_code: item for item in districts}
+        assert by_code["2"].name_en == "Budgam"
+        assert by_code["5"].name_en == "Jammu"
+
+        budgam_aliases = session.scalars(
+            select(GeographyAlias).where(GeographyAlias.geography_id == by_code["2"].id)
+        ).all()
+        assert budgam_aliases == []
+
+        jammu_aliases = session.scalars(
+            select(GeographyAlias).where(GeographyAlias.geography_id == by_code["5"].id)
+        ).all()
+        assert [alias.alias for alias in jammu_aliases] == ["JAMMU"]
+
+    engine.dispose()

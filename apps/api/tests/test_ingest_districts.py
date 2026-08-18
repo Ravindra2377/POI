@@ -57,6 +57,22 @@ def test_parse_lgd_districts_rejects_invalid_payloads() -> None:
         parse_lgd_districts(b'[{"districtCode": 1}]')
 
 
+def test_parse_lgd_districts_falls_back_to_english_name_for_empty_local_name() -> None:
+    payload = (
+        b'[{"districtCode": "2", "districtNameEnglish": "Budgam", "districtNameLocal": ""},'
+        b'{"districtCode": "620", "districtNameEnglish": "Kishtwar", "districtNameLocal": null}]'
+    )
+
+    records = parse_lgd_districts(payload)
+
+    assert len(records) == 2
+    by_code = {record.lgd_code: record for record in records}
+    assert by_code["2"].name_local == "Budgam"
+    assert by_code["620"].name_local == "Kishtwar"
+    assert by_code["2"].name_en == "Budgam"
+    assert by_code["620"].name_en == "Kishtwar"
+
+
 def test_parse_ap_portal_codes_reads_the_live_payload() -> None:
     codes = parse_ap_portal_codes(AP_PAYLOAD)
 

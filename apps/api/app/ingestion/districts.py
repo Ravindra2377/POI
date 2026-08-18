@@ -252,7 +252,12 @@ def fetch_lgd_district_feed(lgd_code: str, timeout: float = 25.0) -> FeedSnapsho
 
 
 def parse_lgd_districts(raw: bytes) -> list[DistrictFeedRecord]:
-    """Validate and normalise the LGD district-list JSON payload."""
+    """Validate and normalise the LGD district-list JSON payload.
+
+    Some states (notably Jammu & Kashmir) report an empty local name for some
+    districts; the English name is retained as the local rendering in that case
+    so the district is still recorded with its official English provenance.
+    """
     try:
         payload = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -268,13 +273,13 @@ def parse_lgd_districts(raw: bytes) -> list[DistrictFeedRecord]:
         name_local = item.get("districtNameLocal")
         if code is None or not isinstance(name_en, str) or not name_en:
             raise DistrictFeedError("LGD district entry is missing its English name or code")
-        if not isinstance(name_local, str) or not name_local:
-            raise DistrictFeedError("LGD district entry is missing its local name")
+        if name_local is not None and not isinstance(name_local, str):
+            raise DistrictFeedError("LGD district entry has a non-string local name")
         records.append(
             DistrictFeedRecord(
                 lgd_code=str(code),
                 name_en=name_en.strip(),
-                name_local=name_local.strip(),
+                name_local=(name_local or name_en).strip(),
             )
         )
     return records
@@ -1013,6 +1018,11 @@ def _ensure_district_native_alias(
     source: SourceReference,
 ) -> bool:
     if native_language == "te":
+        return False
+    if record.name_local == record.name_en:
+        # The local name was absent in the LGD feed and fell back to the
+        # English rendering; do not mislabel English text as a native-language
+        # alias (Non-negotiable Rule #4).
         return False
     existing = session.scalar(
         select(GeographyAlias).where(
