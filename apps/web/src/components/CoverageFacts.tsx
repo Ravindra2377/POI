@@ -2,16 +2,16 @@ import { platformCoverage } from "@/lib/coverage";
 
 const facts = [
   {
+    value: `${platformCoverage.liveStateDatasets} States & UTs`,
+    label: "With reviewed official district records live",
+  },
+  {
+    value: platformCoverage.reviewedDistrictBaseline.toLocaleString("en-IN"),
+    label: "Reviewed districts across India",
+  },
+  {
     value: platformCoverage.liveObservations.toLocaleString("en-IN"),
     label: "Reviewed official observations live",
-  },
-  {
-    value: platformCoverage.budgetYears,
-    label: "AP Annual Financial Statements parsed",
-  },
-  {
-    value: `${platformCoverage.liveSchemes} Schemes`,
-    label: "Official state scheme rules cited",
   },
   {
     value: "100%",
@@ -37,7 +37,10 @@ export function CoverageFacts() {
             </div>
           ))}
         </dl>
-        <p>Verified public record pipeline · Andhra Pradesh 2014–2026</p>
+        <p>
+          Reviewed public record pipeline · all 36 States &amp; Union
+          Territories
+        </p>
       </div>
     </section>
   );

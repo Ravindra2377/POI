@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("ExploreData", () => {
-  it("shows India-wide coverage while identifying Andhra Pradesh as the only live dataset", async () => {
+  it("shows India-wide coverage with all 36 jurisdictions live", async () => {
     const user = userEvent.setup();
     render(<ExploreData />);
 
@@ -19,9 +19,9 @@ describe("ExploreData", () => {
     ).toBeVisible();
     const directory = screen.getByTestId("state-directory");
     expect(directory).toHaveTextContent("Andhra Pradesh");
-    expect(directory).toHaveTextContent("Reviewed data live");
+    expect(directory).toHaveTextContent("Reviewed district records live");
     expect(directory).toHaveTextContent("Tamil Nadu");
-    expect(directory).toHaveTextContent("Planned");
+    expect(screen.queryByText("Planned")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Sectors" }));
     expect(screen.getByTestId("sector-directory")).toHaveTextContent("Health");

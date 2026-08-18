@@ -41,7 +41,6 @@ export function UniversalRecordSearch() {
           {indiaJurisdictions.map((item) => (
             <option value={item.name} key={item.name}>
               {item.name}
-              {item.status === "live" ? " — live" : " — planned"}
             </option>
           ))}
         </select>
@@ -63,9 +62,9 @@ export function UniversalRecordSearch() {
         Search records
       </button>
       <p className="record-search__coverage">
-        Current live search covers reviewed Andhra Pradesh districts and
-        government bodies. Schemes, projects and minister records will appear
-        only after reviewed publication.
+        Live district coverage spans all 36 States and Union Territories.
+        Schemes, projects and minister records appear only after reviewed
+        publication in their jurisdiction.
       </p>
     </form>
   );

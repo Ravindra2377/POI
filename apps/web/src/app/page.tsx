@@ -8,14 +8,19 @@ import { UniversalRecordSearch } from "@/components/UniversalRecordSearch";
 
 const quickLinks = [
   {
-    label: "Know Your Constituency",
-    href: "/know-your-constituency",
-    note: "Find your MLA",
+    label: "All 36 States & UTs",
+    href: "/states",
+    note: "Reviewed district records live",
+  },
+  {
+    label: "District Explorer",
+    href: "/geographies",
+    note: "784 Districts Verified",
   },
   {
     label: "Andhra Pradesh",
     href: "/government-explorer",
-    note: "28 Districts Verified",
+    note: "First fully reviewed dataset",
   },
   {
     label: "Public Schemes",
@@ -50,7 +55,8 @@ export default function Home() {
           <p className="lede">
             Search schemes, projects, spending, departments and responsible
             officeholders—from the Union government to a state and district.
-            Andhra Pradesh is the first reviewed dataset.
+            Reviewed district records are live for all 36 States and Union
+            Territories.
           </p>
           <p className="satirical-context">
             Because development is a claim until the public can inspect the

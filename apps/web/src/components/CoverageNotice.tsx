@@ -5,7 +5,8 @@ export function CoverageNotice() {
     <div className="coverage-notice">
       <div className="shell coverage-notice__inner">
         <span>
-          Andhra Pradesh is the first state live. National structure is ready.
+          All 36 States &amp; Union Territories are live with reviewed district
+          records. Andhra Pradesh remains the first fully reviewed dataset.
         </span>
         <Link href="/sources#coverage">How coverage works</Link>
       </div>

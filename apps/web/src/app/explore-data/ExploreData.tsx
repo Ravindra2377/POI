@@ -37,7 +37,7 @@ export function ExploreData() {
   >(initialQuery ? "loading" : "idle");
 
   const loadRecords = useCallback(async () => {
-    if (!initialQuery || initialState !== "Andhra Pradesh") return;
+    if (!initialQuery) return;
     setRecordState("loading");
     try {
       const [districts, bodies] = await Promise.all([
@@ -50,7 +50,7 @@ export function ExploreData() {
       setRecords([]);
       setRecordState("error");
     }
-  }, [initialQuery, initialState]);
+  }, [initialQuery]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void loadRecords(), 0);
@@ -142,7 +142,9 @@ export function ExploreData() {
                   {item.kind === "state" ? "State" : "Union Territory"}
                 </span>
                 <span className="coverage-status" data-status={item.status}>
-                  {item.status === "live" ? "Reviewed data live" : "Planned"}
+                  {item.status === "live"
+                    ? "Reviewed district records live"
+                    : "Planned"}
                 </span>
                 {item.route ? (
                   <Link href={item.route}>Explore</Link>
@@ -191,15 +193,7 @@ export function ExploreData() {
             <p className="eyebrow">SEARCH COVERAGE</p>
             <h2 id="search-results-heading">Current record results</h2>
           </div>
-          {initialState !== "Andhra Pradesh" ? (
-            <div className="empty-state">
-              <h3>{initialState} is in the national structure</h3>
-              <p>
-                Reviewed public records for this jurisdiction are not yet
-                published.
-              </p>
-            </div>
-          ) : recordState === "loading" ? (
+          {recordState === "loading" ? (
             <div className="table-state" role="status">
               Searching reviewed records…
             </div>
@@ -212,8 +206,9 @@ export function ExploreData() {
             <div className="empty-state">
               <h3>No reviewed records match “{initialQuery}”</h3>
               <p>
-                Current live search covers Andhra Pradesh districts and
-                government bodies.
+                Live district coverage spans all 36 States and Union
+                Territories; other record types are published per jurisdiction
+                after review.
               </p>
             </div>
           ) : (
@@ -229,7 +224,7 @@ export function ExploreData() {
                   </div>
                   <ReviewState provenance={record.provenance} />
                   <SourceSummary provenance={record.provenance} />
-                  <Link href="/government-explorer">Open in AP Explorer</Link>
+                  <Link href="/geographies">Open in District Explorer</Link>
                 </li>
               ))}
             </ul>

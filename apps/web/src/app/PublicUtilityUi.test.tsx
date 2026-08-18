@@ -52,7 +52,7 @@ describe("public utility interface", () => {
     );
     expect(
       screen.getByText(
-        "Andhra Pradesh is the first state live. National structure is ready.",
+        "All 36 States & Union Territories are live with reviewed district records. Andhra Pradesh remains the first fully reviewed dataset.",
       ),
     ).toBeVisible();
 
@@ -79,7 +79,9 @@ describe("public utility interface", () => {
     expect(push.mock.calls[0][0]).toContain("q=Vizag");
     expect(push.mock.calls[0][0]).toContain("state=Andhra+Pradesh");
     expect(push.mock.calls[0][0]).toContain("sector=Health");
-    expect(screen.getByText(/Current live search covers/)).toBeVisible();
+    expect(
+      screen.getByText(/Live district coverage spans all 36 States/),
+    ).toBeVisible();
   });
 
   it("keeps all public-money stages separate and states the unavailable-data boundary", async () => {

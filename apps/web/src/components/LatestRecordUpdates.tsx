@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { getDepartments, getDistricts } from "@/lib/catalog-api";
+import { getDistricts } from "@/lib/catalog-api";
 import type {
   GeographyRecord,
   GovernmentBodyRecord,
@@ -15,22 +15,32 @@ type UpdateRecord =
 
 export function LatestRecordUpdates() {
   const [records, setRecords] = useState<UpdateRecord[]>([]);
+  const [stateNameById, setStateNameById] = useState<Record<string, string>>(
+    {},
+  );
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setState("loading");
     try {
-      const [districts, departments] = await Promise.all([
-        getDistricts("", signal),
-        getDepartments("", signal),
-      ]);
+      const districtsResponse = await getDistricts("", signal);
+      const stateResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/v1/geographies?entity_type=state&page_size=40`,
+        { headers: { Accept: "application/json" }, signal },
+      );
+      const stateData = stateResponse.ok
+        ? ((await stateResponse.json()) as {
+            data: GeographyRecord[];
+          })
+        : { data: [] };
+      const statesByName: Record<string, string> = {};
+      for (const item of stateData.data) {
+        statesByName[item.id] = item.name_en;
+      }
+      setStateNameById(statesByName);
       const combined: UpdateRecord[] = [
-        ...districts.data.map((record) => ({
+        ...districtsResponse.data.map((record) => ({
           kind: "Geography" as const,
-          record,
-        })),
-        ...departments.data.map((record) => ({
-          kind: "Government body" as const,
           record,
         })),
       ];
@@ -91,7 +101,7 @@ export function LatestRecordUpdates() {
           <tr>
             <th scope="col">Record type</th>
             <th scope="col">Subject</th>
-            <th scope="col">Location</th>
+            <th scope="col">State / UT</th>
             <th scope="col">Review state</th>
             <th scope="col">Retrieved</th>
             <th scope="col">
@@ -106,13 +116,17 @@ export function LatestRecordUpdates() {
               <td data-label="Subject">
                 <strong>{record.name_en}</strong>
               </td>
-              <td data-label="Location">Andhra Pradesh</td>
+              <td data-label="State / UT">
+                {record.parent_id
+                  ? (stateNameById[record.parent_id] ?? "—")
+                  : "—"}
+              </td>
               <td data-label="Review state">
                 <ReviewState provenance={record.provenance} />
               </td>
               <td data-label="Retrieved">{record.provenance.retrieval_date}</td>
               <td data-label="Action">
-                <Link href="/government-explorer">Open record</Link>
+                <Link href="/geographies">Open record</Link>
               </td>
             </tr>
           ))}

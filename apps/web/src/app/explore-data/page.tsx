@@ -7,7 +7,7 @@ import { ExploreData } from "./ExploreData";
 export const metadata: Metadata = {
   title: "Explore Data · Viksit Bharat??",
   description:
-    "Browse India-wide coverage structure and reviewed Andhra Pradesh records.",
+    "Browse India-wide coverage structure and reviewed district records for all 36 States and Union Territories.",
 };
 
 export default function ExploreDataPage() {
