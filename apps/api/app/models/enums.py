@@ -152,4 +152,5 @@ class ComparisonVerdict(StrEnum):
 
 class ComparisonKind(StrEnum):
     BUDGET_ESTIMATE_VS_ACTUALS = "budget_estimate_vs_actuals"
+    PROJECT_COST_VS_REVISED_COST = "project_cost_vs_revised_cost"
 
