@@ -152,7 +152,7 @@ class CatalogRepository(Protocol):
 
     def list_feed_statuses(self) -> list[FeedStatusOut]: ...
 
-    def list_schemes(self) -> SchemeCatalogOut: ...
+    def list_schemes(self, jurisdiction_code: str | None = None) -> SchemeCatalogOut: ...
 
     def list_budget(self) -> BudgetCatalogOut: ...
 
@@ -701,15 +701,25 @@ class SQLCatalogRepository:
             )
         return statuses
 
-    def list_schemes(self) -> SchemeCatalogOut:
-        """Reconstruct reviewed Andhra Pradesh schemes from published observations."""
-        observations = self.session.scalars(
+    def list_schemes(self, jurisdiction_code: str | None = None) -> SchemeCatalogOut:
+        """Reconstruct reviewed State/UT schemes from published observations.
+
+        ``jurisdiction_code`` optionally limits the catalogue to one State or UT
+        (ISO-3166-2 code, e.g. "IN-TN"); without it every reviewed State/UT
+        scheme is returned.
+        """
+        query = (
             select(SourceObservation)
+            .join(SourceDocument, SourceDocument.id == SourceObservation.document_id)
             .where(
                 SourceObservation.entity_type == "scheme",
                 SourceObservation.is_published.is_(True),
             )
-            .order_by(SourceObservation.entity_id, SourceObservation.field_path)
+        )
+        if jurisdiction_code:
+            query = query.where(SourceDocument.jurisdiction_code == jurisdiction_code)
+        observations = self.session.scalars(
+            query.order_by(SourceObservation.entity_id, SourceObservation.field_path)
         ).all()
         if not observations:
             return SchemeCatalogOut(data=[], status="prepared-empty", telugu_reviewed=False)
@@ -720,11 +730,15 @@ class SQLCatalogRepository:
                 observation.value_text or ""
             )
 
+        document = self.session.get(SourceDocument, observations[0].document_id)
+        if document is None:
+            raise CatalogNotFound("the scheme source document is missing")
+        jurisdiction = document.jurisdiction_code
         source = self._scheme_feed_source(observations[0])
         records: list[SchemeRecordOut] = []
         for entity_id in sorted(grouped):
             fields = grouped[entity_id]
-            records.append(self._scheme_record_out(fields, source))
+            records.append(self._scheme_record_out(fields, source, jurisdiction))
         telugu_reviewed = any(
             field_path.endswith("_te") for fields in grouped.values() for field_path in fields
         )
@@ -757,9 +771,11 @@ class SQLCatalogRepository:
         self,
         fields: dict[str, str],
         source: SchemeSourceOut,
+        jurisdiction_code: str,
     ) -> SchemeRecordOut:
         return SchemeRecordOut(
             slug=fields.get("slug", ""),
+            jurisdiction=jurisdiction_code,
             name=self._scheme_claim(fields.get("name_en", ""), source),
             description=self._scheme_claim(fields.get("description_en", ""), source),
             category=self._scheme_claim(fields.get("category_en", ""), source),

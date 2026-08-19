@@ -71,6 +71,10 @@ function isGeography(record: ExplorerRecord): record is GeographyRecord {
   return "entity_type" in record;
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function GovernmentExplorer() {
   const { locale } = useLocale();
   const [tab, setTab] = useState<ExplorerTab>("districts");
@@ -78,7 +82,7 @@ export function GovernmentExplorer() {
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const labels = copy[locale];
+  const labels = getCopyLabels(copy, locale);
 
   const load = useCallback(
     async (signal?: AbortSignal) => {

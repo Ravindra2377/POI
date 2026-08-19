@@ -32,7 +32,7 @@ describe("officeholder routes", () => {
       </LocaleProvider>,
     );
     expect(
-      screen.getByRole("heading", { level: 1, name: "AP Officeholders" }),
+      screen.getByRole("heading", { level: 1, name: /Officeholders/i }),
     ).toBeVisible();
   });
 

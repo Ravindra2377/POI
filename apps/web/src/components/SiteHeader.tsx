@@ -4,7 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useLocale } from "./LocaleProvider";
+import { useSelectedState } from "./StateProvider";
 import { CoverageNotice } from "./CoverageNotice";
+import { ALL_INDIA_STATES_UTS_DATA } from "@/lib/states";
+import { LANGUAGE_REGISTRY } from "@/lib/languages";
+import type { LanguageCode } from "@/lib/catalog-types";
 
 const primaryNavigation = [
   { href: "/schemes", label: "Schemes" },
@@ -35,6 +39,7 @@ const secondaryNavigation = [
 export function SiteHeader() {
   const pathname = usePathname() ?? "";
   const { locale, setLocale } = useLocale();
+  const { selectedStateIso, setSelectedStateIso } = useSelectedState();
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -118,23 +123,67 @@ export function SiteHeader() {
               </div>
             </div>
           </nav>
-          <div className="language-control">
-            <span className="language-control__icon" aria-hidden="true">
-              🌐
-            </span>
-            <label className="sr-only" htmlFor="site-language">
-              Select language
-            </label>
-            <select
-              id="site-language"
-              value={locale}
-              onChange={(event) =>
-                setLocale(event.currentTarget.value === "te" ? "te" : "en")
-              }
+
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+            {/* Global State Selector */}
+            <div
+              className="state-control"
+              style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}
             >
-              <option value="en">English</option>
-              <option value="te">తెలుగు</option>
-            </select>
+              <span aria-hidden="true" style={{ fontSize: "1rem" }}>
+                🏛️
+              </span>
+              <label className="sr-only" htmlFor="site-state-select">
+                Select State or Union Territory
+              </label>
+              <select
+                id="site-state-select"
+                aria-label="Select State or Union Territory"
+                value={selectedStateIso}
+                onChange={(e) => setSelectedStateIso(e.target.value)}
+                style={{
+                  padding: "0.35rem 0.6rem",
+                  borderRadius: "0.375rem",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "0.85rem",
+                  fontWeight: "600",
+                  color: "#0f172a",
+                  background: "#f8fafc",
+                  cursor: "pointer",
+                  maxWidth: "160px",
+                }}
+              >
+                {ALL_INDIA_STATES_UTS_DATA.map((st) => (
+                  <option key={st.iso_code} value={st.iso_code}>
+                    {st.name_en} ({st.name_native})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Global Language Control */}
+            <div className="language-control">
+              <span className="language-control__icon" aria-hidden="true">
+                🌐
+              </span>
+              <label className="sr-only" htmlFor="site-language">
+                Select language
+              </label>
+              <select
+                id="site-language"
+                aria-label="Select language"
+                value={locale}
+                onChange={(event) =>
+                  setLocale(event.currentTarget.value as LanguageCode)
+                }
+              >
+                {LANGUAGE_REGISTRY.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.native_name} ({lang.english_name})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </header>

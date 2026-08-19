@@ -83,11 +83,15 @@ function formatDate(value: string, locale: Locale) {
   }).format(new Date(value));
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function IngestionContent() {
   const { locale } = useLocale();
   const [feeds, setFeeds] = useState<FeedStatus[]>([]);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const labels = copy[locale];
+  const labels = getCopyLabels(copy, locale);
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setState("loading");

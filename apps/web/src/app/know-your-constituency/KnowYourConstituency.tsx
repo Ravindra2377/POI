@@ -130,11 +130,15 @@ function fillTemplate(
   );
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function KnowYourConstituency() {
   const { locale } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const labels = copy[locale];
+  const labels = getCopyLabels(copy, locale);
 
   const [records, setRecords] = useState<ElectionResultRecord[]>([]);
   const [query, setQuery] = useState("");

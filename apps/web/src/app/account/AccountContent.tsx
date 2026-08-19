@@ -78,9 +78,13 @@ function loadStoredProfile() {
   }
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function AccountContent() {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const labels = getCopyLabels(copy, locale);
 
   const [username] = useState(() => {
     const stored = loadStoredProfile();

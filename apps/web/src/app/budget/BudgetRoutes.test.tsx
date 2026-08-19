@@ -31,7 +31,7 @@ describe("budget routes", () => {
       </LocaleProvider>,
     );
     expect(
-      screen.getByRole("heading", { level: 1, name: "AP Budget" }),
+      screen.getByRole("heading", { level: 1, name: /Budget/i }),
     ).toBeVisible();
   });
 

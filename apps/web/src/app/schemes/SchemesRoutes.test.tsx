@@ -18,7 +18,7 @@ function preparedEmptyResponse() {
 describe("scheme routes", () => {
   it("proxies the FastAPI catalogue with an honest prepared-empty fallback", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(preparedEmptyResponse()));
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/schemes"));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       data: [],
@@ -40,7 +40,7 @@ describe("scheme routes", () => {
         }),
       }),
     );
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/schemes"));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       data: [],
@@ -68,7 +68,7 @@ describe("scheme routes", () => {
     );
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "AP Schemes" }),
+      screen.getByRole("heading", { level: 1, name: /Schemes/i }),
     ).toBeVisible();
     expect(
       screen.getByRole("group", { name: "Filter reviewed schemes" }),
@@ -79,15 +79,17 @@ describe("scheme routes", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(preparedEmptyResponse()));
     const page = await SchemeDetailPage({
       params: Promise.resolve({ slug: "not-reviewed" }),
+      searchParams: Promise.resolve({}),
     });
     render(<LocaleProvider>{page}</LocaleProvider>);
 
     expect(
       screen.getByRole("heading", { name: "Scheme record unavailable" }),
     ).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: "← All AP schemes" }),
-    ).toHaveAttribute("href", "/schemes");
+    expect(screen.getByRole("link", { name: /All.*schemes/i })).toHaveAttribute(
+      "href",
+      "/schemes?state=IN-AP",
+    );
   });
 
   it("renders a published scheme record when the catalogue has it", async () => {
@@ -160,6 +162,7 @@ describe("scheme routes", () => {
     );
     const page = await SchemeDetailPage({
       params: Promise.resolve({ slug: "ysrrb" }),
+      searchParams: Promise.resolve({}),
     });
     render(<LocaleProvider>{page}</LocaleProvider>);
 

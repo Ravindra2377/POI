@@ -32,7 +32,7 @@ describe("project routes", () => {
       </LocaleProvider>,
     );
     expect(
-      screen.getByRole("heading", { level: 1, name: "AP Projects" }),
+      screen.getByRole("heading", { level: 1, name: /Projects/i }),
     ).toBeVisible();
   });
 
@@ -45,7 +45,7 @@ describe("project routes", () => {
       screen.getByRole("heading", { name: "Project record unavailable" }),
     ).toBeVisible();
     expect(
-      screen.getByRole("link", { name: "← All AP projects" }),
+      screen.getByRole("link", { name: /All .* projects/i }),
     ).toHaveAttribute("href", "/projects");
   });
 });

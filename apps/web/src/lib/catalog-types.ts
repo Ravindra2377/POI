@@ -1,4 +1,4 @@
-export type Locale = "en" | "te";
+export type Locale = LanguageCode;
 
 /** All language codes the platform can carry, per the Indian language registry. */
 export type LanguageCode =

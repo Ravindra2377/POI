@@ -41,9 +41,10 @@ class SchemeListClaimOut(APIModel):
 
 
 class SchemeRecordOut(APIModel):
-    """One reviewed Andhra Pradesh scheme with per-claim provenance."""
+    """One reviewed State/UT scheme with per-claim provenance."""
 
     slug: str
+    jurisdiction: str
     name: SchemeClaimOut
     description: SchemeClaimOut
     category: SchemeClaimOut

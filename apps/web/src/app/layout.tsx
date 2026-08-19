@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { LocaleProvider } from "@/components/LocaleProvider";
+import { StateProvider } from "@/components/StateProvider";
 import "./styles.css";
 
 const siteUrl =
@@ -24,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LocaleProvider>{children}</LocaleProvider>
+        <LocaleProvider>
+          <StateProvider>{children}</StateProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

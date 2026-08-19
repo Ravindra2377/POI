@@ -175,9 +175,13 @@ function termOptions(records: ElectionResultRecord[]): {
     .map(([value, label]) => ({ value: String(value), label }));
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function ElectionResultsDirectory() {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const labels = getCopyLabels(copy, locale);
   const [records, setRecords] = useState<ElectionResultRecord[]>([]);
   const [filters, setFilters] = useState<ElectionResultFilters>(initialFilters);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");

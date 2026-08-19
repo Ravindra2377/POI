@@ -22,6 +22,7 @@ export interface OfficialSchemeClaim<T> {
 
 export interface SchemeRecord {
   slug: string;
+  jurisdiction: string;
   name: OfficialSchemeClaim<LocalizedText>;
   description: OfficialSchemeClaim<LocalizedText>;
   department: OfficialSchemeClaim<LocalizedText> | null;
@@ -75,9 +76,11 @@ export function filterSchemes(
 }
 
 export async function getSchemes(
+  stateIso?: string,
   signal?: AbortSignal,
 ): Promise<SchemeCatalogResponse> {
-  const response = await fetch("/api/schemes", {
+  const query = stateIso ? `?state=${encodeURIComponent(stateIso)}` : "";
+  const response = await fetch(`/api/schemes${query}`, {
     headers: { Accept: "application/json" },
     signal,
   });

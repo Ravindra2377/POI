@@ -29,7 +29,10 @@ export function localizedConstituencyText(
 }
 
 export function seatStatusWord(value: string, locale: Locale): string {
-  const words = seatStatusWords[locale];
+  const words =
+    (seatStatusWords as unknown as Record<string, typeof seatStatusWords.en>)[
+      locale
+    ] ?? seatStatusWords.en;
   if (
     value === "died" ||
     value === "resigned" ||

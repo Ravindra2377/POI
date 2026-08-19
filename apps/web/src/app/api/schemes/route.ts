@@ -10,9 +10,14 @@ function preparedEmpty(): SchemeCatalogResponse {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const state = searchParams.get("state");
   try {
-    const response = await fetch(`${API_URL}/api/v1/schemes`, {
+    const url = state
+      ? `${API_URL}/api/v1/schemes?state=${encodeURIComponent(state)}`
+      : `${API_URL}/api/v1/schemes`;
+    const response = await fetch(url, {
       headers: { Accept: "application/json" },
       cache: "no-store",
     });

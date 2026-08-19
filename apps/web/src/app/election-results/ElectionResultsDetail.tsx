@@ -88,6 +88,10 @@ function seatStatusLabel(value: string, labels: Copy): string {
   return labels.statusNone;
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function ElectionResultsDetail({
   record,
   requestedSlug,
@@ -96,7 +100,7 @@ export function ElectionResultsDetail({
   requestedSlug: string;
 }) {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const labels = getCopyLabels(copy, locale);
 
   return (
     <>

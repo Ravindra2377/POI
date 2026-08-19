@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from hashlib import sha256
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 from uuid import UUID, uuid5
@@ -58,10 +59,23 @@ MYSCHEME_API_KEY = "tYTy5eEhlu9rFjyxuCr7ra7ACp4dv1RH8gWuHTDc"
 MYSCHEME_PUBLIC_URL = "https://www.myscheme.gov.in/search/state/Andhra Pradesh"
 MYSCHEME_SCHEME_PAGE = "https://www.myscheme.gov.in/schemes/{slug}"
 
-STATE_FILTERS = [
-    {"identifier": "beneficiaryState", "value": "Andhra Pradesh"},
-    {"identifier": "level", "value": "State"},
-]
+PAGE_SIZE = 100
+
+# Legacy identifier used by the Andhra Pradesh pilot source/document records.
+AP_SCHEME_FEED_KEY = "myscheme-ap-schemes"
+
+# myScheme's state search filter expects its own display names, which differ
+# from the registry names for a few States/UTs. Overrides are keyed by the
+# ISO-3166-2 jurisdiction code.
+MYSCHEME_STATE_SEARCH_NAME_OVERRIDES: dict[str, str] = {
+    "IN-DL": "Delhi",
+    "IN-JK": "Jammu and Kashmir",
+}
+
+
+def state_scheme_search_name(iso_code: str, name_en: str) -> str:
+    """Return the myScheme search state-name for a jurisdiction."""
+    return MYSCHEME_STATE_SEARCH_NAME_OVERRIDES.get(iso_code, name_en)
 
 
 class SchemeFeedError(RuntimeError):
@@ -102,51 +116,112 @@ class FeedStoreResult:
     observations_created: int
     extraction_run_id: UUID
     sha256: str
+    extraction_run_ids: tuple[UUID, ...] = ()
 
 
 def _stable(key: str) -> UUID:
     return uuid5(SCHEME_INGESTION_NAMESPACE, key)
 
 
-def build_search_url() -> str:
-    """Build the exact search endpoint used to fetch the live feed."""
-    query = urlencode({"q": json.dumps(STATE_FILTERS, separators=(",", ":"))})
-    return (
-        f"{MYSCHEME_SEARCH_URL}?lang=en&{query}"
-        "&keyword=&sort=multiple_sort&from=0&size=100"
+def build_search_url(
+    state_name: str = "Andhra Pradesh", from_offset: int = 0
+) -> str:
+    """Build the exact search endpoint used to fetch a State/UT scheme feed."""
+    filters = [
+        {"identifier": "beneficiaryState", "value": state_name},
+        {"identifier": "level", "value": "State"},
+    ]
+    query = urlencode(
+        {
+            "lang": "en",
+            "q": json.dumps(filters, separators=(",", ":")),
+            "keyword": "",
+            "sort": "multiple_sort",
+            "from": str(from_offset),
+            "size": str(PAGE_SIZE),
+        }
     )
+    return f"{MYSCHEME_SEARCH_URL}?{query}"
+
+
+def fetch_state_schemes(
+    state_name: str,
+    *,
+    key_prefix: str,
+    timeout: float = 25.0,
+) -> list[FeedSnapshot]:
+    """Fetch every page of the myScheme state-scheme search for one State/UT.
+
+    Each HTTP response page is captured as its own immutable raw snapshot; the
+    caller merges the parsed records across pages.
+    """
+    snapshots: list[FeedSnapshot] = []
+    from_offset = 0
+    while True:
+        url = build_search_url(state_name, from_offset)
+        request = Request(url, method="GET")
+        request.add_header("x-api-key", MYSCHEME_API_KEY)
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                status = response.status
+                content_type = response.headers.get(
+                    "Content-Type", "application/octet-stream"
+                )
+                payload = response.read()
+        except Exception as error:
+            raise SchemeFeedError(f"fetch failed for {url}: {error}") from error
+        if status != 200:
+            raise SchemeFeedError(f"{url} returned HTTP {status}")
+        try:
+            parsed = json.loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise SchemeFeedError("myScheme response is not valid UTF-8 JSON") from error
+        data = parsed.get("data")
+        summary = data.get("summary") if isinstance(data, dict) else None
+        hits = data.get("hits") if isinstance(data, dict) else None
+        items: list[Any] = []
+        if isinstance(hits, dict) and isinstance(hits.get("items"), list):
+            items = hits["items"]
+        raw_total = summary.get("total") if isinstance(summary, dict) else None
+        total = int(raw_total) if isinstance(raw_total, int | str) else 0
+        snapshots.append(
+            FeedSnapshot(
+                key=f"{key_prefix}:p{from_offset}" if from_offset else key_prefix,
+                name=f"myScheme {state_name} state scheme search",
+                publisher="myScheme (Govt. of India, MeitY)",
+                url=url,
+                public_url=f"https://www.myscheme.gov.in/search/state/{state_name}",
+                request_method="GET",
+                request_body=None,
+                content_type=content_type,
+                raw=payload,
+                retrieved_at=datetime.now(UTC),
+            )
+        )
+        returned = len(items)
+        if returned < PAGE_SIZE or (total and from_offset + returned >= total):
+            break
+        from_offset += PAGE_SIZE
+    return snapshots
 
 
 def fetch_ap_schemes(timeout: float = 25.0) -> FeedSnapshot:
     """Fetch the live myScheme Andhra Pradesh state-scheme search feed."""
-    url = build_search_url()
-    request = Request(url, method="GET")
-    request.add_header("x-api-key", MYSCHEME_API_KEY)
-    try:
-        with urlopen(request, timeout=timeout) as response:
-            status = response.status
-            content_type = response.headers.get("Content-Type", "application/octet-stream")
-            payload = response.read()
-    except Exception as error:
-        raise SchemeFeedError(f"fetch failed for {url}: {error}") from error
-    if status != 200:
-        raise SchemeFeedError(f"{url} returned HTTP {status}")
-    return FeedSnapshot(
-        key="myscheme-ap-schemes",
-        name="myScheme Andhra Pradesh state scheme search",
-        publisher="myScheme (Govt. of India, MeitY)",
-        url=url,
-        public_url=MYSCHEME_PUBLIC_URL,
-        request_method="GET",
-        request_body=None,
-        content_type=content_type,
-        raw=payload,
-        retrieved_at=datetime.now(UTC),
+    snapshots = fetch_state_schemes(
+        "Andhra Pradesh", key_prefix=AP_SCHEME_FEED_KEY, timeout=timeout
     )
+    return snapshots[0]
 
 
-def parse_ap_schemes(raw: bytes) -> list[SchemeFeedRecord]:
-    """Validate and normalise the myScheme search JSON payload."""
+def parse_scheme_payload(
+    raw: bytes, *, allow_empty: bool = False
+) -> list[SchemeFeedRecord]:
+    """Validate and normalise one myScheme search JSON payload.
+
+    ``allow_empty`` permits official responses that carry no scheme items
+    (``summary.total == 0``) — some States/UTs publish no state-level schemes.
+    Malformed responses always raise regardless of the flag.
+    """
     try:
         payload = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -158,7 +233,11 @@ def parse_ap_schemes(raw: bytes) -> list[SchemeFeedRecord]:
     if not isinstance(summary, dict) or not isinstance(hits, dict):
         raise SchemeFeedError("myScheme response is missing summary or hits")
     items = hits.get("items")
-    if not isinstance(items, list) or not items:
+    if not isinstance(items, list):
+        raise SchemeFeedError("myScheme response did not contain scheme items")
+    if not items:
+        if allow_empty:
+            return []
         raise SchemeFeedError("myScheme response did not contain scheme items")
     records: list[SchemeFeedRecord] = []
     for item in items:
@@ -195,8 +274,16 @@ def parse_ap_schemes(raw: bytes) -> list[SchemeFeedRecord]:
     return records
 
 
+def parse_ap_schemes(raw: bytes) -> list[SchemeFeedRecord]:
+    """Validate and normalise the myScheme Andhra Pradesh search JSON payload."""
+    return parse_scheme_payload(raw)
+
+
 def _ensure_source_record(
-    session: Session, snapshot: FeedSnapshot, retrieved_on: date
+    session: Session,
+    snapshot: FeedSnapshot,
+    retrieved_on: date,
+    jurisdiction_code: str = "IN-AP",
 ) -> SourceRecord:
     source_id = _stable(f"ingestion-source:{snapshot.key}")
     source = session.get(SourceRecord, source_id)
@@ -208,7 +295,7 @@ def _ensure_source_record(
         publisher=snapshot.publisher,
         official_domain=urlsplit(snapshot.url).hostname or "unknown.invalid",
         source_type="api_endpoint",
-        jurisdiction_code="IN-AP",
+        jurisdiction_code=jurisdiction_code,
         access_method=AccessMethod.API,
         licence_status=None,
         reuse_status=None,
@@ -227,6 +314,7 @@ def _ensure_document(
     source: SourceRecord,
     snapshot: FeedSnapshot,
     retrieved_on: date,
+    jurisdiction_code: str = "IN-AP",
 ) -> SourceDocument:
     document_id = _stable(f"ingestion-document:{snapshot.key}")
     document = session.get(SourceDocument, document_id)
@@ -242,7 +330,7 @@ def _ensure_document(
         reporting_period_end=retrieved_on,
         document_type="api_response",
         language_code=LanguageCode.EN,
-        jurisdiction_code="IN-AP",
+        jurisdiction_code=jurisdiction_code,
         document_metadata={
             "request_method": snapshot.request_method,
             "adapter": "scheme-feed",
@@ -331,13 +419,16 @@ def _write_observations(
     entity_type: str,
     rows: Sequence[tuple[str, dict[str, str]]],
     retrieved_on: date,
+    geography_id: UUID | None = None,
+    entity_key_prefix: str = "",
 ) -> int:
     created = 0
     for entity_key, fields in rows:
-        entity_id = _stable(f"{entity_type}:{entity_key}")
+        scoped_key = f"{entity_key_prefix}{entity_key}"
+        entity_id = _stable(f"{entity_type}:{scoped_key}")
         for field_path, value in fields.items():
             observation_id = _stable(
-                f"ingestion-observation:{entity_type}:{entity_key}:{field_path}"
+                f"ingestion-observation:{entity_type}:{scoped_key}:{field_path}"
             )
             if session.get(SourceObservation, observation_id) is not None:
                 continue
@@ -348,6 +439,7 @@ def _write_observations(
                     entity_id=entity_id,
                     field_path=field_path,
                     value_text=value,
+                    geography_id=geography_id,
                     document_id=document.id,
                     snapshot_id=snapshot.id,
                     extraction_run_id=extraction_run.id,
@@ -368,6 +460,7 @@ def store_scheme_feed(
     snapshot: FeedSnapshot,
     records: Sequence[SchemeFeedRecord],
     *,
+    geography_id: UUID | None = None,
     software_revision: str = SOFTWARE_REVISION,
 ) -> FeedStoreResult:
     """Persist the raw snapshot, extraction run, and typed official observations."""
@@ -404,6 +497,7 @@ def store_scheme_feed(
         entity_type="scheme",
         rows=rows,
         retrieved_on=retrieved_on,
+        geography_id=geography_id,
     )
     session.flush()
     return FeedStoreResult(
@@ -411,6 +505,86 @@ def store_scheme_feed(
         observations_created=observations_created,
         extraction_run_id=run.id,
         sha256=sha256(snapshot.raw).hexdigest(),
+    )
+
+
+def store_state_scheme_feed(
+    session: Session,
+    storage_dir: Path,
+    *,
+    key_prefix: str,
+    jurisdiction_code: str,
+    snapshots: Sequence[FeedSnapshot],
+    records: Sequence[SchemeFeedRecord],
+    geography_id: UUID | None = None,
+    entity_key_prefix: str = "",
+    software_revision: str = SOFTWARE_REVISION,
+) -> FeedStoreResult:
+    """Persist one State/UT's full scheme feed across all paginated pages.
+
+    The source and document are keyed on the state feed prefix so re-runs are
+    idempotent; each HTTP response page is stored as its own immutable snapshot
+    under that document. Observations are linked to the state geography and the
+    document carries the jurisdiction code used by the catalog API filter.
+    ``entity_key_prefix`` scopes observation identity per jurisdiction because
+    myScheme slugs are not globally unique across states.
+    """
+    if not snapshots:
+        raise SchemeFeedError("cannot store a scheme feed with no snapshots")
+    first = snapshots[0]
+    retrieved_on = first.retrieved_at.date()
+    rows = [
+        (
+            record.slug,
+            {
+                "slug": record.slug,
+                "name_en": record.name_en,
+                "description_en": record.description_en,
+                "category_en": record.category_en,
+                "public_url": MYSCHEME_SCHEME_PAGE.format(slug=record.slug),
+            },
+        )
+        for record in records
+    ]
+    source = _ensure_source_record(session, first, retrieved_on, jurisdiction_code)
+    document = _ensure_document(session, source, first, retrieved_on, jurisdiction_code)
+    store = get_snapshot_store(storage_dir=storage_dir)
+    snapshots_stored = 0
+    observations_created = 0
+    last_run = None
+    run_ids: list[UUID] = []
+    for snapshot in snapshots:
+        snapshot_row, stored = _store_snapshot(session, document, snapshot, store)
+        snapshots_stored += int(stored)
+        run = _ensure_extraction_run(
+            session,
+            snapshot_row,
+            adapter_name="myscheme-state-schemes-adapter",
+            count=len(rows),
+            now=snapshot.retrieved_at,
+        )
+        last_run = run
+        run_ids.append(run.id)
+        observations_created += _write_observations(
+            session,
+            document=document,
+            snapshot=snapshot_row,
+            extraction_run=run,
+            entity_type="scheme",
+            rows=rows,
+            retrieved_on=retrieved_on,
+            geography_id=geography_id,
+            entity_key_prefix=entity_key_prefix,
+        )
+    session.flush()
+    if last_run is None:
+        raise SchemeFeedError("the scheme feed produced no extraction runs")
+    return FeedStoreResult(
+        snapshots_stored=snapshots_stored,
+        observations_created=observations_created,
+        extraction_run_id=last_run.id,
+        sha256=sha256(first.raw).hexdigest(),
+        extraction_run_ids=tuple(run_ids),
     )
 
 
@@ -425,6 +599,44 @@ def review_scheme_observations(
     pending = session.scalars(
         select(SourceObservation).where(
             SourceObservation.extraction_run_id == extraction_run_id,
+            SourceObservation.review_state == ObservationReviewState.PENDING,
+        )
+    ).all()
+    for observation in pending:
+        session.add(
+            ReviewDecision(
+                id=_stable(f"ingestion-review:{observation.id}"),
+                observation_id=observation.id,
+                reviewer_identity=reviewer_identity,
+                decision=ReviewDecisionType.APPROVE,
+                reason=(
+                    "Scheme-feed extraction is deterministic and the values are "
+                    "transcribed from the official myScheme API response. Telugu, "
+                    "department, district, and eligibility fields are absent from "
+                    "the source and are intentionally left unpublished."
+                ),
+                decided_at=decided_at,
+            )
+        )
+        observation.review_state = ObservationReviewState.REVIEWED
+        observation.is_published = True
+    session.flush()
+    return len(pending)
+
+
+def review_scheme_observations_for_runs(
+    session: Session,
+    *,
+    extraction_run_ids: Sequence[UUID],
+    reviewer_identity: str,
+    decided_at: datetime,
+) -> int:
+    """Approve and publish every pending observation across a set of scheme runs."""
+    if not extraction_run_ids:
+        return 0
+    pending = session.scalars(
+        select(SourceObservation).where(
+            SourceObservation.extraction_run_id.in_(extraction_run_ids),
             SourceObservation.review_state == ObservationReviewState.PENDING,
         )
     ).all()

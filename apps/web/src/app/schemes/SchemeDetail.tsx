@@ -4,14 +4,15 @@ import Link from "next/link";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLocale } from "@/components/LocaleProvider";
+import { useSelectedState } from "@/components/StateProvider";
 import { localized, type SchemeRecord } from "@/lib/schemes";
 import { OfficialClaim } from "./OfficialClaim";
 import styles from "./schemes.module.css";
 
 const copy = {
   en: {
-    back: "← All AP schemes",
-    eyebrow: "ANDHRA PRADESH · SCHEME RECORD",
+    back: "← All schemes",
+    eyebrow: "SCHEME RECORD",
     unavailable: "Scheme record unavailable",
     unavailableText:
       "No reviewed, source-backed scheme record is published at this address. The address alone does not establish that a scheme exists or does not exist.",
@@ -31,8 +32,8 @@ const copy = {
     notPublished: "Not published in this reviewed record",
   },
   te: {
-    back: "← అన్ని ఆంధ్రప్రదేశ్ పథకాలు",
-    eyebrow: "ఆంధ్రప్రదేశ్ · పథకం రికార్డు",
+    back: "← అన్ని పథకాలు",
+    eyebrow: "పథకం రికార్డు",
     unavailable: "పథకం రికార్డు అందుబాటులో లేదు",
     unavailableText:
       "ఈ చిరునామాలో సమీక్షించిన, మూలాధారంతో కూడిన పథకం రికార్డు ప్రచురించబడలేదు. ఈ చిరునామా మాత్రమే పథకం ఉందని లేదా లేదని నిర్ధారించదు.",
@@ -53,6 +54,10 @@ const copy = {
   },
 } as const;
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function SchemeDetail({
   scheme,
   requestedSlug,
@@ -63,17 +68,23 @@ export function SchemeDetail({
   teluguReviewed?: boolean;
 }) {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const { selectedState } = useSelectedState();
+  const labels = getCopyLabels(copy, locale);
 
   return (
     <>
       <SiteHeader />
       <main id="main-content">
         <header className={`page-intro shell ${styles.detailHeader}`}>
-          <Link className={styles.backLink} href="/schemes">
+          <Link
+            className={styles.backLink}
+            href={`/schemes?state=${encodeURIComponent(selectedState.iso_code)}`}
+          >
             {labels.back}
           </Link>
-          <p className="eyebrow">{labels.eyebrow}</p>
+          <p className="eyebrow">
+            {selectedState.name_en.toUpperCase()} · {labels.eyebrow}
+          </p>
           {scheme ? (
             <OfficialClaim label={labels.name} source={scheme.name.source}>
               <h1 lang={locale}>{localized(scheme.name.value, locale)}</h1>

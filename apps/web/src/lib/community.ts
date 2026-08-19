@@ -277,7 +277,7 @@ export function localizedCommunityText(
   text: CommunityLocalizedText,
   locale: Locale,
 ): string {
-  return text[locale];
+  return (text as unknown as Record<string, string>)[locale] ?? text.en;
 }
 
 // Prepared participation state for the community API. Participation is closed,

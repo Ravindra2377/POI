@@ -169,8 +169,8 @@ const officialSources = [
   },
 ];
 
-function local(text: LocalText, locale: "en" | "te") {
-  return text[locale];
+function local(text: LocalText, locale: string) {
+  return locale === "te" ? text.te : text.en;
 }
 
 export function LegalBasisContent() {

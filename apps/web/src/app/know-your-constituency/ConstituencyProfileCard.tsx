@@ -56,11 +56,15 @@ const copy = {
   },
 } as const;
 
-function electedViaLabel(value: string, locale: "en" | "te"): string {
+function electedViaLabel(value: string, locale: string): string {
   if (value === "bye_election") {
     return locale === "te" ? copy.te.viaBye : copy.en.viaBye;
   }
   return locale === "te" ? copy.te.viaGeneral : copy.en.viaGeneral;
+}
+
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
 }
 
 export function ConstituencyProfileCard({
@@ -69,7 +73,7 @@ export function ConstituencyProfileCard({
   record: ElectionResultRecord;
 }) {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const labels = getCopyLabels(copy, locale);
   const [copied, setCopied] = useState(false);
 
   const pageUrl = constituencyPageUrl(

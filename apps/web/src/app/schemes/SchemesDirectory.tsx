@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLocale } from "@/components/LocaleProvider";
+import { useSelectedState } from "@/components/StateProvider";
 import {
   filterSchemes,
   getSchemes,
@@ -18,15 +19,15 @@ import styles from "./schemes.module.css";
 
 const copy = {
   en: {
-    eyebrow: "ANDHRA PRADESH · REVIEWED DIRECTORY",
-    title: "AP Schemes",
+    eyebrow: "REVIEWED DIRECTORY",
+    title: "Schemes",
     intro:
       "A source-first directory for reviewed government scheme names, descriptions and eligibility rules.",
     prepared: "Prepared directory · No reviewed scheme records",
     preparedText:
       "The routes and filters are ready, but no scheme names, descriptions or eligibility rules are published until source and bilingual review is complete.",
     teluguNotice:
-      "Telugu labels are not yet reviewed for these records; English values are shown.",
+      "Native labels are not yet reviewed for these records; English values are shown.",
     filters: "Filter reviewed schemes",
     department: "Department",
     district: "District",
@@ -41,7 +42,7 @@ const copy = {
     loading: "Loading the reviewed scheme catalogue…",
     emptyTitle: "No reviewed scheme records are published yet",
     emptyText:
-      "This is an intentionally empty prepared-data state, not a claim that Andhra Pradesh has no schemes.",
+      "This is an intentionally empty prepared-data state, not a claim that this jurisdiction has no schemes.",
     noMatchTitle: "No reviewed schemes match these filters",
     noMatchText: "Change one or more filters to see other reviewed records.",
     errorTitle: "Scheme records could not be loaded",
@@ -57,15 +58,15 @@ const copy = {
     criteriaUnavailable: "Not published in this reviewed record",
   },
   te: {
-    eyebrow: "ఆంధ్రప్రదేశ్ · సమీక్షించిన డైరెక్టరీ",
-    title: "ఆంధ్రప్రదేశ్ పథకాలు",
+    eyebrow: "సమీక్షించిన డైరెక్టరీ",
+    title: "పథకాలు",
     intro:
       "సమీక్షించిన ప్రభుత్వ పథకాల పేర్లు, వివరణలు, అర్హత నియమాల కోసం మూలాధార-కేంద్రీకృత డైరెక్టరీ.",
     prepared: "సిద్ధం చేసిన డైరెక్టరీ · సమీక్షించిన పథక రికార్డులు లేవు",
     preparedText:
       "మార్గాలు, ఫిల్టర్లు సిద్ధంగా ఉన్నాయి. మూలం మరియు ద్విభాషా సమీక్ష పూర్తయ్యే వరకు పథకాల పేర్లు, వివరణలు లేదా అర్హత నియమాలు ప్రచురించబడవు.",
     teluguNotice:
-      "ఈ రికార్డులకు తెలుగు లేబుళ్లు ఇంకా సమీక్షించబడలేదు; ఇంగ్లీషు విలువలు చూపబడతాయి.",
+      "ఈ రికార్డులకు స్వదేశీ లేబుళ్లు ఇంకా సమీక్షించబడలేదు; ఇంగ్లీషు విలువలు చూపబడతాయి.",
     filters: "సమీక్షించిన పథకాలను ఫిల్టర్ చేయండి",
     department: "శాఖ",
     district: "జిల్లా",
@@ -80,7 +81,7 @@ const copy = {
     loading: "సమీక్షించిన పథకాల జాబితా లోడ్ అవుతోంది…",
     emptyTitle: "సమీక్షించిన పథక రికార్డులు ఇంకా ప్రచురించబడలేదు",
     emptyText:
-      "ఇది ఉద్దేశపూర్వకంగా ఖాళీగా ఉన్న సిద్ధం చేసిన డేటా స్థితి; ఆంధ్రప్రదేశ్‌లో పథకాలు లేవని చెప్పడం కాదు.",
+      "ఇది ఉద్దేశపూర్వకంగా ఖాళీగా ఉన్న సిద్ధం చేసిన డేటా స్థితి; ఈ ప్రాంతంలో పథకాలు లేవని చెప్పడం కాదు.",
     noMatchTitle: "ఈ ఫిల్టర్లకు సరిపోలే సమీక్షించిన పథకాలు లేవు",
     noMatchText: "ఇతర సమీక్షించిన రికార్డుల కోసం ఫిల్టర్లను మార్చండి.",
     errorTitle: "పథక రికార్డులను లోడ్ చేయలేకపోయాము",
@@ -117,9 +118,14 @@ function uniqueClaims(
   return [...values.values()].sort((a, b) => a.en.localeCompare(b.en));
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function SchemesDirectory() {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const { selectedState, selectedStateIso } = useSelectedState();
+  const labels = getCopyLabels(copy, locale);
   const [records, setRecords] = useState<SchemeRecord[]>([]);
   const [teluguReviewed, setTeluguReviewed] = useState(false);
   const [filters, setFilters] = useState<SchemeFilters>(initialFilters);
@@ -128,7 +134,7 @@ export function SchemesDirectory() {
   async function load(signal?: AbortSignal) {
     setState("loading");
     try {
-      const response = await getSchemes(signal);
+      const response = await getSchemes(selectedStateIso, signal);
       setRecords(response.data);
       setTeluguReviewed(response.telugu_reviewed);
       setState("ready");
@@ -147,7 +153,8 @@ export function SchemesDirectory() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStateIso]);
 
   const departments = uniqueClaims(records, (record) =>
     record.department === null ? null : [record.department.value],
@@ -173,8 +180,12 @@ export function SchemesDirectory() {
       <SiteHeader />
       <main id="main-content">
         <header className="page-intro shell">
-          <p className="eyebrow">{labels.eyebrow}</p>
-          <h1>{labels.title}</h1>
+          <p className="eyebrow">
+            {selectedState.name_en.toUpperCase()} · {labels.eyebrow}
+          </p>
+          <h1>
+            {selectedState.name_en} {labels.title}
+          </h1>
           <p className="lede">{labels.intro}</p>
           {showPrepared ? (
             <aside className={styles.notice} aria-label={labels.prepared}>
@@ -311,7 +322,9 @@ export function SchemesDirectory() {
                         source={scheme.name.source}
                       >
                         <h2 lang={locale}>
-                          <Link href={`/schemes/${scheme.slug}`}>
+                          <Link
+                            href={`/schemes/${scheme.slug}?state=${encodeURIComponent(selectedStateIso)}`}
+                          >
                             {localized(scheme.name.value, locale)}
                           </Link>
                         </h2>

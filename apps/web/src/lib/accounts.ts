@@ -98,5 +98,5 @@ export function localizedAccountText(
   text: AccountLocalizedText,
   locale: Locale,
 ): string {
-  return text[locale];
+  return (text as unknown as Record<string, string>)[locale] ?? text.en;
 }

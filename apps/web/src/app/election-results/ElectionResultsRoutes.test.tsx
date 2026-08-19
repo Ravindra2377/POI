@@ -32,7 +32,7 @@ describe("election results routes", () => {
       </LocaleProvider>,
     );
     expect(
-      screen.getByRole("heading", { level: 1, name: "AP Election Results" }),
+      screen.getByRole("heading", { level: 1, name: /Election Results/i }),
     ).toBeVisible();
   });
 

@@ -34,7 +34,7 @@ describe("public-money routes", () => {
       </LocaleProvider>,
     );
     expect(
-      screen.getByRole("heading", { level: 1, name: "AP Public Money" }),
+      screen.getByRole("heading", { level: 1, name: /Public Money/i }),
     ).toBeVisible();
   });
 

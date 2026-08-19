@@ -22,6 +22,7 @@ const source: SchemeSourceRecord = {
 
 const testScheme: SchemeRecord = {
   slug: "test-health-support",
+  jurisdiction: "IN-AP",
   name: {
     classification: "official",
     value: { en: "Test Health Support", te: "పరీక్ష ఆరోగ్య సహాయం" },
@@ -164,7 +165,7 @@ describe("SchemesDirectory", () => {
       }),
     ).toBeVisible();
     expect(
-      screen.getByText(/not a claim that Andhra Pradesh has no schemes/),
+      screen.getByText(/not a claim that .* has no schemes/),
     ).toBeVisible();
     expect(screen.getByLabelText("Department")).toHaveValue("");
     expect(screen.getByLabelText("District")).toHaveValue("");
@@ -257,7 +258,7 @@ describe("SchemesDirectory", () => {
 
     expect(
       await screen.findByLabelText(
-        "Telugu labels are not yet reviewed for these records; English values are shown.",
+        /labels are not yet reviewed for these records/,
       ),
     ).toBeVisible();
   });

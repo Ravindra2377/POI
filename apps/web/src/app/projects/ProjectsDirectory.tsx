@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { Locale } from "@/lib/catalog-types";
 import { useLocale } from "@/components/LocaleProvider";
+import { useSelectedState } from "@/components/StateProvider";
+import { ApOnlyCatalogNotice } from "@/components/ApOnlyCatalogNotice";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
@@ -19,8 +22,8 @@ import styles from "./projects.module.css";
 
 const copy = {
   en: {
-    eyebrow: "ANDHRA PRADESH · PREPARED DIRECTORY",
-    title: "AP Projects",
+    eyebrow: "PREPARED DIRECTORY",
+    title: "Projects",
     intro:
       "A source-first directory for reviewed public project descriptions, responsibility, status and timelines.",
     prepared: "Prepared directory · No reviewed project records",
@@ -112,9 +115,15 @@ function uniqueClaims(
   return [...values.values()].sort((a, b) => a.en.localeCompare(b.en));
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function ProjectsDirectory() {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const { selectedState, selectedStateIso } = useSelectedState();
+  const labels = getCopyLabels(copy, locale);
+  const apOnly = selectedStateIso === "IN-AP";
   const [records, setRecords] = useState<ProjectRecord[]>([]);
   const [filters, setFilters] = useState<ProjectFilters>(initialFilters);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
@@ -163,8 +172,12 @@ export function ProjectsDirectory() {
       <SiteHeader />
       <main id="main-content">
         <header className="page-intro shell">
-          <p className="eyebrow">{labels.eyebrow}</p>
-          <h1>{labels.title}</h1>
+          <p className="eyebrow">
+            {selectedState.name_en.toUpperCase()} · {labels.eyebrow}
+          </p>
+          <h1>
+            {selectedState.name_en} {labels.title}
+          </h1>
           <p className="lede">{labels.intro}</p>
           <aside className={styles.notice} aria-label={labels.prepared}>
             <strong>{labels.prepared}</strong>
@@ -175,161 +188,173 @@ export function ProjectsDirectory() {
           <h2 className="sr-only" id="project-results">
             {labels.title}
           </h2>
-          <fieldset className={styles.filters}>
-            <legend className="sr-only">{labels.filters}</legend>
-            <ProjectFilter
-              id="project-department"
-              label={labels.department}
-              allLabel={labels.allDepartments}
-              options={departments}
-              locale={locale}
-              value={filters.department}
-              onChange={(value) => selectFilter("department", value)}
-            />
-            <ProjectFilter
-              id="project-district"
-              label={labels.district}
-              allLabel={labels.allDistricts}
-              options={districts}
-              locale={locale}
-              value={filters.district}
-              onChange={(value) => selectFilter("district", value)}
-            />
-            <ProjectFilter
-              id="project-status"
-              label={labels.status}
-              allLabel={labels.allStatuses}
-              options={statuses}
-              locale={locale}
-              value={filters.status}
-              onChange={(value) => selectFilter("status", value)}
-            />
-            <ProjectFilter
-              id="project-type"
-              label={labels.projectType}
-              allLabel={labels.allTypes}
-              options={projectTypes}
-              locale={locale}
-              value={filters.projectType}
-              onChange={(value) => selectFilter("projectType", value)}
-            />
-          </fieldset>
-          <div className={styles.results} aria-live="polite">
-            {state === "loading" && (
-              <div className="page-state" role="status">
-                {labels.loading}
-              </div>
-            )}
-            {state === "error" && (
-              <div className="error-state" role="alert">
-                <h3>{labels.errorTitle}</h3>
-                <p>{labels.errorText}</p>
-                <button
-                  className="button button--secondary"
-                  onClick={() => void load()}
-                  type="button"
-                >
-                  {labels.retry}
-                </button>
-              </div>
-            )}
-            {state === "ready" && records.length === 0 && (
-              <div className="empty-state">
-                <h3>{labels.emptyTitle}</h3>
-                <p>{labels.emptyText}</p>
-              </div>
-            )}
-            {state === "ready" &&
-              records.length > 0 &&
-              filtered.length === 0 && (
-                <div className="empty-state">
-                  <h3>{labels.noMatchTitle}</h3>
-                  <p>{labels.noMatchText}</p>
-                </div>
-              )}
-            {state === "ready" && filtered.length > 0 && (
-              <ul className={styles.records}>
-                {filtered.map((project) => (
-                  <li key={project.slug}>
-                    <div>
-                      <OfficialProjectClaim
-                        label={labels.name}
-                        source={project.name.source}
-                      >
-                        <h2 lang={locale}>
-                          <Link href={`/projects/${project.slug}`}>
-                            {localizedProjectText(project.name.value, locale)}
-                          </Link>
-                        </h2>
-                      </OfficialProjectClaim>
-                      <OfficialProjectClaim
-                        label={labels.description}
-                        source={project.description.source}
-                      >
-                        <p lang={locale}>
-                          {localizedProjectText(
-                            project.description.value,
-                            locale,
-                          )}
-                        </p>
-                      </OfficialProjectClaim>
+          {apOnly ? (
+            <>
+              <fieldset className={styles.filters}>
+                <legend className="sr-only">{labels.filters}</legend>
+                <ProjectFilter
+                  id="project-department"
+                  label={labels.department}
+                  allLabel={labels.allDepartments}
+                  options={departments}
+                  locale={locale}
+                  value={filters.department}
+                  onChange={(value) => selectFilter("department", value)}
+                />
+                <ProjectFilter
+                  id="project-district"
+                  label={labels.district}
+                  allLabel={labels.allDistricts}
+                  options={districts}
+                  locale={locale}
+                  value={filters.district}
+                  onChange={(value) => selectFilter("district", value)}
+                />
+                <ProjectFilter
+                  id="project-status"
+                  label={labels.status}
+                  allLabel={labels.allStatuses}
+                  options={statuses}
+                  locale={locale}
+                  value={filters.status}
+                  onChange={(value) => selectFilter("status", value)}
+                />
+                <ProjectFilter
+                  id="project-type"
+                  label={labels.projectType}
+                  allLabel={labels.allTypes}
+                  options={projectTypes}
+                  locale={locale}
+                  value={filters.projectType}
+                  onChange={(value) => selectFilter("projectType", value)}
+                />
+              </fieldset>
+              <div className={styles.results} aria-live="polite">
+                {state === "loading" && (
+                  <div className="page-state" role="status">
+                    {labels.loading}
+                  </div>
+                )}
+                {state === "error" && (
+                  <div className="error-state" role="alert">
+                    <h3>{labels.errorTitle}</h3>
+                    <p>{labels.errorText}</p>
+                    <button
+                      className="button button--secondary"
+                      onClick={() => void load()}
+                      type="button"
+                    >
+                      {labels.retry}
+                    </button>
+                  </div>
+                )}
+                {state === "ready" && records.length === 0 && (
+                  <div className="empty-state">
+                    <h3>{labels.emptyTitle}</h3>
+                    <p>{labels.emptyText}</p>
+                  </div>
+                )}
+                {state === "ready" &&
+                  records.length > 0 &&
+                  filtered.length === 0 && (
+                    <div className="empty-state">
+                      <h3>{labels.noMatchTitle}</h3>
+                      <p>{labels.noMatchText}</p>
                     </div>
-                    <div className={styles.claimGrid}>
-                      <OfficialProjectClaim
-                        label={labels.department}
-                        source={project.department.source}
-                      >
-                        {localizedProjectText(project.department.value, locale)}
-                      </OfficialProjectClaim>
-                      <OfficialProjectClaim
-                        label={labels.districts}
-                        source={project.districts.source}
-                      >
-                        {project.districts.value
-                          .map((district) =>
-                            localizedProjectText(district, locale),
-                          )
-                          .join(", ")}
-                      </OfficialProjectClaim>
-                      <OfficialProjectClaim
-                        label={labels.status}
-                        source={project.status.source}
-                      >
-                        {localizedProjectText(project.status.value, locale)}
-                      </OfficialProjectClaim>
-                      <OfficialProjectClaim
-                        label={labels.projectType}
-                        source={project.project_type.source}
-                      >
-                        {localizedProjectText(
-                          project.project_type.value,
-                          locale,
-                        )}
-                      </OfficialProjectClaim>
-                      <OfficialProjectClaim
-                        label={labels.responsibleOffice}
-                        source={project.responsible_office.source}
-                      >
-                        {localizedProjectText(
-                          project.responsible_office.value,
-                          locale,
-                        )}
-                      </OfficialProjectClaim>
-                      <OfficialProjectClaim
-                        label={labels.timeline}
-                        source={project.timeline.source}
-                      >
-                        <ProjectTimeline
-                          timeline={project.timeline.value}
-                          labels={labels}
-                        />
-                      </OfficialProjectClaim>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                  )}
+                {state === "ready" && filtered.length > 0 && (
+                  <ul className={styles.records}>
+                    {filtered.map((project) => (
+                      <li key={project.slug}>
+                        <div>
+                          <OfficialProjectClaim
+                            label={labels.name}
+                            source={project.name.source}
+                          >
+                            <h2 lang={locale}>
+                              <Link href={`/projects/${project.slug}`}>
+                                {localizedProjectText(
+                                  project.name.value,
+                                  locale,
+                                )}
+                              </Link>
+                            </h2>
+                          </OfficialProjectClaim>
+                          <OfficialProjectClaim
+                            label={labels.description}
+                            source={project.description.source}
+                          >
+                            <p lang={locale}>
+                              {localizedProjectText(
+                                project.description.value,
+                                locale,
+                              )}
+                            </p>
+                          </OfficialProjectClaim>
+                        </div>
+                        <div className={styles.claimGrid}>
+                          <OfficialProjectClaim
+                            label={labels.department}
+                            source={project.department.source}
+                          >
+                            {localizedProjectText(
+                              project.department.value,
+                              locale,
+                            )}
+                          </OfficialProjectClaim>
+                          <OfficialProjectClaim
+                            label={labels.districts}
+                            source={project.districts.source}
+                          >
+                            {project.districts.value
+                              .map((district) =>
+                                localizedProjectText(district, locale),
+                              )
+                              .join(", ")}
+                          </OfficialProjectClaim>
+                          <OfficialProjectClaim
+                            label={labels.status}
+                            source={project.status.source}
+                          >
+                            {localizedProjectText(project.status.value, locale)}
+                          </OfficialProjectClaim>
+                          <OfficialProjectClaim
+                            label={labels.projectType}
+                            source={project.project_type.source}
+                          >
+                            {localizedProjectText(
+                              project.project_type.value,
+                              locale,
+                            )}
+                          </OfficialProjectClaim>
+                          <OfficialProjectClaim
+                            label={labels.responsibleOffice}
+                            source={project.responsible_office.source}
+                          >
+                            {localizedProjectText(
+                              project.responsible_office.value,
+                              locale,
+                            )}
+                          </OfficialProjectClaim>
+                          <OfficialProjectClaim
+                            label={labels.timeline}
+                            source={project.timeline.source}
+                          >
+                            <ProjectTimeline
+                              timeline={project.timeline.value}
+                              labels={labels}
+                            />
+                          </OfficialProjectClaim>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          ) : (
+            <ApOnlyCatalogNotice jurisdiction={selectedState.name_en} />
+          )}
         </section>
       </main>
       <PageFooter />
@@ -350,7 +375,7 @@ function ProjectFilter({
   label: string;
   allLabel: string;
   options: ProjectLocalizedText[];
-  locale: "en" | "te";
+  locale: Locale;
   value: string;
   onChange: (value: string) => void;
 }) {

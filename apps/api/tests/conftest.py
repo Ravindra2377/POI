@@ -223,6 +223,7 @@ def scheme_catalog() -> SchemeCatalogOut:
         data=[
             SchemeRecordOut(
                 slug="ysrrb",
+                jurisdiction="IN-AP",
                 name=claim("YSR Rythu Bharosa"),
                 description=claim(
                     "Launched in June 2019, the scheme \"YSR RYTHU BHAROSA\" is being "
@@ -344,7 +345,9 @@ class FakeCatalog:
     def list_feed_statuses(self) -> list[FeedStatusOut]:
         return [feed_status()]
 
-    def list_schemes(self) -> SchemeCatalogOut:
+    def list_schemes(
+        self, jurisdiction_code: str | None = None
+    ) -> SchemeCatalogOut:
         return scheme_catalog()
 
     def list_budget(self) -> BudgetCatalogOut:

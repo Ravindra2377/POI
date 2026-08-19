@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FinancialStageSelector } from "@/components/FinancialStageSelector";
+import type { Locale } from "@/lib/catalog-types";
 import { useLocale } from "@/components/LocaleProvider";
+import { useSelectedState } from "@/components/StateProvider";
+import { ApOnlyCatalogNotice } from "@/components/ApOnlyCatalogNotice";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
@@ -20,8 +23,8 @@ import styles from "./public-money.module.css";
 
 const copy = {
   en: {
-    eyebrow: "ANDHRA PRADESH · PREPARED DIRECTORY",
-    title: "AP Public Money",
+    eyebrow: "PREPARED DIRECTORY",
+    title: "Public Money",
     intro:
       "A source-first directory for reviewed financial observations across every stage of public money.",
     prepared: "Prepared directory · No reviewed public-money records",
@@ -125,9 +128,15 @@ function uniqueClaims(
   return [...values.values()].sort((a, b) => a.en.localeCompare(b.en));
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function PublicMoneyDirectory() {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const { selectedState, selectedStateIso } = useSelectedState();
+  const labels = getCopyLabels(copy, locale);
+  const apOnly = selectedStateIso === "IN-AP";
   const [records, setRecords] = useState<PublicMoneyRecord[]>([]);
   const [filters, setFilters] = useState<PublicMoneyFilters>(initialFilters);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
@@ -173,8 +182,12 @@ export function PublicMoneyDirectory() {
       <SiteHeader />
       <main id="main-content">
         <header className="page-intro shell">
-          <p className="eyebrow">{labels.eyebrow}</p>
-          <h1>{labels.title}</h1>
+          <p className="eyebrow">
+            {selectedState.name_en.toUpperCase()} · {labels.eyebrow}
+          </p>
+          <h1>
+            {selectedState.name_en} {labels.title}
+          </h1>
           <p className="lede">{labels.intro}</p>
           <aside className={styles.notice} aria-label={labels.prepared}>
             <strong>{labels.prepared}</strong>
@@ -207,179 +220,194 @@ export function PublicMoneyDirectory() {
           <h2 className="sr-only" id="money-results">
             {labels.title}
           </h2>
-          <fieldset className={styles.filters}>
-            <legend className="sr-only">{labels.filters}</legend>
-            <MoneyFilter
-              id="money-stage"
-              label={labels.stage}
-              allLabel={labels.allStages}
-              options={stages}
-              locale={locale}
-              value={filters.stage}
-              onChange={(value) => selectFilter("stage", value)}
-            />
-            <MoneyFilter
-              id="money-department"
-              label={labels.department}
-              allLabel={labels.allDepartments}
-              options={departments}
-              locale={locale}
-              value={filters.department}
-              onChange={(value) => selectFilter("department", value)}
-            />
-            <MoneyFilter
-              id="money-district"
-              label={labels.district}
-              allLabel={labels.allDistricts}
-              options={districts}
-              locale={locale}
-              value={filters.district}
-              onChange={(value) => selectFilter("district", value)}
-            />
-            <div>
-              <label htmlFor="money-amount">{labels.amount}</label>
-              <select
-                id="money-amount"
-                value={filters.amount}
-                onChange={(event) =>
-                  selectFilter(
-                    "amount",
-                    event.currentTarget.value as PublicMoneyFilters["amount"],
-                  )
-                }
-              >
-                <option value="all">{labels.amountAll}</option>
-                <option value="published">{labels.amountPublished}</option>
-                <option value="unavailable">{labels.amountUnavailable}</option>
-              </select>
-            </div>
-          </fieldset>
-
-          <div className={styles.results} aria-live="polite">
-            {state === "loading" && (
-              <div className="page-state" role="status">
-                {labels.loading}
-              </div>
-            )}
-            {state === "error" && (
-              <div className="error-state" role="alert">
-                <h3>{labels.errorTitle}</h3>
-                <p>{labels.errorText}</p>
-                <button
-                  className="button button--secondary"
-                  onClick={() => void load()}
-                  type="button"
-                >
-                  {labels.retry}
-                </button>
-              </div>
-            )}
-            {state === "ready" && records.length === 0 && (
-              <div className="empty-state">
-                <h3>{labels.emptyTitle}</h3>
-                <p>{labels.emptyText}</p>
-              </div>
-            )}
-            {state === "ready" &&
-              records.length > 0 &&
-              filtered.length === 0 && (
-                <div className="empty-state">
-                  <h3>{labels.noMatchTitle}</h3>
-                  <p>{labels.noMatchText}</p>
+          {apOnly ? (
+            <>
+              <fieldset className={styles.filters}>
+                <legend className="sr-only">{labels.filters}</legend>
+                <MoneyFilter
+                  id="money-stage"
+                  label={labels.stage}
+                  allLabel={labels.allStages}
+                  options={stages}
+                  locale={locale}
+                  value={filters.stage}
+                  onChange={(value) => selectFilter("stage", value)}
+                />
+                <MoneyFilter
+                  id="money-department"
+                  label={labels.department}
+                  allLabel={labels.allDepartments}
+                  options={departments}
+                  locale={locale}
+                  value={filters.department}
+                  onChange={(value) => selectFilter("department", value)}
+                />
+                <MoneyFilter
+                  id="money-district"
+                  label={labels.district}
+                  allLabel={labels.allDistricts}
+                  options={districts}
+                  locale={locale}
+                  value={filters.district}
+                  onChange={(value) => selectFilter("district", value)}
+                />
+                <div>
+                  <label htmlFor="money-amount">{labels.amount}</label>
+                  <select
+                    id="money-amount"
+                    value={filters.amount}
+                    onChange={(event) =>
+                      selectFilter(
+                        "amount",
+                        event.currentTarget
+                          .value as PublicMoneyFilters["amount"],
+                      )
+                    }
+                  >
+                    <option value="all">{labels.amountAll}</option>
+                    <option value="published">{labels.amountPublished}</option>
+                    <option value="unavailable">
+                      {labels.amountUnavailable}
+                    </option>
+                  </select>
                 </div>
-              )}
-            {state === "ready" && filtered.length > 0 && (
-              <ul className={styles.records}>
-                {filtered.map((record) => (
-                  <li key={record.slug}>
-                    <div>
-                      <OfficialMoneyClaim
-                        label={labels.observation}
-                        source={record.title.source}
-                      >
-                        <h2 lang={locale}>
-                          <Link href={`/public-money/${record.slug}`}>
-                            {localizedMoneyText(record.title.value, locale)}
-                          </Link>
-                        </h2>
-                      </OfficialMoneyClaim>
-                      <OfficialMoneyClaim
-                        label={labels.description}
-                        source={record.description.source}
-                      >
-                        <p lang={locale}>
-                          {localizedMoneyText(record.description.value, locale)}
-                        </p>
-                      </OfficialMoneyClaim>
+              </fieldset>
+
+              <div className={styles.results} aria-live="polite">
+                {state === "loading" && (
+                  <div className="page-state" role="status">
+                    {labels.loading}
+                  </div>
+                )}
+                {state === "error" && (
+                  <div className="error-state" role="alert">
+                    <h3>{labels.errorTitle}</h3>
+                    <p>{labels.errorText}</p>
+                    <button
+                      className="button button--secondary"
+                      onClick={() => void load()}
+                      type="button"
+                    >
+                      {labels.retry}
+                    </button>
+                  </div>
+                )}
+                {state === "ready" && records.length === 0 && (
+                  <div className="empty-state">
+                    <h3>{labels.emptyTitle}</h3>
+                    <p>{labels.emptyText}</p>
+                  </div>
+                )}
+                {state === "ready" &&
+                  records.length > 0 &&
+                  filtered.length === 0 && (
+                    <div className="empty-state">
+                      <h3>{labels.noMatchTitle}</h3>
+                      <p>{labels.noMatchText}</p>
                     </div>
-                    <div className={styles.claimGrid}>
-                      <OfficialMoneyClaim
-                        label={labels.stage}
-                        source={record.stage.source}
-                      >
-                        {localizedMoneyText(record.stage.value, locale)}
-                      </OfficialMoneyClaim>
-                      <OfficialMoneyClaim
-                        label={labels.department}
-                        source={record.department.source}
-                      >
-                        {localizedMoneyText(record.department.value, locale)}
-                      </OfficialMoneyClaim>
-                      <OfficialMoneyClaim
-                        label={labels.districts}
-                        source={record.districts.source}
-                      >
-                        {record.districts.value
-                          .map((district) =>
-                            localizedMoneyText(district, locale),
-                          )
-                          .join(", ")}
-                      </OfficialMoneyClaim>
-                      {record.reporting_period ? (
-                        <OfficialMoneyClaim
-                          label={labels.reportingPeriod}
-                          source={record.reporting_period.source}
-                        >
-                          {localizedMoneyText(
-                            record.reporting_period.value,
-                            locale,
+                  )}
+                {state === "ready" && filtered.length > 0 && (
+                  <ul className={styles.records}>
+                    {filtered.map((record) => (
+                      <li key={record.slug}>
+                        <div>
+                          <OfficialMoneyClaim
+                            label={labels.observation}
+                            source={record.title.source}
+                          >
+                            <h2 lang={locale}>
+                              <Link href={`/public-money/${record.slug}`}>
+                                {localizedMoneyText(record.title.value, locale)}
+                              </Link>
+                            </h2>
+                          </OfficialMoneyClaim>
+                          <OfficialMoneyClaim
+                            label={labels.description}
+                            source={record.description.source}
+                          >
+                            <p lang={locale}>
+                              {localizedMoneyText(
+                                record.description.value,
+                                locale,
+                              )}
+                            </p>
+                          </OfficialMoneyClaim>
+                        </div>
+                        <div className={styles.claimGrid}>
+                          <OfficialMoneyClaim
+                            label={labels.stage}
+                            source={record.stage.source}
+                          >
+                            {localizedMoneyText(record.stage.value, locale)}
+                          </OfficialMoneyClaim>
+                          <OfficialMoneyClaim
+                            label={labels.department}
+                            source={record.department.source}
+                          >
+                            {localizedMoneyText(
+                              record.department.value,
+                              locale,
+                            )}
+                          </OfficialMoneyClaim>
+                          <OfficialMoneyClaim
+                            label={labels.districts}
+                            source={record.districts.source}
+                          >
+                            {record.districts.value
+                              .map((district) =>
+                                localizedMoneyText(district, locale),
+                              )
+                              .join(", ")}
+                          </OfficialMoneyClaim>
+                          {record.reporting_period ? (
+                            <OfficialMoneyClaim
+                              label={labels.reportingPeriod}
+                              source={record.reporting_period.source}
+                            >
+                              {localizedMoneyText(
+                                record.reporting_period.value,
+                                locale,
+                              )}
+                            </OfficialMoneyClaim>
+                          ) : (
+                            <div className={styles.claim}>
+                              <span className={styles.claimLabel}>
+                                {labels.reportingPeriod}
+                              </span>
+                              <div className={styles.claimValue}>
+                                {labels.reportingUnavailable}
+                              </div>
+                            </div>
                           )}
-                        </OfficialMoneyClaim>
-                      ) : (
-                        <div className={styles.claim}>
-                          <span className={styles.claimLabel}>
-                            {labels.reportingPeriod}
-                          </span>
-                          <div className={styles.claimValue}>
-                            {labels.reportingUnavailable}
-                          </div>
+                          {record.amount ? (
+                            <OfficialMoneyClaim
+                              label={labels.amountLabel}
+                              source={record.amount.source}
+                            >
+                              <strong className={styles.amount}>
+                                {formatMoneyAmount(record.amount.value)}
+                              </strong>
+                            </OfficialMoneyClaim>
+                          ) : (
+                            <div className={styles.claim}>
+                              <span className={styles.claimLabel}>
+                                {labels.amountLabel}
+                              </span>
+                              <div className={styles.claimValue}>
+                                {labels.amountUnavailableText}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {record.amount ? (
-                        <OfficialMoneyClaim
-                          label={labels.amountLabel}
-                          source={record.amount.source}
-                        >
-                          <strong className={styles.amount}>
-                            {formatMoneyAmount(record.amount.value)}
-                          </strong>
-                        </OfficialMoneyClaim>
-                      ) : (
-                        <div className={styles.claim}>
-                          <span className={styles.claimLabel}>
-                            {labels.amountLabel}
-                          </span>
-                          <div className={styles.claimValue}>
-                            {labels.amountUnavailableText}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          ) : (
+            <ApOnlyCatalogNotice jurisdiction={selectedState.name_en} />
+          )}
         </section>
       </main>
       <PageFooter />
@@ -400,7 +428,7 @@ function MoneyFilter({
   label: string;
   allLabel: string;
   options: PublicMoneyLocalizedText[];
-  locale: "en" | "te";
+  locale: Locale;
   value: string;
   onChange: (value: string) => void;
 }) {

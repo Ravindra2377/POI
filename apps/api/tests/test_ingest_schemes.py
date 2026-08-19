@@ -12,6 +12,8 @@ from app.ingestion.schemes import (
     build_search_url,
     fetch_ap_schemes,
     parse_ap_schemes,
+    parse_scheme_payload,
+    state_scheme_search_name,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -56,6 +58,30 @@ def test_parse_ap_schemes_rejects_invalid_payloads() -> None:
         parse_ap_schemes(b'{"data": {"summary": {}, "hits": {"items": []}}}')
     with pytest.raises(SchemeFeedError):
         parse_ap_schemes(b'{"data": {"summary": {}, "hits": {"items": [{"fields": {}}]}}}')
+
+
+def test_parse_scheme_payload_allow_empty_accepts_official_empty_results() -> None:
+    empty = b'{"data": {"summary": {"total": 0}, "hits": {"items": []}}}'
+
+    assert parse_scheme_payload(empty, allow_empty=True) == []
+
+    with pytest.raises(SchemeFeedError, match="did not contain scheme items"):
+        parse_scheme_payload(empty)
+
+    with pytest.raises(SchemeFeedError):
+        parse_scheme_payload(b'{"data": {"summary": {"total": 0}}}', allow_empty=True)
+    with pytest.raises(SchemeFeedError):
+        parse_scheme_payload(
+            b'{"data": {"summary": {"total": 0}, "hits": {"items": {}}}}',
+            allow_empty=True,
+        )
+
+
+def test_state_scheme_search_name_uses_override_for_delhi_and_jk() -> None:
+    assert state_scheme_search_name("IN-DL", "Delhi (NCT)") == "Delhi"
+    assert state_scheme_search_name("IN-JK", "Jammu & Kashmir") == "Jammu and Kashmir"
+    assert state_scheme_search_name("IN-AP", "Andhra Pradesh") == "Andhra Pradesh"
+    assert state_scheme_search_name("IN-TN", "Tamil Nadu") == "Tamil Nadu"
 
 
 def test_scheme_feed_record_keeps_scheme_id() -> None:

@@ -60,6 +60,10 @@ const copy = {
   },
 } as const;
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function ProcurementDetail({
   record,
   requestedSlug,
@@ -68,7 +72,7 @@ export function ProcurementDetail({
   requestedSlug: string;
 }) {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const labels = getCopyLabels(copy, locale);
 
   return (
     <>

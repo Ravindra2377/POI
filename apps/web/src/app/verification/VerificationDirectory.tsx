@@ -115,9 +115,13 @@ function formatRupees(value: number | string | null | undefined): string {
     : String(value);
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function VerificationDirectory() {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const labels = getCopyLabels(copy, locale);
   const [comparisons, setComparisons] = useState<ClaimRecordComparison[]>([]);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
 

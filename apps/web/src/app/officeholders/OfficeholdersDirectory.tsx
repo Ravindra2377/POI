@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { Locale } from "@/lib/catalog-types";
 import { useLocale } from "@/components/LocaleProvider";
+import { useSelectedState } from "@/components/StateProvider";
+import { ApOnlyCatalogNotice } from "@/components/ApOnlyCatalogNotice";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
@@ -18,8 +21,8 @@ import styles from "./officeholders.module.css";
 
 const copy = {
   en: {
-    eyebrow: "ANDHRA PRADESH · PREPARED DIRECTORY",
-    title: "AP Officeholders",
+    eyebrow: "PREPARED DIRECTORY",
+    title: "Officeholders",
     intro:
       "A source-first directory for reviewed, time-bounded roles and terms.",
     prepared: "Prepared directory · No reviewed officeholder records",
@@ -143,9 +146,15 @@ function uniqueClaims(
   return [...values.values()].sort((a, b) => a.en.localeCompare(b.en));
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function OfficeholdersDirectory() {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const { selectedState, selectedStateIso } = useSelectedState();
+  const labels = getCopyLabels(copy, locale);
+  const apOnly = selectedStateIso === "IN-AP";
   const [records, setRecords] = useState<OfficeholderRecord[]>([]);
   const [filters, setFilters] = useState<OfficeholderFilters>(initialFilters);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
@@ -189,8 +198,12 @@ export function OfficeholdersDirectory() {
       <SiteHeader />
       <main id="main-content">
         <header className="page-intro shell">
-          <p className="eyebrow">{labels.eyebrow}</p>
-          <h1>{labels.title}</h1>
+          <p className="eyebrow">
+            {selectedState.name_en.toUpperCase()} · {labels.eyebrow}
+          </p>
+          <h1>
+            {selectedState.name_en} {labels.title}
+          </h1>
           <p className="lede">{labels.intro}</p>
           <aside className={styles.notice} aria-label={labels.prepared}>
             <strong>{labels.prepared}</strong>
@@ -239,178 +252,195 @@ export function OfficeholdersDirectory() {
           <h2 className="sr-only" id="officeholder-results">
             {labels.title}
           </h2>
-          <fieldset className={styles.filters}>
-            <legend className="sr-only">{labels.filters}</legend>
-            <OfficeholderFilter
-              id="officeholder-office"
-              label={labels.office}
-              allLabel={labels.allOffices}
-              options={offices}
-              locale={locale}
-              value={filters.office}
-              onChange={(value) => selectFilter("office", value)}
-            />
-            <OfficeholderFilter
-              id="officeholder-body"
-              label={labels.body}
-              allLabel={labels.allBodies}
-              options={bodies}
-              locale={locale}
-              value={filters.body}
-              onChange={(value) => selectFilter("body", value)}
-            />
-            <OfficeholderFilter
-              id="officeholder-district"
-              label={labels.district}
-              allLabel={labels.allDistricts}
-              options={districts}
-              locale={locale}
-              value={filters.district}
-              onChange={(value) => selectFilter("district", value)}
-            />
-            <div>
-              <label htmlFor="officeholder-term-dates">
-                {labels.termDates}
-              </label>
-              <select
-                id="officeholder-term-dates"
-                value={filters.termDates}
-                onChange={(event) =>
-                  selectFilter(
-                    "termDates",
-                    event.currentTarget
-                      .value as OfficeholderFilters["termDates"],
-                  )
-                }
-              >
-                <option value="all">{labels.termAll}</option>
-                <option value="published">{labels.termPublished}</option>
-                <option value="unavailable">{labels.termUnavailable}</option>
-              </select>
-            </div>
-          </fieldset>
-
-          <div className={styles.results} aria-live="polite">
-            {state === "loading" && (
-              <div className="page-state" role="status">
-                {labels.loading}
-              </div>
-            )}
-            {state === "error" && (
-              <div className="error-state" role="alert">
-                <h3>{labels.errorTitle}</h3>
-                <p>{labels.errorText}</p>
-                <button
-                  className="button button--secondary"
-                  onClick={() => void load()}
-                  type="button"
-                >
-                  {labels.retry}
-                </button>
-              </div>
-            )}
-            {state === "ready" && records.length === 0 && (
-              <div className="empty-state">
-                <h3>{labels.emptyTitle}</h3>
-                <p>{labels.emptyText}</p>
-              </div>
-            )}
-            {state === "ready" &&
-              records.length > 0 &&
-              filtered.length === 0 && (
-                <div className="empty-state">
-                  <h3>{labels.noMatchTitle}</h3>
-                  <p>{labels.noMatchText}</p>
+          {apOnly ? (
+            <>
+              <fieldset className={styles.filters}>
+                <legend className="sr-only">{labels.filters}</legend>
+                <OfficeholderFilter
+                  id="officeholder-office"
+                  label={labels.office}
+                  allLabel={labels.allOffices}
+                  options={offices}
+                  locale={locale}
+                  value={filters.office}
+                  onChange={(value) => selectFilter("office", value)}
+                />
+                <OfficeholderFilter
+                  id="officeholder-body"
+                  label={labels.body}
+                  allLabel={labels.allBodies}
+                  options={bodies}
+                  locale={locale}
+                  value={filters.body}
+                  onChange={(value) => selectFilter("body", value)}
+                />
+                <OfficeholderFilter
+                  id="officeholder-district"
+                  label={labels.district}
+                  allLabel={labels.allDistricts}
+                  options={districts}
+                  locale={locale}
+                  value={filters.district}
+                  onChange={(value) => selectFilter("district", value)}
+                />
+                <div>
+                  <label htmlFor="officeholder-term-dates">
+                    {labels.termDates}
+                  </label>
+                  <select
+                    id="officeholder-term-dates"
+                    value={filters.termDates}
+                    onChange={(event) =>
+                      selectFilter(
+                        "termDates",
+                        event.currentTarget
+                          .value as OfficeholderFilters["termDates"],
+                      )
+                    }
+                  >
+                    <option value="all">{labels.termAll}</option>
+                    <option value="published">{labels.termPublished}</option>
+                    <option value="unavailable">
+                      {labels.termUnavailable}
+                    </option>
+                  </select>
                 </div>
-              )}
-            {state === "ready" && filtered.length > 0 && (
-              <ul className={styles.records}>
-                {filtered.map((record) => (
-                  <li key={record.slug}>
-                    <div>
-                      <OfficialOfficeholderClaim
-                        label={labels.observation}
-                        source={record.title.source}
-                      >
-                        <h2 lang={locale}>
-                          <Link href={`/officeholders/${record.slug}`}>
+              </fieldset>
+
+              <div className={styles.results} aria-live="polite">
+                {state === "loading" && (
+                  <div className="page-state" role="status">
+                    {labels.loading}
+                  </div>
+                )}
+                {state === "error" && (
+                  <div className="error-state" role="alert">
+                    <h3>{labels.errorTitle}</h3>
+                    <p>{labels.errorText}</p>
+                    <button
+                      className="button button--secondary"
+                      onClick={() => void load()}
+                      type="button"
+                    >
+                      {labels.retry}
+                    </button>
+                  </div>
+                )}
+                {state === "ready" && records.length === 0 && (
+                  <div className="empty-state">
+                    <h3>{labels.emptyTitle}</h3>
+                    <p>{labels.emptyText}</p>
+                  </div>
+                )}
+                {state === "ready" &&
+                  records.length > 0 &&
+                  filtered.length === 0 && (
+                    <div className="empty-state">
+                      <h3>{labels.noMatchTitle}</h3>
+                      <p>{labels.noMatchText}</p>
+                    </div>
+                  )}
+                {state === "ready" && filtered.length > 0 && (
+                  <ul className={styles.records}>
+                    {filtered.map((record) => (
+                      <li key={record.slug}>
+                        <div>
+                          <OfficialOfficeholderClaim
+                            label={labels.observation}
+                            source={record.title.source}
+                          >
+                            <h2 lang={locale}>
+                              <Link href={`/officeholders/${record.slug}`}>
+                                {localizedOfficeholderText(
+                                  record.title.value,
+                                  locale,
+                                )}
+                              </Link>
+                            </h2>
+                          </OfficialOfficeholderClaim>
+                          <OfficialOfficeholderClaim
+                            label={labels.description}
+                            source={record.description.source}
+                          >
+                            <p lang={locale}>
+                              {localizedOfficeholderText(
+                                record.description.value,
+                                locale,
+                              )}
+                            </p>
+                          </OfficialOfficeholderClaim>
+                        </div>
+                        <div className={styles.claimGrid}>
+                          <OfficialOfficeholderClaim
+                            label={labels.holder}
+                            source={record.holder.source}
+                          >
                             {localizedOfficeholderText(
-                              record.title.value,
+                              record.holder.value,
                               locale,
                             )}
-                          </Link>
-                        </h2>
-                      </OfficialOfficeholderClaim>
-                      <OfficialOfficeholderClaim
-                        label={labels.description}
-                        source={record.description.source}
-                      >
-                        <p lang={locale}>
-                          {localizedOfficeholderText(
-                            record.description.value,
-                            locale,
+                          </OfficialOfficeholderClaim>
+                          <OfficialOfficeholderClaim
+                            label={labels.officeLabel}
+                            source={record.office.source}
+                          >
+                            {localizedOfficeholderText(
+                              record.office.value,
+                              locale,
+                            )}
+                          </OfficialOfficeholderClaim>
+                          <OfficialOfficeholderClaim
+                            label={labels.bodyLabel}
+                            source={record.body.source}
+                          >
+                            {localizedOfficeholderText(
+                              record.body.value,
+                              locale,
+                            )}
+                          </OfficialOfficeholderClaim>
+                          <OfficialOfficeholderClaim
+                            label={labels.districts}
+                            source={record.districts.source}
+                          >
+                            {record.districts.value
+                              .map((district) =>
+                                localizedOfficeholderText(district, locale),
+                              )
+                              .join(", ")}
+                          </OfficialOfficeholderClaim>
+                          <OfficialOfficeholderClaim
+                            label={labels.termStart}
+                            source={record.term_start.source}
+                          >
+                            {record.term_start.value}
+                          </OfficialOfficeholderClaim>
+                          {record.term_end ? (
+                            <OfficialOfficeholderClaim
+                              label={labels.termEnd}
+                              source={record.term_end.source}
+                            >
+                              {record.term_end.value}
+                            </OfficialOfficeholderClaim>
+                          ) : (
+                            <div className={styles.claim}>
+                              <span className={styles.claimLabel}>
+                                {labels.termEnd}
+                              </span>
+                              <div className={styles.claimValue}>
+                                {labels.termEndUnavailable}
+                              </div>
+                            </div>
                           )}
-                        </p>
-                      </OfficialOfficeholderClaim>
-                    </div>
-                    <div className={styles.claimGrid}>
-                      <OfficialOfficeholderClaim
-                        label={labels.holder}
-                        source={record.holder.source}
-                      >
-                        {localizedOfficeholderText(record.holder.value, locale)}
-                      </OfficialOfficeholderClaim>
-                      <OfficialOfficeholderClaim
-                        label={labels.officeLabel}
-                        source={record.office.source}
-                      >
-                        {localizedOfficeholderText(record.office.value, locale)}
-                      </OfficialOfficeholderClaim>
-                      <OfficialOfficeholderClaim
-                        label={labels.bodyLabel}
-                        source={record.body.source}
-                      >
-                        {localizedOfficeholderText(record.body.value, locale)}
-                      </OfficialOfficeholderClaim>
-                      <OfficialOfficeholderClaim
-                        label={labels.districts}
-                        source={record.districts.source}
-                      >
-                        {record.districts.value
-                          .map((district) =>
-                            localizedOfficeholderText(district, locale),
-                          )
-                          .join(", ")}
-                      </OfficialOfficeholderClaim>
-                      <OfficialOfficeholderClaim
-                        label={labels.termStart}
-                        source={record.term_start.source}
-                      >
-                        {record.term_start.value}
-                      </OfficialOfficeholderClaim>
-                      {record.term_end ? (
-                        <OfficialOfficeholderClaim
-                          label={labels.termEnd}
-                          source={record.term_end.source}
-                        >
-                          {record.term_end.value}
-                        </OfficialOfficeholderClaim>
-                      ) : (
-                        <div className={styles.claim}>
-                          <span className={styles.claimLabel}>
-                            {labels.termEnd}
-                          </span>
-                          <div className={styles.claimValue}>
-                            {labels.termEndUnavailable}
-                          </div>
                         </div>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          ) : (
+            <ApOnlyCatalogNotice jurisdiction={selectedState.name_en} />
+          )}
         </section>
       </main>
       <PageFooter />
@@ -431,7 +461,7 @@ function OfficeholderFilter({
   label: string;
   allLabel: string;
   options: OfficeholderLocalizedText[];
-  locale: "en" | "te";
+  locale: Locale;
   value: string;
   onChange: (value: string) => void;
 }) {

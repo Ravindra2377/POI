@@ -88,11 +88,15 @@ function linkTitle(template: string, domain: string): string {
   return template.replace("{domain}", domain);
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function MyArea() {
   const { locale } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const labels = copy[locale];
+  const labels = getCopyLabels(copy, locale);
 
   const [districts, setDistricts] = useState<GeographyRecord[]>([]);
   const [query, setQuery] = useState("");

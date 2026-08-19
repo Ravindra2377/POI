@@ -3,16 +3,19 @@ import type { SchemeCatalogResponse, SchemeRecord } from "@/lib/schemes";
 import { SchemeDetail } from "../SchemeDetail";
 
 export const metadata: Metadata = {
-  title: "AP Scheme Record · Viksit Bharat??",
+  title: "Scheme Record · Viksit Bharat??",
   description:
-    "Inspect a reviewed Andhra Pradesh scheme record with bilingual claims and official sources.",
+    "Inspect a reviewed State/UT scheme record with bilingual claims and official sources.",
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-async function fetchCatalog(): Promise<SchemeCatalogResponse> {
+async function fetchCatalog(stateIso?: string): Promise<SchemeCatalogResponse> {
   try {
-    const response = await fetch(`${API_URL}/api/v1/schemes`, {
+    const url = stateIso
+      ? `${API_URL}/api/v1/schemes?state=${encodeURIComponent(stateIso)}`
+      : `${API_URL}/api/v1/schemes`;
+    const response = await fetch(url, {
       headers: { Accept: "application/json" },
       cache: "no-store",
     });
@@ -27,11 +30,14 @@ async function fetchCatalog(): Promise<SchemeCatalogResponse> {
 
 export default async function SchemeDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ state?: string }>;
 }) {
   const { slug } = await params;
-  const catalog = await fetchCatalog();
+  const { state } = await searchParams;
+  const catalog = await fetchCatalog(state);
   const scheme: SchemeRecord | null =
     catalog.data.find((item) => item.slug === slug) ?? null;
   return (

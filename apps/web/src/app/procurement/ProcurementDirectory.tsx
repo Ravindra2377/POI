@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ProcurementStageSelector } from "@/components/ProcurementStageSelector";
+import type { Locale } from "@/lib/catalog-types";
 import { useLocale } from "@/components/LocaleProvider";
+import { useSelectedState } from "@/components/StateProvider";
+import { ApOnlyCatalogNotice } from "@/components/ApOnlyCatalogNotice";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
@@ -20,8 +23,8 @@ import styles from "./procurement.module.css";
 
 const copy = {
   en: {
-    eyebrow: "ANDHRA PRADESH · PREPARED DIRECTORY",
-    title: "AP Procurement",
+    eyebrow: "PREPARED DIRECTORY",
+    title: "Procurement",
     intro:
       "A source-first directory for reviewed tender and contract observations.",
     prepared: "Prepared directory · No reviewed procurement records",
@@ -134,9 +137,15 @@ function uniqueClaims(
   return [...values.values()].sort((a, b) => a.en.localeCompare(b.en));
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function ProcurementDirectory() {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const { selectedState, selectedStateIso } = useSelectedState();
+  const labels = getCopyLabels(copy, locale);
+  const apOnly = selectedStateIso === "IN-AP";
   const [records, setRecords] = useState<ProcurementRecord[]>([]);
   const [filters, setFilters] = useState<ProcurementFilters>(initialFilters);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
@@ -182,8 +191,12 @@ export function ProcurementDirectory() {
       <SiteHeader />
       <main id="main-content">
         <header className="page-intro shell">
-          <p className="eyebrow">{labels.eyebrow}</p>
-          <h1>{labels.title}</h1>
+          <p className="eyebrow">
+            {selectedState.name_en.toUpperCase()} · {labels.eyebrow}
+          </p>
+          <h1>
+            {selectedState.name_en} {labels.title}
+          </h1>
           <p className="lede">{labels.intro}</p>
           <aside className={styles.notice} aria-label={labels.prepared}>
             <strong>{labels.prepared}</strong>
@@ -219,213 +232,224 @@ export function ProcurementDirectory() {
           <h2 className="sr-only" id="procurement-results">
             {labels.title}
           </h2>
-          <fieldset className={styles.filters}>
-            <legend className="sr-only">{labels.filters}</legend>
-            <ProcurementFilter
-              id="procurement-stage"
-              label={labels.stage}
-              allLabel={labels.allStages}
-              options={stages}
-              locale={locale}
-              value={filters.stage}
-              onChange={(value) => selectFilter("stage", value)}
-            />
-            <ProcurementFilter
-              id="procurement-department"
-              label={labels.department}
-              allLabel={labels.allDepartments}
-              options={departments}
-              locale={locale}
-              value={filters.department}
-              onChange={(value) => selectFilter("department", value)}
-            />
-            <ProcurementFilter
-              id="procurement-district"
-              label={labels.district}
-              allLabel={labels.allDistricts}
-              options={districts}
-              locale={locale}
-              value={filters.district}
-              onChange={(value) => selectFilter("district", value)}
-            />
-            <div>
-              <label htmlFor="procurement-contractor">
-                {labels.contractor}
-              </label>
-              <select
-                id="procurement-contractor"
-                value={filters.contractor}
-                onChange={(event) =>
-                  selectFilter(
-                    "contractor",
-                    event.currentTarget
-                      .value as ProcurementFilters["contractor"],
-                  )
-                }
-              >
-                <option value="all">{labels.contractorAll}</option>
-                <option value="named">{labels.contractorNamed}</option>
-                <option value="undisclosed">
-                  {labels.contractorUndisclosed}
-                </option>
-              </select>
-            </div>
-          </fieldset>
-
-          <div className={styles.results} aria-live="polite">
-            {state === "loading" && (
-              <div className="page-state" role="status">
-                {labels.loading}
-              </div>
-            )}
-            {state === "error" && (
-              <div className="error-state" role="alert">
-                <h3>{labels.errorTitle}</h3>
-                <p>{labels.errorText}</p>
-                <button
-                  className="button button--secondary"
-                  onClick={() => void load()}
-                  type="button"
-                >
-                  {labels.retry}
-                </button>
-              </div>
-            )}
-            {state === "ready" && records.length === 0 && (
-              <div className="empty-state">
-                <h3>{labels.emptyTitle}</h3>
-                <p>{labels.emptyText}</p>
-              </div>
-            )}
-            {state === "ready" &&
-              records.length > 0 &&
-              filtered.length === 0 && (
-                <div className="empty-state">
-                  <h3>{labels.noMatchTitle}</h3>
-                  <p>{labels.noMatchText}</p>
+          {apOnly ? (
+            <>
+              <fieldset className={styles.filters}>
+                <legend className="sr-only">{labels.filters}</legend>
+                <ProcurementFilter
+                  id="procurement-stage"
+                  label={labels.stage}
+                  allLabel={labels.allStages}
+                  options={stages}
+                  locale={locale}
+                  value={filters.stage}
+                  onChange={(value) => selectFilter("stage", value)}
+                />
+                <ProcurementFilter
+                  id="procurement-department"
+                  label={labels.department}
+                  allLabel={labels.allDepartments}
+                  options={departments}
+                  locale={locale}
+                  value={filters.department}
+                  onChange={(value) => selectFilter("department", value)}
+                />
+                <ProcurementFilter
+                  id="procurement-district"
+                  label={labels.district}
+                  allLabel={labels.allDistricts}
+                  options={districts}
+                  locale={locale}
+                  value={filters.district}
+                  onChange={(value) => selectFilter("district", value)}
+                />
+                <div>
+                  <label htmlFor="procurement-contractor">
+                    {labels.contractor}
+                  </label>
+                  <select
+                    id="procurement-contractor"
+                    value={filters.contractor}
+                    onChange={(event) =>
+                      selectFilter(
+                        "contractor",
+                        event.currentTarget
+                          .value as ProcurementFilters["contractor"],
+                      )
+                    }
+                  >
+                    <option value="all">{labels.contractorAll}</option>
+                    <option value="named">{labels.contractorNamed}</option>
+                    <option value="undisclosed">
+                      {labels.contractorUndisclosed}
+                    </option>
+                  </select>
                 </div>
-              )}
-            {state === "ready" && filtered.length > 0 && (
-              <ul className={styles.records}>
-                {filtered.map((record) => (
-                  <li key={record.slug}>
-                    <div>
-                      <OfficialProcurementClaim
-                        label={labels.observation}
-                        source={record.title.source}
-                      >
-                        <h2 lang={locale}>
-                          <Link href={`/procurement/${record.slug}`}>
+              </fieldset>
+
+              <div className={styles.results} aria-live="polite">
+                {state === "loading" && (
+                  <div className="page-state" role="status">
+                    {labels.loading}
+                  </div>
+                )}
+                {state === "error" && (
+                  <div className="error-state" role="alert">
+                    <h3>{labels.errorTitle}</h3>
+                    <p>{labels.errorText}</p>
+                    <button
+                      className="button button--secondary"
+                      onClick={() => void load()}
+                      type="button"
+                    >
+                      {labels.retry}
+                    </button>
+                  </div>
+                )}
+                {state === "ready" && records.length === 0 && (
+                  <div className="empty-state">
+                    <h3>{labels.emptyTitle}</h3>
+                    <p>{labels.emptyText}</p>
+                  </div>
+                )}
+                {state === "ready" &&
+                  records.length > 0 &&
+                  filtered.length === 0 && (
+                    <div className="empty-state">
+                      <h3>{labels.noMatchTitle}</h3>
+                      <p>{labels.noMatchText}</p>
+                    </div>
+                  )}
+                {state === "ready" && filtered.length > 0 && (
+                  <ul className={styles.records}>
+                    {filtered.map((record) => (
+                      <li key={record.slug}>
+                        <div>
+                          <OfficialProcurementClaim
+                            label={labels.observation}
+                            source={record.title.source}
+                          >
+                            <h2 lang={locale}>
+                              <Link href={`/procurement/${record.slug}`}>
+                                {localizedProcurementText(
+                                  record.title.value,
+                                  locale,
+                                )}
+                              </Link>
+                            </h2>
+                          </OfficialProcurementClaim>
+                          <OfficialProcurementClaim
+                            label={labels.description}
+                            source={record.description.source}
+                          >
+                            <p lang={locale}>
+                              {localizedProcurementText(
+                                record.description.value,
+                                locale,
+                              )}
+                            </p>
+                          </OfficialProcurementClaim>
+                        </div>
+                        <div className={styles.claimGrid}>
+                          <OfficialProcurementClaim
+                            label={labels.stageLabel}
+                            source={record.stage.source}
+                          >
                             {localizedProcurementText(
-                              record.title.value,
+                              record.stage.value,
                               locale,
                             )}
-                          </Link>
-                        </h2>
-                      </OfficialProcurementClaim>
-                      <OfficialProcurementClaim
-                        label={labels.description}
-                        source={record.description.source}
-                      >
-                        <p lang={locale}>
-                          {localizedProcurementText(
-                            record.description.value,
-                            locale,
+                          </OfficialProcurementClaim>
+                          <OfficialProcurementClaim
+                            label={labels.department}
+                            source={record.department.source}
+                          >
+                            {localizedProcurementText(
+                              record.department.value,
+                              locale,
+                            )}
+                          </OfficialProcurementClaim>
+                          <OfficialProcurementClaim
+                            label={labels.districts}
+                            source={record.districts.source}
+                          >
+                            {record.districts.value
+                              .map((district) =>
+                                localizedProcurementText(district, locale),
+                              )
+                              .join(", ")}
+                          </OfficialProcurementClaim>
+                          {record.contractor ? (
+                            <OfficialProcurementClaim
+                              label={labels.contractorLabel}
+                              source={record.contractor.source}
+                            >
+                              {localizedProcurementText(
+                                record.contractor.value,
+                                locale,
+                              )}
+                            </OfficialProcurementClaim>
+                          ) : (
+                            <div className={styles.claim}>
+                              <span className={styles.claimLabel}>
+                                {labels.contractorLabel}
+                              </span>
+                              <div className={styles.claimValue}>
+                                {labels.contractorUnavailable}
+                              </div>
+                            </div>
                           )}
-                        </p>
-                      </OfficialProcurementClaim>
-                    </div>
-                    <div className={styles.claimGrid}>
-                      <OfficialProcurementClaim
-                        label={labels.stageLabel}
-                        source={record.stage.source}
-                      >
-                        {localizedProcurementText(record.stage.value, locale)}
-                      </OfficialProcurementClaim>
-                      <OfficialProcurementClaim
-                        label={labels.department}
-                        source={record.department.source}
-                      >
-                        {localizedProcurementText(
-                          record.department.value,
-                          locale,
-                        )}
-                      </OfficialProcurementClaim>
-                      <OfficialProcurementClaim
-                        label={labels.districts}
-                        source={record.districts.source}
-                      >
-                        {record.districts.value
-                          .map((district) =>
-                            localizedProcurementText(district, locale),
-                          )
-                          .join(", ")}
-                      </OfficialProcurementClaim>
-                      {record.contractor ? (
-                        <OfficialProcurementClaim
-                          label={labels.contractorLabel}
-                          source={record.contractor.source}
-                        >
-                          {localizedProcurementText(
-                            record.contractor.value,
-                            locale,
+                          {record.contract_value ? (
+                            <OfficialProcurementClaim
+                              label={labels.contractValue}
+                              source={record.contract_value.source}
+                            >
+                              <strong className={styles.amount}>
+                                {formatContractValue(
+                                  record.contract_value.value,
+                                )}
+                              </strong>
+                            </OfficialProcurementClaim>
+                          ) : (
+                            <div className={styles.claim}>
+                              <span className={styles.claimLabel}>
+                                {labels.contractValue}
+                              </span>
+                              <div className={styles.claimValue}>
+                                {labels.contractValueUnavailable}
+                              </div>
+                            </div>
                           )}
-                        </OfficialProcurementClaim>
-                      ) : (
-                        <div className={styles.claim}>
-                          <span className={styles.claimLabel}>
-                            {labels.contractorLabel}
-                          </span>
-                          <div className={styles.claimValue}>
-                            {labels.contractorUnavailable}
-                          </div>
-                        </div>
-                      )}
-                      {record.contract_value ? (
-                        <OfficialProcurementClaim
-                          label={labels.contractValue}
-                          source={record.contract_value.source}
-                        >
-                          <strong className={styles.amount}>
-                            {formatContractValue(record.contract_value.value)}
-                          </strong>
-                        </OfficialProcurementClaim>
-                      ) : (
-                        <div className={styles.claim}>
-                          <span className={styles.claimLabel}>
-                            {labels.contractValue}
-                          </span>
-                          <div className={styles.claimValue}>
-                            {labels.contractValueUnavailable}
-                          </div>
-                        </div>
-                      )}
-                      {record.tender_reference ? (
-                        <OfficialProcurementClaim
-                          label={labels.tenderReference}
-                          source={record.tender_reference.source}
-                        >
-                          {localizedProcurementText(
-                            record.tender_reference.value,
-                            locale,
+                          {record.tender_reference ? (
+                            <OfficialProcurementClaim
+                              label={labels.tenderReference}
+                              source={record.tender_reference.source}
+                            >
+                              {localizedProcurementText(
+                                record.tender_reference.value,
+                                locale,
+                              )}
+                            </OfficialProcurementClaim>
+                          ) : (
+                            <div className={styles.claim}>
+                              <span className={styles.claimLabel}>
+                                {labels.tenderReference}
+                              </span>
+                              <div className={styles.claimValue}>
+                                {labels.tenderReferenceUnavailable}
+                              </div>
+                            </div>
                           )}
-                        </OfficialProcurementClaim>
-                      ) : (
-                        <div className={styles.claim}>
-                          <span className={styles.claimLabel}>
-                            {labels.tenderReference}
-                          </span>
-                          <div className={styles.claimValue}>
-                            {labels.tenderReferenceUnavailable}
-                          </div>
                         </div>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          ) : (
+            <ApOnlyCatalogNotice jurisdiction={selectedState.name_en} />
+          )}
         </section>
       </main>
       <PageFooter />
@@ -446,7 +470,7 @@ function ProcurementFilter({
   label: string;
   allLabel: string;
   options: ProcurementLocalizedText[];
-  locale: "en" | "te";
+  locale: Locale;
   value: string;
   onChange: (value: string) => void;
 }) {

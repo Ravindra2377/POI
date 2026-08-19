@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLocale } from "@/components/LocaleProvider";
+import { useSelectedState } from "@/components/StateProvider";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { ApOnlyCatalogNotice } from "@/components/ApOnlyCatalogNotice";
 import {
   filterBudget,
   getBudget,
@@ -17,8 +19,8 @@ import styles from "./budget.module.css";
 
 const copy = {
   en: {
-    eyebrow: "ANDHRA PRADESH · PREPARED DIRECTORY",
-    title: "AP Budget",
+    eyebrow: "PREPARED DIRECTORY",
+    title: "Budget",
     intro:
       "A source-first directory for reviewed Andhra Pradesh Annual Financial Statement major heads.",
     prepared: "Prepared directory · No reviewed budget lines",
@@ -128,9 +130,15 @@ function uniqueValues(
   );
 }
 
+function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
+  return copyObj[loc] ?? copyObj.en;
+}
+
 export function BudgetDirectory() {
   const { locale } = useLocale();
-  const labels = copy[locale];
+  const { selectedState, selectedStateIso } = useSelectedState();
+  const labels = getCopyLabels(copy, locale);
+  const apOnly = selectedStateIso === "IN-AP";
   const [lines, setLines] = useState<BudgetLine[]>([]);
   const [filters, setFilters] = useState<BudgetFilters>(initialFilters);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
@@ -174,8 +182,12 @@ export function BudgetDirectory() {
       <SiteHeader />
       <main id="main-content">
         <header className="page-intro shell">
-          <p className="eyebrow">{labels.eyebrow}</p>
-          <h1>{labels.title}</h1>
+          <p className="eyebrow">
+            {selectedState.name_en.toUpperCase()} · {labels.eyebrow}
+          </p>
+          <h1>
+            {selectedState.name_en} {labels.title}
+          </h1>
           <p className="lede">{labels.intro}</p>
           <aside className={styles.notice} aria-label={labels.prepared}>
             <strong>{labels.prepared}</strong>
@@ -193,122 +205,130 @@ export function BudgetDirectory() {
           <h2 className="sr-only" id="budget-results">
             {labels.title}
           </h2>
-          <fieldset className={styles.filters}>
-            <legend className="sr-only">{labels.filters}</legend>
-            <BudgetFilter
-              id="budget-statement"
-              label={labels.statement}
-              allLabel={labels.allStatements}
-              options={statements.map((statement) => ({
-                value: statement,
-                label: statementLabel(statement, labels),
-              }))}
-              value={filters.statement}
-              onChange={(value) => selectFilter("statement", value)}
-            />
-            <BudgetFilter
-              id="budget-fiscal-year"
-              label={labels.fiscalYear}
-              allLabel={labels.allYears}
-              options={fiscalYears.map((year) => ({
-                value: year,
-                label: year,
-              }))}
-              value={filters.fiscalYear}
-              onChange={(value) => selectFilter("fiscalYear", value)}
-            />
-            <BudgetFilter
-              id="budget-unit"
-              label={labels.unit}
-              allLabel={labels.allUnits}
-              options={units.map((unit) => ({ value: unit, label: unit }))}
-              value={filters.unit}
-              onChange={(value) => selectFilter("unit", value)}
-            />
-          </fieldset>
+          {apOnly ? (
+            <>
+              <fieldset className={styles.filters}>
+                <legend className="sr-only">{labels.filters}</legend>
+                <BudgetFilter
+                  id="budget-statement"
+                  label={labels.statement}
+                  allLabel={labels.allStatements}
+                  options={statements.map((statement) => ({
+                    value: statement,
+                    label: statementLabel(statement, labels),
+                  }))}
+                  value={filters.statement}
+                  onChange={(value) => selectFilter("statement", value)}
+                />
+                <BudgetFilter
+                  id="budget-fiscal-year"
+                  label={labels.fiscalYear}
+                  allLabel={labels.allYears}
+                  options={fiscalYears.map((year) => ({
+                    value: year,
+                    label: year,
+                  }))}
+                  value={filters.fiscalYear}
+                  onChange={(value) => selectFilter("fiscalYear", value)}
+                />
+                <BudgetFilter
+                  id="budget-unit"
+                  label={labels.unit}
+                  allLabel={labels.allUnits}
+                  options={units.map((unit) => ({ value: unit, label: unit }))}
+                  value={filters.unit}
+                  onChange={(value) => selectFilter("unit", value)}
+                />
+              </fieldset>
 
-          <div className={styles.results} aria-live="polite">
-            {state === "loading" && (
-              <div className="page-state" role="status">
-                {labels.loading}
-              </div>
-            )}
-            {state === "error" && (
-              <div className="error-state" role="alert">
-                <h3>{labels.errorTitle}</h3>
-                <p>{labels.errorText}</p>
-                <button
-                  className="button button--secondary"
-                  onClick={() => void load()}
-                  type="button"
-                >
-                  {labels.retry}
-                </button>
-              </div>
-            )}
-            {state === "ready" && lines.length === 0 && (
-              <div className="empty-state">
-                <h3>{labels.emptyTitle}</h3>
-                <p>{labels.emptyText}</p>
-              </div>
-            )}
-            {state === "ready" && lines.length > 0 && filtered.length === 0 && (
-              <div className="empty-state">
-                <h3>{labels.noMatchTitle}</h3>
-                <p>{labels.noMatchText}</p>
-              </div>
-            )}
-            {state === "ready" && filtered.length > 0 && (
-              <ul className={styles.records}>
-                {filtered.map((line) => (
-                  <li key={line.slug}>
-                    <div>
-                      <OfficialBudgetClaim
-                        label={labels.observation}
-                        source={line.name.source}
-                      >
-                        <h2 lang={locale}>
-                          <Link href={`/budget/${line.slug}`}>
-                            {localizedBudgetText(line.name.value, locale)}
-                          </Link>
-                        </h2>
-                      </OfficialBudgetClaim>
-                      <p lang={locale}>
-                        {statementLabel(line.statement, labels)} ·{" "}
-                        {line.fiscal_year}
-                      </p>
+              <div className={styles.results} aria-live="polite">
+                {state === "loading" && (
+                  <div className="page-state" role="status">
+                    {labels.loading}
+                  </div>
+                )}
+                {state === "error" && (
+                  <div className="error-state" role="alert">
+                    <h3>{labels.errorTitle}</h3>
+                    <p>{labels.errorText}</p>
+                    <button
+                      className="button button--secondary"
+                      onClick={() => void load()}
+                      type="button"
+                    >
+                      {labels.retry}
+                    </button>
+                  </div>
+                )}
+                {state === "ready" && lines.length === 0 && (
+                  <div className="empty-state">
+                    <h3>{labels.emptyTitle}</h3>
+                    <p>{labels.emptyText}</p>
+                  </div>
+                )}
+                {state === "ready" &&
+                  lines.length > 0 &&
+                  filtered.length === 0 && (
+                    <div className="empty-state">
+                      <h3>{labels.noMatchTitle}</h3>
+                      <p>{labels.noMatchText}</p>
                     </div>
-                    <div className={styles.claimGrid}>
-                      <OfficialBudgetClaim
-                        label={labels.budgetEstimate}
-                        source={line.budget_estimate.source}
-                      >
-                        <span lang={locale}>
-                          {localizedBudgetText(
-                            line.budget_estimate.value,
-                            locale,
-                          )}
-                        </span>{" "}
-                        <small>{line.unit}</small>
-                      </OfficialBudgetClaim>
-                      <OfficialBudgetClaim
-                        label={labels.fiscalYearLabel}
-                        source={line.source}
-                      >
-                        {line.fiscal_year}
-                      </OfficialBudgetClaim>
-                      <OfficialBudgetClaim
-                        label={labels.unitLabel}
-                        source={line.source}
-                      >
-                        {line.unit}
-                      </OfficialBudgetClaim>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                  )}
+                {state === "ready" && filtered.length > 0 && (
+                  <ul className={styles.records}>
+                    {filtered.map((line) => (
+                      <li key={line.slug}>
+                        <div>
+                          <OfficialBudgetClaim
+                            label={labels.observation}
+                            source={line.name.source}
+                          >
+                            <h2 lang={locale}>
+                              <Link href={`/budget/${line.slug}`}>
+                                {localizedBudgetText(line.name.value, locale)}
+                              </Link>
+                            </h2>
+                          </OfficialBudgetClaim>
+                          <p lang={locale}>
+                            {statementLabel(line.statement, labels)} ·{" "}
+                            {line.fiscal_year}
+                          </p>
+                        </div>
+                        <div className={styles.claimGrid}>
+                          <OfficialBudgetClaim
+                            label={labels.budgetEstimate}
+                            source={line.budget_estimate.source}
+                          >
+                            <span lang={locale}>
+                              {localizedBudgetText(
+                                line.budget_estimate.value,
+                                locale,
+                              )}
+                            </span>{" "}
+                            <small>{line.unit}</small>
+                          </OfficialBudgetClaim>
+                          <OfficialBudgetClaim
+                            label={labels.fiscalYearLabel}
+                            source={line.source}
+                          >
+                            {line.fiscal_year}
+                          </OfficialBudgetClaim>
+                          <OfficialBudgetClaim
+                            label={labels.unitLabel}
+                            source={line.source}
+                          >
+                            {line.unit}
+                          </OfficialBudgetClaim>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          ) : (
+            <ApOnlyCatalogNotice jurisdiction={selectedState.name_en} />
+          )}
         </section>
       </main>
       <PageFooter />
