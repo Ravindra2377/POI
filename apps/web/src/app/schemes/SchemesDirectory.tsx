@@ -6,6 +6,7 @@ import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLocale } from "@/components/LocaleProvider";
 import { useSelectedState } from "@/components/StateProvider";
+import { ALL_INDIA_ISO } from "@/lib/states";
 import {
   filterSchemes,
   getSchemes,
@@ -134,7 +135,10 @@ export function SchemesDirectory() {
   async function load(signal?: AbortSignal) {
     setState("loading");
     try {
-      const response = await getSchemes(selectedStateIso, signal);
+      const response = await getSchemes(
+        selectedStateIso === ALL_INDIA_ISO ? undefined : selectedStateIso,
+        signal,
+      );
       setRecords(response.data);
       setTeluguReviewed(response.telugu_reviewed);
       setState("ready");

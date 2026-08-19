@@ -136,7 +136,8 @@ function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
 
 export function BudgetDirectory() {
   const { locale } = useLocale();
-  const { selectedState, selectedStateIso } = useSelectedState();
+  const { selectedState, selectedStateIso, setSelectedStateIso } =
+    useSelectedState();
   const labels = getCopyLabels(copy, locale);
   const apOnly = selectedStateIso === "IN-AP";
   const [lines, setLines] = useState<BudgetLine[]>([]);
@@ -327,7 +328,10 @@ export function BudgetDirectory() {
               </div>
             </>
           ) : (
-            <ApOnlyCatalogNotice jurisdiction={selectedState.name_en} />
+            <ApOnlyCatalogNotice
+              jurisdiction={selectedState.name_en}
+              onViewAp={() => setSelectedStateIso("IN-AP")}
+            />
           )}
         </section>
       </main>

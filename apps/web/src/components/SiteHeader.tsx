@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useLocale } from "./LocaleProvider";
 import { useSelectedState } from "./StateProvider";
 import { CoverageNotice } from "./CoverageNotice";
-import { ALL_INDIA_STATES_UTS_DATA } from "@/lib/states";
+import { ALL_INDIA_ISO, ALL_INDIA_STATES_UTS_DATA } from "@/lib/states";
 import { LANGUAGE_REGISTRY } from "@/lib/languages";
 import type { LanguageCode } from "@/lib/catalog-types";
 
@@ -153,6 +153,7 @@ export function SiteHeader() {
                   maxWidth: "160px",
                 }}
               >
+                <option value={ALL_INDIA_ISO}>All India</option>
                 {ALL_INDIA_STATES_UTS_DATA.map((st) => (
                   <option key={st.iso_code} value={st.iso_code}>
                     {st.name_en} ({st.name_native})

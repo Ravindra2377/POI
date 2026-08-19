@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { SchemeCatalogResponse, SchemeRecord } from "@/lib/schemes";
+import { ALL_INDIA_ISO } from "@/lib/states";
 import { SchemeDetail } from "../SchemeDetail";
 
 export const metadata: Metadata = {
@@ -37,7 +38,9 @@ export default async function SchemeDetailPage({
 }) {
   const { slug } = await params;
   const { state } = await searchParams;
-  const catalog = await fetchCatalog(state);
+  const catalog = await fetchCatalog(
+    state === ALL_INDIA_ISO ? undefined : state,
+  );
   const scheme: SchemeRecord | null =
     catalog.data.find((item) => item.slug === slug) ?? null;
   return (

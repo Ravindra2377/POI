@@ -152,7 +152,8 @@ function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
 
 export function OfficeholdersDirectory() {
   const { locale } = useLocale();
-  const { selectedState, selectedStateIso } = useSelectedState();
+  const { selectedState, selectedStateIso, setSelectedStateIso } =
+    useSelectedState();
   const labels = getCopyLabels(copy, locale);
   const apOnly = selectedStateIso === "IN-AP";
   const [records, setRecords] = useState<OfficeholderRecord[]>([]);
@@ -439,7 +440,10 @@ export function OfficeholdersDirectory() {
               </div>
             </>
           ) : (
-            <ApOnlyCatalogNotice jurisdiction={selectedState.name_en} />
+            <ApOnlyCatalogNotice
+              jurisdiction={selectedState.name_en}
+              onViewAp={() => setSelectedStateIso("IN-AP")}
+            />
           )}
         </section>
       </main>

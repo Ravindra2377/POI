@@ -2,10 +2,12 @@
 
 interface ApOnlyCatalogNoticeProps {
   jurisdiction: string;
+  onViewAp?: () => void;
 }
 
 export function ApOnlyCatalogNotice({
   jurisdiction,
+  onViewAp,
 }: ApOnlyCatalogNoticeProps) {
   return (
     <div className="empty-state">
@@ -15,6 +17,15 @@ export function ApOnlyCatalogNotice({
         Andhra Pradesh. The State/UT selector reflects the national structure;
         other jurisdictions publish here only after source review.
       </p>
+      {onViewAp ? (
+        <button
+          className="button button--secondary"
+          type="button"
+          onClick={onViewAp}
+        >
+          View Andhra Pradesh records
+        </button>
+      ) : null}
     </div>
   );
 }

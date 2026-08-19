@@ -17,6 +17,24 @@ export interface StateSummary {
   official_website: string;
 }
 
+/** Sentinel jurisdiction for the national (all States & UTs) view. */
+export const ALL_INDIA_ISO = "IN-ALL";
+
+/** Synthetic summary used when the site-wide selector is set to All India. */
+export const ALL_INDIA_SUMMARY: StateSummary = {
+  iso_code: ALL_INDIA_ISO,
+  lgd_code: 0,
+  name_en: "All India",
+  name_native: "भारत",
+  native_language: "hi",
+  official_languages: [],
+  category: "state",
+  capital: "New Delhi",
+  assembly_seats: 0,
+  parliamentary_seats: 543,
+  official_website: "https://www.india.gov.in",
+};
+
 type StateRow = [
   iso_code: string,
   lgd_code: number,
@@ -533,6 +551,9 @@ export const ALL_INDIA_STATES_UTS_DATA: StateSummary[] = STATE_ROWS.map(
 );
 
 export function getStateByIsoCode(isoCode: string): StateSummary | undefined {
+  if (isoCode.toLowerCase() === ALL_INDIA_ISO.toLowerCase()) {
+    return ALL_INDIA_SUMMARY;
+  }
   return ALL_INDIA_STATES_UTS_DATA.find(
     (s) => s.iso_code.toLowerCase() === isoCode.toLowerCase(),
   );

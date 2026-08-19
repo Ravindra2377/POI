@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LocaleProvider } from "@/components/LocaleProvider";
+import { StateProvider } from "@/components/StateProvider";
 import {
   filterSchemes,
   localized,
@@ -147,6 +148,52 @@ describe("scheme filtering", () => {
 });
 
 describe("SchemesDirectory", () => {
+  it("defaults to the national All-India catalogue", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response([testScheme]));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <LocaleProvider>
+        <StateProvider>
+          <SchemesDirectory />
+        </StateProvider>
+      </LocaleProvider>,
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "All India Schemes" }),
+    ).toBeVisible();
+    const callUrl = String(fetchMock.mock.calls[0][0]);
+    expect(callUrl).not.toContain("state=");
+  });
+
+  it("fetches the selected State/UT catalogue when a jurisdiction is chosen", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response([testScheme]));
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+
+    render(
+      <LocaleProvider>
+        <StateProvider>
+          <SchemesDirectory />
+        </StateProvider>
+      </LocaleProvider>,
+    );
+
+    await user.selectOptions(
+      screen.getByLabelText(/Select State or Union/),
+      "IN-TN",
+    );
+    await waitFor(() => {
+      const urls = fetchMock.mock.calls.map((call) => String(call[0]));
+      expect(
+        urls.some((url) =>
+          url.includes(`state=${encodeURIComponent("IN-TN")}`),
+        ),
+      ).toBe(true);
+    });
+  });
+
   it("renders an honest loading state and prepared empty state", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response([])));
 

@@ -8,7 +8,9 @@ import {
   useState,
 } from "react";
 import {
+  ALL_INDIA_ISO,
   ALL_INDIA_STATES_UTS_DATA,
+  ALL_INDIA_SUMMARY,
   getStateByIsoCode,
   type StateSummary,
 } from "@/lib/states";
@@ -24,7 +26,7 @@ const StateContext = createContext<StateContextValue | null>(null);
 const STORAGE_KEY = "viksit_selected_state_iso";
 
 function getInitialStateIso(): string {
-  if (typeof window === "undefined") return "IN-AP";
+  if (typeof window === "undefined") return ALL_INDIA_ISO;
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && getStateByIsoCode(saved)) {
@@ -33,7 +35,7 @@ function getInitialStateIso(): string {
   } catch {
     // Ignore localStorage errors
   }
-  return "IN-AP";
+  return ALL_INDIA_ISO;
 }
 
 export function StateProvider({ children }: { children: ReactNode }) {
@@ -50,7 +52,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
   };
 
   const selectedState = useMemo(() => {
-    return getStateByIsoCode(selectedStateIso) || ALL_INDIA_STATES_UTS_DATA[0];
+    return getStateByIsoCode(selectedStateIso) || ALL_INDIA_SUMMARY;
   }, [selectedStateIso]);
 
   return (
@@ -66,10 +68,9 @@ export function useSelectedState(): StateContextValue {
   const value = useContext(StateContext);
   if (!value) {
     // Fallback for isolated component testing
-    const defaultState = ALL_INDIA_STATES_UTS_DATA[0];
     return {
       selectedStateIso: "IN-AP",
-      selectedState: defaultState,
+      selectedState: ALL_INDIA_STATES_UTS_DATA[0],
       setSelectedStateIso: () => {},
     };
   }
