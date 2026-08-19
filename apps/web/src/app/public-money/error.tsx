@@ -8,7 +8,7 @@ export default function PublicMoneyError({ reset }: { reset: () => void }) {
     <>
       <SiteHeader />
       <main id="main-content" className="shell page-intro">
-        <p className="eyebrow">ANDHRA PRADESH · PREPARED DIRECTORY</p>
+        <p className="eyebrow">PREPARED DIRECTORY</p>
         <h1>Public Money is temporarily unavailable</h1>
         <div className="error-state" role="alert">
           <p>

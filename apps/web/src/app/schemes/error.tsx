@@ -8,8 +8,8 @@ export default function SchemesError({ reset }: { reset: () => void }) {
     <>
       <SiteHeader />
       <main id="main-content" className="shell page-intro">
-        <p className="eyebrow">ANDHRA PRADESH · PREPARED DIRECTORY</p>
-        <h1>AP Schemes is temporarily unavailable</h1>
+        <p className="eyebrow">REVIEWED DIRECTORY</p>
+        <h1>Schemes are temporarily unavailable</h1>
         <div className="error-state" role="alert">
           <p>
             The page could not be prepared. No unreviewed scheme information is

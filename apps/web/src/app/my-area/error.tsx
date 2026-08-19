@@ -8,7 +8,7 @@ export default function MyAreaError({ reset }: { reset: () => void }) {
     <>
       <SiteHeader />
       <main id="main-content" className="shell page-intro">
-        <p className="eyebrow">ANDHRA PRADESH · MY AREA</p>
+        <p className="eyebrow">MY AREA</p>
         <h1>My Area is temporarily unavailable</h1>
         <div className="error-state" role="alert">
           <p>

@@ -6,8 +6,8 @@ export default function LoadingSchemes() {
     <>
       <SiteHeader />
       <main id="main-content" className="shell page-intro" aria-busy="true">
-        <p className="eyebrow">ANDHRA PRADESH · PREPARED DIRECTORY</p>
-        <h1>AP Schemes</h1>
+        <p className="eyebrow">REVIEWED DIRECTORY</p>
+        <h1>Schemes</h1>
         <div className="page-state" role="status">
           Loading the scheme directory…
         </div>

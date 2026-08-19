@@ -13,7 +13,7 @@ export default function GovernmentExplorerError({
     <>
       <SiteHeader />
       <main id="main-content" className="shell page-intro">
-        <p className="eyebrow">ANDHRA PRADESH · REVIEWED DATASET</p>
+        <p className="eyebrow">REVIEWED DATASET</p>
         <h1>Government Explorer is temporarily unavailable</h1>
         <div className="error-state" role="alert">
           <p>

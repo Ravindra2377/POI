@@ -8,8 +8,8 @@ export default function ProjectsError({ reset }: { reset: () => void }) {
     <>
       <SiteHeader />
       <main id="main-content" className="shell page-intro">
-        <p className="eyebrow">ANDHRA PRADESH · PREPARED DIRECTORY</p>
-        <h1>AP Projects is temporarily unavailable</h1>
+        <p className="eyebrow">PREPARED DIRECTORY</p>
+        <h1>Projects are temporarily unavailable</h1>
         <div className="error-state" role="alert">
           <p>
             The page could not be prepared. No unreviewed project information is

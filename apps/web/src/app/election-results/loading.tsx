@@ -6,8 +6,8 @@ export default function LoadingElectionResults() {
     <>
       <SiteHeader />
       <main id="main-content" className="shell page-intro" aria-busy="true">
-        <p className="eyebrow">ANDHRA PRADESH · PREPARED DIRECTORY</p>
-        <h1>AP Election Results</h1>
+        <p className="eyebrow">PREPARED DIRECTORY</p>
+        <h1>Election Results</h1>
         <div className="page-state" role="status">
           Loading the election results catalogue…
         </div>

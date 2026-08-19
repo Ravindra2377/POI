@@ -6,8 +6,8 @@ export default function LoadingProjects() {
     <>
       <SiteHeader />
       <main id="main-content" className="shell page-intro" aria-busy="true">
-        <p className="eyebrow">ANDHRA PRADESH · PREPARED DIRECTORY</p>
-        <h1>AP Projects</h1>
+        <p className="eyebrow">PREPARED DIRECTORY</p>
+        <h1>Projects</h1>
         <div className="page-state" role="status">
           Loading the project directory…
         </div>
