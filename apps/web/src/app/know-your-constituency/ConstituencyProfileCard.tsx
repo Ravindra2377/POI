@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocale } from "@/components/LocaleProvider";
+import { getCopyLabels } from "@/lib/copy-helper";
 import {
   localizedConstituencyText,
   seatStatusWord,
@@ -61,10 +62,6 @@ function electedViaLabel(value: string, locale: string): string {
     return locale === "te" ? copy.te.viaBye : copy.en.viaBye;
   }
   return locale === "te" ? copy.te.viaGeneral : copy.en.viaGeneral;
-}
-
-function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
-  return copyObj[loc] ?? copyObj.en;
 }
 
 export function ConstituencyProfileCard({

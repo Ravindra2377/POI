@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLocale } from "@/components/LocaleProvider";
+import { getCopyLabels } from "@/lib/copy-helper";
 import { useSelectedState } from "@/components/StateProvider";
 import { localized, type SchemeRecord } from "@/lib/schemes";
 import { OfficialClaim } from "./OfficialClaim";
@@ -53,10 +54,6 @@ const copy = {
     notPublished: "ఈ సమీక్షించిన రికార్డులో ప్రచురించబడలేదు",
   },
 } as const;
-
-function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
-  return copyObj[loc] ?? copyObj.en;
-}
 
 export function SchemeDetail({
   scheme,

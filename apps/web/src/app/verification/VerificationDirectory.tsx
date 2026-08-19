@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocale } from "@/components/LocaleProvider";
+import { getCopyLabels } from "@/lib/copy-helper";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import type { Locale } from "@/lib/catalog-types";
@@ -113,10 +114,6 @@ function formatRupees(value: number | string | null | undefined): string {
   return Number.isFinite(numeric)
     ? numeric.toLocaleString("en-IN")
     : String(value);
-}
-
-function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
-  return copyObj[loc] ?? copyObj.en;
 }
 
 export function VerificationDirectory() {

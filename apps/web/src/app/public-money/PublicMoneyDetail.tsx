@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
+import { getCopyLabels } from "@/lib/copy-helper";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
@@ -54,10 +55,6 @@ const copy = {
       "ఈ సమీక్షించిన రికార్డులో మొత్తం ప్రచురించబడలేదు. ప్రదర్శన గణాంకం చూపబడదు.",
   },
 } as const;
-
-function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
-  return copyObj[loc] ?? copyObj.en;
-}
 
 export function PublicMoneyDetail({
   record,

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ErrorState } from "@/components/RecordStatus";
 import { useLocale } from "@/components/LocaleProvider";
+import { getCopyLabels } from "@/lib/copy-helper";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getElectionResults } from "@/lib/election-results";
@@ -128,10 +129,6 @@ function fillTemplate(
     (result, [key, value]) => result.replaceAll(`{${key}}`, value),
     template,
   );
-}
-
-function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
-  return copyObj[loc] ?? copyObj.en;
 }
 
 export function KnowYourConstituency() {

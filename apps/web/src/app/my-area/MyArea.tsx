@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ErrorState } from "@/components/RecordStatus";
 import { useLocale } from "@/components/LocaleProvider";
+import { getCopyLabels } from "@/lib/copy-helper";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getDistricts } from "@/lib/catalog-api";
@@ -86,10 +87,6 @@ function briefingTitle(template: string, district: string): string {
 
 function linkTitle(template: string, domain: string): string {
   return template.replace("{domain}", domain);
-}
-
-function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
-  return copyObj[loc] ?? copyObj.en;
 }
 
 export function MyArea() {

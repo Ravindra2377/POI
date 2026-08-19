@@ -8,6 +8,7 @@ import { useSelectedState } from "./StateProvider";
 import { CoverageNotice } from "./CoverageNotice";
 import { ALL_INDIA_ISO, ALL_INDIA_STATES_UTS_DATA } from "@/lib/states";
 import { LANGUAGE_REGISTRY } from "@/lib/languages";
+import { translateUiTerm } from "@/lib/copy-helper";
 import type { LanguageCode } from "@/lib/catalog-types";
 
 const primaryNavigation = [
@@ -64,7 +65,7 @@ export function SiteHeader() {
             onClick={() => setOpen((current) => !current)}
           >
             <span aria-hidden="true">☰</span>
-            <span>Menu</span>
+            <span>{translateUiTerm("Menu", locale)}</span>
           </button>
           <nav
             className="primary-nav"
@@ -85,7 +86,7 @@ export function SiteHeader() {
                   setMoreOpen(false);
                 }}
               >
-                {item.label}
+                {translateUiTerm(item.label, locale)}
               </Link>
             ))}
 
@@ -98,7 +99,7 @@ export function SiteHeader() {
                 data-active={isSecondaryActive}
                 onClick={() => setMoreOpen((prev) => !prev)}
               >
-                <span>More</span>
+                <span>{translateUiTerm("More", locale)}</span>
                 <span className="dropdown-caret" aria-hidden="true">
                   ▾
                 </span>
@@ -117,7 +118,7 @@ export function SiteHeader() {
                       setMoreOpen(false);
                     }}
                   >
-                    {item.label}
+                    {translateUiTerm(item.label, locale)}
                   </Link>
                 ))}
               </div>

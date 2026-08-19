@@ -170,7 +170,10 @@ const officialSources = [
 ];
 
 function local(text: LocalText, locale: string) {
-  return locale === "te" ? text.te : text.en;
+  return (
+    (text as Record<string, string>)[locale] ||
+    (locale === "te" ? text.te : text.en)
+  );
 }
 
 export function LegalBasisContent() {

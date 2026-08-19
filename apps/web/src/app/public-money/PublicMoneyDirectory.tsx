@@ -6,6 +6,7 @@ import { FinancialStageSelector } from "@/components/FinancialStageSelector";
 import type { Locale } from "@/lib/catalog-types";
 import { useLocale } from "@/components/LocaleProvider";
 import { useSelectedState } from "@/components/StateProvider";
+import { getCopyLabels } from "@/lib/copy-helper";
 import { ApOnlyCatalogNotice } from "@/components/ApOnlyCatalogNotice";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -126,10 +127,6 @@ function uniqueClaims(
     select(record).forEach((value) => values.set(value.en, value)),
   );
   return [...values.values()].sort((a, b) => a.en.localeCompare(b.en));
-}
-
-function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
-  return copyObj[loc] ?? copyObj.en;
 }
 
 export function PublicMoneyDirectory() {

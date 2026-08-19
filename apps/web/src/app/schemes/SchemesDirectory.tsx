@@ -6,6 +6,7 @@ import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLocale } from "@/components/LocaleProvider";
 import { useSelectedState } from "@/components/StateProvider";
+import { getCopyLabels } from "@/lib/copy-helper";
 import { ALL_INDIA_ISO } from "@/lib/states";
 import {
   filterSchemes,
@@ -117,10 +118,6 @@ function uniqueClaims(
     selected.forEach((value) => values.set(value.en, value));
   });
   return [...values.values()].sort((a, b) => a.en.localeCompare(b.en));
-}
-
-function getCopyLabels<T>(copyObj: Record<string, T>, loc: string): T {
-  return copyObj[loc] ?? copyObj.en;
 }
 
 export function SchemesDirectory() {
