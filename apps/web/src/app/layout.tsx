@@ -4,6 +4,8 @@ import { LocaleProvider } from "@/components/LocaleProvider";
 import { StateProvider } from "@/components/StateProvider";
 import "./styles.css";
 
+export const dynamic = "force-dynamic";
+
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   process.env.RENDER_EXTERNAL_URL ??
