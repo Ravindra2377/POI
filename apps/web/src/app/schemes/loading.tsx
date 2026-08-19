@@ -9,7 +9,7 @@ export default function LoadingSchemes() {
         <p className="eyebrow">REVIEWED DIRECTORY</p>
         <h1>Schemes</h1>
         <div className="page-state" role="status">
-          Loading the scheme directory…
+          Loading the reviewed scheme catalogue…
         </div>
       </main>
       <PageFooter />
