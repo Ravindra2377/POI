@@ -2,30 +2,26 @@
 
 **Product:** India-wide public intelligence and civic participation platform, launching with Andhra Pradesh
 **Initial analysis date:** 11 August 2026
-**Last updated:** 16 August 2026
-**Development covered:** Product definition, Stage 0 foundation, Stage 1 implementation and acceptance,
-production stabilization, public-utility frontend, legal-basis page, scalable language selector,
-the locally integration-tested Stage 2A provenance contract and Stage 2B schema/compatibility implementation,
-the prepared AP Schemes and AP Projects website slices, elections ingestion from the official AP
-Legislature term PDFs, the API + web election-results catalogue slice, and the web budget catalogue
-slice wired to `/api/v1/budget`
+**Last updated:** 20 August 2026
+**Development covered:** Product and trust contracts; nationwide State/UT and district browsing;
+reviewed national scheme ingestion; Andhra Pradesh government, budget, officeholder and election
+catalogues; provenance and immutable raw-source workflows; 25-language UI support; authenticated
+administrator/moderator operations; and an API-enforced read-only public-data beta for community
+surfaces.
 
 ## Acceptance status
 
-- **Implementation acceptance:** Passed
-- **Database operational acceptance:** Passed with explicit seed-rerun evidence waiver
-- **Visual acceptance:** Passed
-- **Stage 2A/2B status:** Implemented and disposable-PostGIS tested; operational acceptance pending
-- **Overall Stage 1 acceptance:** Passed with documented operational risk
+- **Read-only beta implementation acceptance:** Passed locally
+- **Production database state:** Aiven connected; Alembic revision `20260820_0007` observed deployed
+- **Community participation:** Disabled by default in production; staff moderation remains available
+- **Nationwide coverage:** 36 States/UTs, 784 reviewed districts, and 945 reviewed schemes
+- **Public launch acceptance:** Pending the production acceptance run and operational gates below
 
-Stage 1 acceptance was completed on 13 August 2026. The operator explicitly accepted the missing
-second-seed command output as an operational risk after live database, seed coverage, search, provenance,
-and visual checks passed.
-
-Stage 2A/2B implementation and the disposable PostgreSQL/PostGIS migration, backfill,
-downgrade/re-upgrade, double-seed, concurrency, correction-chain, and publication proofs pass locally.
-Operational acceptance still requires production-backup restore and production deployment evidence.
-Stage 2C object-storage implementation has not begun.
+The codebase is suitable for a read-only public-data beta after the current release is deployed and
+verified. It is not accepted for unrestricted community participation. Durable private object
+storage, a documented provider-backed restore drill, monitoring, external rate limiting, legal and
+privacy review, and the production acceptance matrix remain launch gates. Historical Stage 1
+acceptance evidence is retained below as chronology, not as the current product status.
 
 ## 1. Purpose of this document
 
@@ -233,52 +229,48 @@ decisions, or production personal-data processing.
 
 ```mermaid
 flowchart TD
-  Sources[Official government sources] -. acquisition not built .-> ObjectStore[Private object storage - provider pending]
-  ObjectStore -. raw bytes not implemented .-> Snapshots[Immutable snapshot metadata schema]
-  Snapshots --> Extractions[Versioned extraction-run schema]
-  Extractions --> Observations[Immutable values and audited review state]
-  Observations --> ReviewedProjection[Reviewed-only projection]
-  SourceBridge[Stage 1 source references] --> Compatibility[Stage 2 compatibility backfill]
-  Compatibility --> Observations
-  SourceBridge --> Geography[Geography and aliases]
-  SourceBridge --> Government[Government organisations]
-  Geography --> API[FastAPI v1 read API]
-  Government --> API
-  API --> Explorer[Next.js Government Explorer]
-  Explorer --> Citizen[Citizen]
-  FutureCommunity[Future structured community records] -. separate from official data .-> Explorer
+  Sources[Official government sources] --> LocalRaw[Immutable raw snapshots - local filesystem risk]
+  LocalRaw --> Extractions[Versioned extraction and review]
+  Extractions --> Observations[Immutable classified observations]
+  Observations --> ReviewedProjection[Reviewed-only public projection]
+  ReviewedProjection --> API[FastAPI v1 read API]
+  API --> Web[Next.js public-data beta]
+  CitizenWrites[Citizen profiles reports comments votes] --> Gate{Participation enabled?}
+  Gate -->|No - production default| Rejected[HTTP 403 read-only beta]
+  Gate -->|Governed pilot| Pending[Pending review]
+  Pending --> Staff[Authenticated admin and moderators]
+  Staff --> Audit[Immutable moderation audit]
+  Staff --> Published[Published community projection]
+  Published -. technically separate .-> Web
 ```
 
-The repository now implements the product contract, Stage 1 source bridge, geography,
-organisations, public API, Government Explorer, and the Stage 2A/2B provenance schema and
-compatibility path. The migration and triggers pass on a disposable PostgreSQL/PostGIS database.
-Production migration and restore evidence, raw acquisition, object storage, parser adapters, review
-UI, public provenance UI, later domains, identity, and community participation remain unimplemented.
+The repository implements nationwide geography and scheme catalogues, reviewed-source ingestion,
+public provenance views, bilingual data structures, a 25-language UI dictionary, pseudonymous
+community records, and separate authenticated staff moderation. Raw snapshots exist for implemented
+network adapters but currently use the API filesystem; durable private object storage is still
+required. Production migration `20260820_0007` and administrator bootstrap were observed during
+deployment, while restore evidence and the complete production acceptance run remain outstanding.
 
 ## 6. Cumulative development status
 
-| Area                                      | Status                                              |
-| ----------------------------------------- | --------------------------------------------------- |
-| Product definition                        | Complete                                            |
-| Engineering and trust contract            | Complete                                            |
-| Repository and quality foundation         | Complete                                            |
-| Render-native service foundation          | Complete                                            |
-| Andhra Pradesh geography schema           | Implemented                                         |
-| Government-entity schema                  | Implemented                                         |
-| Reviewed 26-district baseline             | Implemented with 28-district discrepancy disclosed  |
-| Bilingual Government Explorer             | Implemented                                         |
-| Live PostgreSQL/PostGIS readiness         | Passed                                              |
-| Live seed and reviewed-source coverage    | Passed with seed-rerun evidence waiver              |
-| Mobile/desktop visual and keyboard review | Passed                                              |
-| Legal and constitutional basis page       | Implemented and published                           |
-| Scalable English/Telugu selector          | Implemented and published                           |
-| Stage 2A provenance contract              | Implemented and locally integration-tested          |
-| Stage 2B schema and compatibility path    | Disposable PostGIS proof passed; production pending |
-| Raw object storage                        | Contract defined; provider not selected             |
-| First ingestion adapter                   | LGD selected conceptually; not implemented          |
-| Review workflow and public provenance UI  | Schema only / not implemented                       |
-| Schemes, projects, finance, procurement   | Future stages                                       |
-| Identity, reports, polls, moderation      | Future stages                                       |
+| Area                                      | Current status                                                        |
+| ----------------------------------------- | --------------------------------------------------------------------- |
+| Product, engineering and trust contracts  | Complete and enforced                                                 |
+| Render web/API + external Aiven database  | Deployed previously; current release verification pending             |
+| Nationwide geography                      | 36 States/UTs and 784 reviewed districts                              |
+| National scheme catalogue                 | 945 reviewed State/UT schemes                                         |
+| Government and minister records           | Implemented for reviewed coverage                                     |
+| Budget, officeholder and election data    | Andhra Pradesh reviewed catalogues implemented                        |
+| Projects, public money and procurement    | Andhra Pradesh-scoped reviewed or visibly prepared-empty/gated states |
+| LGD and myScheme ingestion adapters       | Implemented with immutable snapshot/review records                    |
+| Provenance and review workflow            | Implemented in API and public UI                                      |
+| Language support                          | English/Telugu data contract plus 25-language UI dictionary           |
+| Pseudonymous community records            | Implemented; production citizen writes disabled                       |
+| Administrator and moderator operations    | Implemented with authenticated roles and audited actions              |
+| Durable private raw-object storage        | Not implemented; launch operational gate                              |
+| Provider restore drill and recovery proof | Not completed; launch operational gate                                |
+| Public-data beta acceptance run           | Pending on production URLs                                            |
+| Unrestricted community participation      | Not accepted; security and governance gates remain                    |
 
 ## 7. Development record policy
 
@@ -2702,3 +2694,41 @@ tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disp
 - **Verification evidence:** `npm run format:check`, `npm run lint`, and `npm run typecheck` passed; web Vitest passed **161 tests across 46 files**; and `npm run build` succeeded with the production route table. API Ruff passed, strict mypy passed across **117 source files**, and Pytest passed **155 tests** with **16 PostgreSQL/PostGIS integration tests skipped** because no disposable test database was configured. Focused community web tests passed **4/4** and focused community API tests passed **7/7**; `git diff --check` passed.
 - **Operational note:** the process-local test report observed before this fix was not stored in Aiven and will disappear when the API instance restarts or this release deploys. After deployment, submit a fresh labelled test report and verify it appears in the administrator inventory/queue before approval and on `/community` only after approval.
 - **Remaining risks:** the current citizen client submits under one shared `anonymous_citizen` pseudonym rather than issuing a distinct recoverable pseudonymous identifier per browser. Simultaneous first-ever submissions could also race while creating that implicit profile. Both should be addressed before unrestricted launch; neither permits precise-location or staff-identity disclosure.
+
+### Stage 2.35 — API-enforced read-only public-data beta (2026-08-20)
+
+- **Objective and scope:** freeze citizen participation for the public launch while keeping reviewed
+  community records, public moderation transparency, authenticated staff access, and audited
+  moderation available. No database schema or migration change was required.
+- **Authoritative API gate:** added `COMMUNITY_SUBMISSIONS_ENABLED`. Production defaults closed when
+  the value is absent, and `render.yaml` explicitly sets it to `false`. The API returns 403 before
+  processing pseudonymous profile writes, reports and evidence URLs, comments/reviews, or poll
+  votes. `GET /api/v1/community/participation-status` exposes only the safe open/read-only state;
+  published community reads remain available.
+- **Fail-closed citizen UI:** `/community` and `/account` obtain the API state and default closed
+  when it is unavailable. English/Telugu notices explain the beta boundary; profile, report,
+  evidence, review and poll controls are disabled. The account page no longer reports a local save
+  when the production API has rejected or disabled the write.
+- **Mock production-path removal:** removed the non-persistent civic-action modal that claimed a
+  publication and audit trace without storing either. Removed hard-coded Activity and Watchlist
+  entries and replaced them with explicit reviewed-empty states. Replaced hard-coded homepage cards
+  labelled as official/reviewed with neutral links to source-aware directories.
+- **Deployment contract:** aligned `render.yaml` with the deployed free Render web/API services and
+  external Aiven PostgreSQL. `DATABASE_URL` is now a dashboard secret, migrations run before
+  Uvicorn in the free-service start command, and both public web URL variables are declared.
+- **Documentation reconciliation:** refreshed this document's executive status, architecture and
+  cumulative status table; updated the README, deployment runbook and moderation policy to describe
+  the read-only launch boundary and remaining operational gates.
+- **Verification evidence:** `npm run format:check`, `npm run lint`, and
+  `npm run typecheck` passed; web Vitest passed **161 tests across 46 files**; and
+  `npm run build` succeeded. API Ruff passed, strict mypy passed across **117 source files**, and
+  Pytest passed **161 tests** with **16 PostgreSQL/PostGIS integration tests skipped** because no
+  disposable test database was configured. Focused API community tests passed **13/13**, focused
+  read-only account/community/activity/lists web tests passed **11/11**, and
+  `git diff --check` passed.
+- **Remaining launch gates:** rotate the exposed Aiven credential, deploy and verify the flag on the
+  production URLs, take a logical backup, complete a provider-backed restore drill, configure
+  durable private object storage, monitoring and external rate limits, and record the full launch
+  acceptance matrix. Unrestricted participation additionally requires unique pseudonymous browser
+  identities, concurrency-safe profile creation, anti-spam controls, MFA and staff recovery,
+  evidence quarantine/redaction, appeals/escalation, legal review, and paginated admin inventory.

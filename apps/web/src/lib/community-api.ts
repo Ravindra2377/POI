@@ -1,5 +1,10 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+export interface CommunityParticipationStatus {
+  submissions_enabled: boolean;
+  mode: "open" | "read_only";
+}
+
 export interface UserAccount {
   id: string;
   username: string;
@@ -76,6 +81,20 @@ export interface ModerationAuditRecord {
 }
 
 // Client API Helper Methods
+export async function fetchCommunityParticipationStatus(): Promise<CommunityParticipationStatus> {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/v1/community/participation-status`,
+    );
+    if (!res.ok) {
+      return { submissions_enabled: false, mode: "read_only" };
+    }
+    return await res.json();
+  } catch {
+    return { submissions_enabled: false, mode: "read_only" };
+  }
+}
+
 export async function getAnonymousUser(
   username: string,
 ): Promise<UserAccount | null> {

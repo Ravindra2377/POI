@@ -12,26 +12,28 @@ not replace the release gates in `operations-and-recovery.md` — it assumes the
   - Health: `/api/health` (web route handler, no database dependency).
   - Server mode matters: per-seat Open Graph/Twitter card images are generated on request from
     `next/og`, and the launch page's `generateMetadata` resolves per request.
-- `ap-civic-api` — Python FastAPI service, `starter` plan.
+- `ap-civic-api` — Python FastAPI service, free plan.
   - Build: `pip install ./apps/api`.
-  - Pre-deploy: `cd apps/api && alembic upgrade head` (runs before the new version serves traffic).
-  - Start: `cd apps/api && uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+  - Start: `cd apps/api && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
   - Readiness: `/health/ready` (also verifies the database connection).
-- `ap-civic-db` — free Postgres. Render documents that Free Postgres has no provider backup or
-  point-in-time recovery. A fresh `pg_dump` before any destructive step is mandatory.
+- PostgreSQL — external Aiven service reached through the secret `DATABASE_URL` with TLS required.
+  Record the active Aiven backup retention and point-in-time recovery terms, and take a fresh
+  logical `pg_dump` before every migration or destructive operator step.
 
 ## Environment variables (set per environment in the dashboard)
 
 These are `sync: false` in `render.yaml`, so they must be created manually:
 
-| Service      | Key                    | Value                                                                                                                                                                                                                 |
-| ------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ap-civic-web | `NEXT_PUBLIC_API_URL`  | Public base URL of the API service (e.g. `https://ap-civic-api.onrender.com`)                                                                                                                                         |
-| ap-civic-web | `NEXT_PUBLIC_SITE_URL` | Public base URL of the web service (e.g. `https://ap-civic-web.onrender.com`); feeds `metadataBase` so generated `og:image` URLs are absolute. If unset, `RENDER_EXTERNAL_URL` is used, then `http://localhost:3000`. |
-| ap-civic-api | `CORS_ORIGINS`         | Comma-separated origins allowed by the API, including the web service public URL                                                                                                                                      |
+| Service      | Key                             | Value                                                                                                                                                                                                                 |
+| ------------ | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ap-civic-web | `NEXT_PUBLIC_API_URL`           | Public base URL of the API service (e.g. `https://ap-civic-api.onrender.com`)                                                                                                                                         |
+| ap-civic-web | `NEXT_PUBLIC_SITE_URL`          | Public base URL of the web service (e.g. `https://ap-civic-web.onrender.com`); feeds `metadataBase` so generated `og:image` URLs are absolute. If unset, `RENDER_EXTERNAL_URL` is used, then `http://localhost:3000`. |
+| ap-civic-api | `DATABASE_URL`                  | Rotated Aiven PostgreSQL service URI; retain `sslmode=require` and never commit or print it                                                                                                                           |
+| ap-civic-api | `CORS_ORIGINS`                  | Comma-separated origins allowed by the API, including the web service public URL                                                                                                                                      |
+| ap-civic-api | `COMMUNITY_SUBMISSIONS_ENABLED` | `false` for the public-data beta; changing this is a governed participation launch operation                                                                                                                          |
 
-`DATABASE_URL` is wired from `ap-civic-db` automatically. `APP_ENV=production` is declared in the
-Blueprint. Runtime `RENDER_EXTERNAL_URL` is set by Render for the web service.
+`APP_ENV=production` and the closed participation default are declared in the Blueprint. Runtime
+`RENDER_EXTERNAL_URL` is set by Render for the web service.
 
 ## Deploy procedure
 
@@ -41,8 +43,8 @@ acceptance, do not rely on that alone:
 1. Follow the ordered Stage 7 sequence in `operations-and-recovery.md` (pre-flight record, seed,
    operators in dependency order, catalogue verification, idempotency, public checks) inside one
    maintenance window. Operators run against `DATABASE_URL` on the API instance or an allowed host.
-2. Trigger the API deployment first. Render runs `alembic upgrade head` as pre-deploy; the new
-   revision must be `20260820_0007` at head.
+2. Trigger the API deployment first. On the free service, the start command runs
+   `alembic upgrade head` before Uvicorn; the new revision must be `20260820_0007` at head.
 3. After the API is healthy, trigger the web deployment.
 4. Run the post-deploy verification matrix below.
 
@@ -52,10 +54,13 @@ only under an explicit operator decision.
 
 ## Post-deploy verification matrix
 
-- `GET /health` (web) and `GET /health/ready` (API) return HTTP 200.
+- `GET /api/health` (web) and `GET /health/ready` (API) return HTTP 200.
+- `GET /api/v1/community/participation-status` returns
+  `{"submissions_enabled":false,"mode":"read_only"}`.
 - `alembic current` reports head including `20260820_0007`.
-- Catalogue endpoints return `status: "reviewed"`: states 1; districts 28; schemes 20; budget
-  3,175 lines across 2014-2015 through 2026-2027; officeholders 533; election results 531.
+- Catalogue endpoints return the documented reviewed production coverage: 36 States/UTs, 784
+  districts, and 945 schemes nationally; Andhra Pradesh budget has 3,175 lines across 2014-2015
+  through 2026-2027, with 533 officeholder and 531 election-result records.
 - `published_source_observations` count equals the reviewed published total and excludes private
   columns (object storage keys, reviewer identities).
 - Both-language searches return HTTP 200 (the search test fixtures exercise Telugu and English).
@@ -65,8 +70,9 @@ only under an explicit operator decision.
   at least one per-seat URL (`/know-your-constituency/opengraph-image?seat=<slug>`) since the route
   is `force-dynamic`. WhatsApp/Telegram caches must be busted with their share-debugger/URL
   scrapers; the generic card is served at `/opengraph-image`.
-- Community flow: the launch page links `/community`, which renders the prepared (closed) charter
-  page.
+- Community flow: `/community` and `/account` display the bilingual public-data-beta notice;
+  report, review, poll-vote, evidence, and profile controls are disabled. Direct POST requests to
+  citizen mutation routes return 403, while published content and the audit log remain readable.
 
 ## Rollback criteria
 
@@ -109,7 +115,7 @@ though moderators can access the pending/flagged queue and perform audited moder
 Post-deploy checks must confirm that unauthenticated requests to the moderation queue and action
 endpoint fail, a moderator cannot create staff accounts, an administrator can create a moderator,
 temporary-password accounts cannot moderate, and a moderation transition updates the target and
-creates exactly one audit record. Submit a test report and confirm that it is persisted, appears in
-the administrator queue/inventory as `pending_review`, and remains absent from the public community
-list until approval. A production database failure must return 503 and must not create in-memory
-content.
+creates exactly one audit record. For the public-data beta, first prove direct citizen writes return 403. Test the pending-to-published workflow only in a controlled maintenance window by temporarily
+setting `COMMUNITY_SUBMISSIONS_ENABLED=true`, using a clearly labelled synthetic report, approving
+it with a recorded reason, confirming exactly one audit record, and returning the flag to `false`.
+A production database failure must return 503 and must not create in-memory content.

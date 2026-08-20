@@ -7,9 +7,11 @@ import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
   CommunityComment,
+  CommunityParticipationStatus,
   CommunityPoll,
   CommunityReport,
   fetchCommunityComments,
+  fetchCommunityParticipationStatus,
   fetchCommunityPolls,
   fetchCommunityReports,
   submitCommunityComment,
@@ -23,6 +25,12 @@ const copy = {
     title: "Anonymous Field Reality & Citizen Observations",
     intro:
       "Participate anonymously in topic polls, file ground observations, and review public services—with total separation from official government records.",
+    readOnlyIntro:
+      "Read published community observations and moderation history, kept fully separate from official government records.",
+    betaTitle:
+      "Public data beta: community participation is temporarily closed",
+    betaText:
+      "Published community records and the moderation audit remain readable. New profiles, reports, reviews, poll votes, and evidence submissions are disabled until the community security gates pass.",
     pollsHeading: "Civic Pulse Polls",
     voteBtn: "Submit Vote",
     votedMsg: "Vote recorded anonymously!",
@@ -39,6 +47,8 @@ const copy = {
     submissionFailed: "Submission failed. Please try again later.",
     closeBtn: "Close",
     commentsHeading: "Community Field Reviews & Experiences",
+    reportsEmpty: "No published field observations are available.",
+    commentsEmpty: "No published field reviews are available.",
     commentBtn: "+ Write a Field Review",
     commentModalTitle: "Write a Service / Project Review",
     commentPlaceholder: "Share your field experience or service feedback...",
@@ -53,6 +63,12 @@ const copy = {
     title: "అనామక క్షేత్ర వాస్తవికత & పౌరుల పరిశీలనలు",
     intro:
       "అంశం ఓట్లలో అనామకంగా భాగస్వామ్యం వహించండి, క్షేత్ర పరిశీలనలను నమోదు చేయండి మరియు ప్రజా సేవలను సమీక్షించండి—అధికారిక ప్రభుత్వ రికార్డుల నుండి పూర్తిగా వేరుగా.",
+    readOnlyIntro:
+      "ప్రచురించిన కమ్యూనిటీ పరిశీలనలు మరియు మోడరేషన్ చరిత్రను చదవండి—అధికారిక ప్రభుత్వ రికార్డుల నుండి పూర్తిగా వేరుగా.",
+    betaTitle:
+      "పబ్లిక్ డేటా బీటా: కమ్యూనిటీ భాగస్వామ్యం తాత్కాలికంగా మూసివేయబడింది",
+    betaText:
+      "ప్రచురించిన కమ్యూనిటీ రికార్డులు మరియు మోడరేషన్ ఆడిట్ చదవడానికి అందుబాటులో ఉంటాయి. కమ్యూనిటీ భద్రతా ప్రమాణాలు పూర్తయ్యే వరకు కొత్త ప్రొఫైల్‌లు, నివేదికలు, సమీక్షలు, పోల్ ఓట్లు మరియు ఆధారాల సమర్పణలు నిలిపివేయబడ్డాయి.",
     pollsHeading: "సివిక్ పల్స్ ఓట్లు",
     voteBtn: "ఓటు సమర్పించండి",
     votedMsg: "ఓటు అనామకంగా నమోదు చేయబడింది!",
@@ -69,6 +85,8 @@ const copy = {
     submissionFailed: "సమర్పణ విఫలమైంది. దయచేసి తర్వాత మళ్లీ ప్రయత్నించండి.",
     closeBtn: "మూసివేయి",
     commentsHeading: "కమ్యూనిటీ క్షేత్ర సమీక్షలు & అనుభవాలు",
+    reportsEmpty: "ప్రచురించిన క్షేత్ర పరిశీలనలు అందుబాటులో లేవు.",
+    commentsEmpty: "ప్రచురించిన క్షేత్ర సమీక్షలు అందుబాటులో లేవు.",
     commentBtn: "+ క్షేత్ర సమీక్షను రాయండి",
     commentModalTitle: "సేవ / ప్రాజెక్ట్ సమీక్షను రాయండి",
     commentPlaceholder:
@@ -91,6 +109,8 @@ export function CommunityContent() {
   const [polls, setPolls] = useState<CommunityPoll[]>([]);
   const [reports, setReports] = useState<CommunityReport[]>([]);
   const [comments, setComments] = useState<CommunityComment[]>([]);
+  const [participationStatus, setParticipationStatus] =
+    useState<CommunityParticipationStatus | null>(null);
   const [selectedVotes, setSelectedVotes] = useState<Record<string, string>>(
     {},
   );
@@ -113,12 +133,16 @@ export function CommunityContent() {
   const [commentTargetId] = useState("general");
 
   useEffect(() => {
+    fetchCommunityParticipationStatus().then(setParticipationStatus);
     fetchCommunityPolls().then(setPolls);
     fetchCommunityReports().then(setReports);
     fetchCommunityComments().then(setComments);
   }, []);
 
+  const submissionsEnabled = participationStatus?.submissions_enabled === true;
+
   const handleVote = async (pollId: string) => {
+    if (!submissionsEnabled) return;
     const optionId = selectedVotes[pollId];
     if (!optionId) return;
     try {
@@ -132,6 +156,7 @@ export function CommunityContent() {
 
   const handleCreateReport = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!submissionsEnabled) return;
     if (!reportTitle || !reportDesc) return;
     try {
       await submitCommunityReport({
@@ -153,6 +178,7 @@ export function CommunityContent() {
 
   const handleCreateComment = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!submissionsEnabled) return;
     if (!commentContent) return;
     try {
       await submitCommunityComment({
@@ -177,8 +203,25 @@ export function CommunityContent() {
         <header className="page-intro shell">
           <p className="eyebrow">{labels.eyebrow}</p>
           <h1>{labels.title}</h1>
-          <p className="lede">{labels.intro}</p>
+          <p className="lede">
+            {participationStatus?.mode === "read_only"
+              ? labels.readOnlyIntro
+              : labels.intro}
+          </p>
         </header>
+
+        {participationStatus?.mode === "read_only" && (
+          <section
+            className="shell"
+            id="community-beta-notice"
+            aria-labelledby="community-beta-heading"
+          >
+            <div className="card" role="status">
+              <h2 id="community-beta-heading">{labels.betaTitle}</h2>
+              <p>{labels.betaText}</p>
+            </div>
+          </section>
+        )}
 
         {submissionMessage && (
           <section className="shell" aria-label="Submission status">
@@ -272,6 +315,7 @@ export function CommunityContent() {
                           cursor: "pointer",
                         }}
                         onClick={() =>
+                          submissionsEnabled &&
                           setSelectedVotes((prev) => ({
                             ...prev,
                             [poll.id]: opt.id,
@@ -295,6 +339,7 @@ export function CommunityContent() {
                           >
                             <input
                               type="radio"
+                              disabled={!submissionsEnabled}
                               name={`poll_${poll.id}`}
                               checked={selectedVotes[poll.id] === opt.id}
                               onChange={() =>
@@ -351,7 +396,14 @@ export function CommunityContent() {
                   <button
                     className="button button--primary"
                     onClick={() => handleVote(poll.id)}
-                    disabled={!selectedVotes[poll.id] || votedPolls[poll.id]}
+                    disabled={
+                      !submissionsEnabled ||
+                      !selectedVotes[poll.id] ||
+                      votedPolls[poll.id]
+                    }
+                    aria-describedby={
+                      submissionsEnabled ? undefined : "community-beta-notice"
+                    }
                     style={{ padding: "0.5rem 1.25rem" }}
                   >
                     {labels.voteBtn}
@@ -385,6 +437,10 @@ export function CommunityContent() {
             <button
               className="button button--primary"
               onClick={() => setShowReportModal(true)}
+              disabled={!submissionsEnabled}
+              aria-describedby={
+                submissionsEnabled ? undefined : "community-beta-notice"
+              }
             >
               {labels.logReportBtn}
             </button>
@@ -392,9 +448,7 @@ export function CommunityContent() {
 
           <div style={{ display: "grid", gap: "1rem", marginTop: "1rem" }}>
             {reports.length === 0 ? (
-              <p style={{ opacity: 0.7 }}>
-                No field observations reported yet. Be the first to submit!
-              </p>
+              <p style={{ opacity: 0.7 }}>{labels.reportsEmpty}</p>
             ) : (
               reports.map((rep) => (
                 <div
@@ -477,6 +531,10 @@ export function CommunityContent() {
             <button
               className="button button--secondary"
               onClick={() => setShowCommentModal(true)}
+              disabled={!submissionsEnabled}
+              aria-describedby={
+                submissionsEnabled ? undefined : "community-beta-notice"
+              }
             >
               {labels.commentBtn}
             </button>
@@ -484,7 +542,7 @@ export function CommunityContent() {
 
           <div style={{ display: "grid", gap: "1rem", marginTop: "1rem" }}>
             {comments.length === 0 ? (
-              <p style={{ opacity: 0.7 }}>No field reviews submitted yet.</p>
+              <p style={{ opacity: 0.7 }}>{labels.commentsEmpty}</p>
             ) : (
               comments.map((comm) => (
                 <div

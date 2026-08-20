@@ -4,7 +4,7 @@ import { CommunityContent } from "./CommunityContent";
 export const metadata: Metadata = {
   title: "Community · Viksit Bharat??",
   description:
-    "Prepared structure for future evidence-based civic participation. No poll result here represents India or Andhra Pradesh.",
+    "Read published community records and moderation transparency during the read-only public-data beta.",
 };
 
 export default function CommunityPage() {

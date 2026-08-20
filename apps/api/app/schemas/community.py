@@ -5,6 +5,11 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class CommunityParticipationStatusOut(BaseModel):
+    submissions_enabled: bool
+    mode: Literal["open", "read_only"]
+
+
 class UserAccountCreate(BaseModel):
     username: str = Field(min_length=3, max_length=64)
     display_name: str = Field(min_length=2, max_length=128)

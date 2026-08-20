@@ -8,10 +8,22 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/community",
 }));
 
+let submissionsEnabled = true;
+
 beforeEach(() => {
+  submissionsEnabled = true;
   vi.stubGlobal(
     "fetch",
     vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      if (url.includes("/participation-status")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            submissions_enabled: submissionsEnabled,
+            mode: submissionsEnabled ? "open" : "read_only",
+          }),
+        });
+      }
       if (url.includes("/reports") && init?.method === "POST") {
         return Promise.resolve({
           ok: true,
@@ -102,9 +114,11 @@ describe("CommunityContent", () => {
       </LocaleProvider>,
     );
 
-    await user.click(
-      screen.getByRole("button", { name: "+ Log Field Observation" }),
-    );
+    const reportButton = screen.getByRole("button", {
+      name: "+ Log Field Observation",
+    });
+    await vi.waitFor(() => expect(reportButton).toBeEnabled());
+    await user.click(reportButton);
 
     expect(
       screen.getByRole("heading", {
@@ -125,9 +139,11 @@ describe("CommunityContent", () => {
       </LocaleProvider>,
     );
 
-    await user.click(
-      screen.getByRole("button", { name: "+ Log Field Observation" }),
-    );
+    const reportButton = screen.getByRole("button", {
+      name: "+ Log Field Observation",
+    });
+    await vi.waitFor(() => expect(reportButton).toBeEnabled());
+    await user.click(reportButton);
     await user.type(
       screen.getByPlaceholderText(
         "Observation Title (e.g. Delayed Mandal Disbursement)",
@@ -170,5 +186,33 @@ describe("CommunityContent", () => {
         name: "అనామక క్షేత్ర వాస్తవికత & పౌరుల పరిశీలనలు",
       }),
     ).toBeVisible();
+  });
+
+  it("renders the public data beta as read-only and disables every citizen control", async () => {
+    submissionsEnabled = false;
+    render(
+      <LocaleProvider>
+        <CommunityContent />
+      </LocaleProvider>,
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Public data beta: community participation is temporarily closed",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "+ Log Field Observation" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "+ Write a Field Review" }),
+    ).toBeDisabled();
+    expect(await screen.findByRole("radio")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Submit Vote" })).toBeDisabled();
+
+    const fetchMock = vi.mocked(fetch);
+    expect(
+      fetchMock.mock.calls.some(([, init]) => init?.method === "POST"),
+    ).toBe(false);
   });
 });

@@ -4,23 +4,26 @@ An India-wide public intelligence and civic participation platform, launching wi
 The product connects official records, platform calculations, and structured community experience
 while keeping those evidence classes visibly and technically separate.
 
-Stage 1 adds the PostgreSQL/PostGIS geography and government-entity foundation, versioned read-only
-APIs, and a bilingual Government Explorer. Projects, financial observations, citizen reports,
-polls, eligibility decisions, and production ingestion remain outside this stage.
-
-Stage 2 provenance schema development is in progress; network ingestion remains gated by the
-documented database, recovery, object-storage, and source-access checks.
+The current public-data beta includes the PostgreSQL/PostGIS provenance foundation, nationwide
+State/UT and district browsing, the reviewed national scheme catalogue, government records, and
+the reviewed or honestly gated public-data directories described below. Raw network ingestion
+remains gated by the documented recovery, durable object-storage, and source-access checks.
 
 The website exposes reviewed national district and scheme catalogues, Andhra Pradesh-scoped budget,
 officeholder and election data, prepared or gated project/public-money/procurement catalogues, a
-coarse area briefing at `/my-area`, pseudonymous citizen preferences at `/account`, and structured
-community participation at `/community`. Official, calculated, inferred and community-reported
+coarse area briefing at `/my-area`, a read-only pseudonymous account surface at `/account`, and
+published community records and moderation transparency at `/community`. Official, calculated,
+inferred and community-reported
 values remain visibly separate. Public Money keeps the eleven financial stages distinct;
 Procurement keeps tender estimates, awards, values and outcomes distinct; and Officeholders keeps
 roles and terms distinct from judgements about a person.
 
-Community reports and comments enter `pending_review` and are not public until an authenticated
-moderator approves them. Staff use separate admin/moderator accounts at `/admin`; citizen
+Production defaults to a read-only public-data beta: citizen profile writes, reports, comments,
+poll votes, and evidence submissions are rejected by the API and disabled in the web UI when
+`COMMUNITY_SUBMISSIONS_ENABLED=false`. Existing published community content remains readable.
+When a governed pilot explicitly enables participation, reports and comments enter `pending_review`
+and are not public until an authenticated moderator approves them. Staff use separate
+admin/moderator accounts at `/admin`; citizen
 pseudonyms cannot become staff authority. Administrators additionally receive a protected overview
 of all recent content states, the staff directory, and recent audited actions; moderators receive
 the review queue only. Every moderation transition creates an audit record, and the public audit log
@@ -102,17 +105,21 @@ With both services running, verify their public health endpoints using `npm run 
 
 ## Deploy to Render
 
-`render.yaml` defines two native web services and one managed PostgreSQL database. Create a new
-Render Blueprint from the repository, then provide the two prompted values:
+`render.yaml` defines two free native web services. PostgreSQL is hosted externally on Aiven.
+Create a new Render Blueprint from the repository, then provide these prompted values:
 
 - `NEXT_PUBLIC_API_URL`: the public HTTPS URL Render assigns to `ap-civic-api`
+- `NEXT_PUBLIC_SITE_URL`: the public HTTPS URL Render assigns to `ap-civic-web`
 - `CORS_ORIGINS`: the public HTTPS origin Render assigns to `ap-civic-web`
+- `DATABASE_URL`: the rotated Aiven PostgreSQL service URI with TLS required
 
-The API uses Render's `starter` plan because Blueprint pre-deploy commands are not available on a
-free web service. `alembic upgrade head` runs as a pre-deploy command, so a failed migration blocks
-the release. The service health check uses `/health/ready`; `/health/live` remains a process-only
-probe. `DATABASE_URL` comes from the managed database and is never committed. Run the seed manually
-after a successful deployment; do not add it to the start or pre-deploy command.
+The API start command runs `alembic upgrade head` before Uvicorn because Render free services do not
+support pre-deploy commands. A migration failure therefore prevents the API process from starting.
+The service health check uses `/health/ready`; `/health/live` remains a process-only probe.
+`DATABASE_URL` is a dashboard secret and is never committed.
+
+`COMMUNITY_SUBMISSIONS_ENABLED=false` is declared in `render.yaml` and is the launch default. Do
+not enable it until the community security and operating gates in the moderation policy pass.
 
 For a failed migration, preserve the database, inspect `alembic current` and Render's pre-deploy
 logs, and fix forward with a reviewed revision. Restore a managed backup before any destructive
@@ -136,8 +143,11 @@ recovery. Use `alembic downgrade` only when that revision's downgrade has been t
 - The requested baseline has 26 districts. Markapuram and Polavaram are published separately by the
   network-ingestion district feed, which stores the raw LGD and AP State Portal responses as
   immutable snapshots and records every review as an audit decision.
-- No mandals, villages, constituencies, representatives, projects, or public offices are seeded.
-- Community participation requires production migration, initial-admin bootstrap, operational moderation staffing, abuse controls, appeals, and legal review before unrestricted opening.
+- Several public-data domains remain Andhra Pradesh-only or prepared-empty and are visibly gated
+  outside their reviewed coverage.
+- Community participation is disabled for the public-data beta. Operational moderation staffing,
+  abuse controls, appeals, MFA, evidence quarantine, and legal review remain required before
+  unrestricted opening.
 - The `/ingestion` page reports only feeds whose source is marked `api_endpoint`; it is a public
   status view of the district feed pipeline and does not serve raw snapshot contents or disclose
   reviewer identities.

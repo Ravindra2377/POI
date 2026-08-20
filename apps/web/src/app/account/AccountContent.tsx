@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { saveAnonymousUser } from "@/lib/community-api";
+import {
+  fetchCommunityParticipationStatus,
+  saveAnonymousUser,
+} from "@/lib/community-api";
 import styles from "./account.module.css";
 
 const DISTRICTS = [
@@ -41,6 +44,9 @@ const copy = {
     consentActivity: "Make my filed observations visible to the community",
     saveBtn: "Save Anonymous Profile",
     savedMsg: "Anonymous profile settings saved locally!",
+    betaTitle: "Profile changes are temporarily disabled",
+    betaText:
+      "This public data beta is read-only. Existing published community records remain available, but new profiles and participation are closed.",
     moderationHeading: "Admin & Moderation Integrity",
     moderationText:
       "All moderation on platform observations is conducted by verified moderators. Every action produces an open, immutable audit log.",
@@ -61,6 +67,9 @@ const copy = {
     consentActivity: "నా నమోదు పరిశీలనలను కమ్యూనిటీకి కనిపించేలా చేయండి",
     saveBtn: "అనామక ప్రొఫైల్‌ను సేవ్ చేయండి",
     savedMsg: "అనామక ప్రొఫైల్ సెట్టింగ్‌లు స్థానికంగా సేవ్ చేయబడ్డాయి!",
+    betaTitle: "ప్రొఫైల్ మార్పులు తాత్కాలికంగా నిలిపివేయబడ్డాయి",
+    betaText:
+      "ఈ పబ్లిక్ డేటా బీటా చదవడానికి మాత్రమే. ఇప్పటికే ప్రచురించిన కమ్యూనిటీ రికార్డులు అందుబాటులో ఉంటాయి, కానీ కొత్త ప్రొఫైల్‌లు మరియు భాగస్వామ్యం మూసివేయబడ్డాయి.",
     moderationHeading: "అడ్మిన్ & మోడరేషన్ సమగ్రత",
     moderationText:
       "ప్లాట్‌ఫారమ్ పరిశీలనలపై అన్ని మోడరేషన్‌లు నిర్ధారించబడిన మోడరేటర్‌లచే నిర్వహించబడతాయి. ప్రతి చర్య పారదర్శక ఆడిట్ రికార్డును సృష్టిస్తుంది.",
@@ -116,9 +125,17 @@ export function AccountContent() {
   });
 
   const [savedStatus, setSavedStatus] = useState(false);
+  const [submissionsEnabled, setSubmissionsEnabled] = useState(false);
+
+  useEffect(() => {
+    fetchCommunityParticipationStatus().then((participation) =>
+      setSubmissionsEnabled(participation.submissions_enabled),
+    );
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!submissionsEnabled) return;
     const profile = {
       username,
       displayName,
@@ -165,6 +182,17 @@ export function AccountContent() {
             <h2>{labels.profileHeading}</h2>
           </div>
 
+          {!submissionsEnabled && (
+            <aside
+              className={styles.notice}
+              id="account-beta-notice"
+              aria-labelledby="account-beta-heading"
+            >
+              <strong id="account-beta-heading">{labels.betaTitle}</strong>
+              <p>{labels.betaText}</p>
+            </aside>
+          )}
+
           <form
             onSubmit={handleSave}
             style={{ maxWidth: "600px", display: "grid", gap: "1.25rem" }}
@@ -183,6 +211,7 @@ export function AccountContent() {
               <input
                 id="citizen-handle"
                 type="text"
+                disabled={!submissionsEnabled}
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 style={{
@@ -218,6 +247,7 @@ export function AccountContent() {
               </label>
               <select
                 id="citizen-district"
+                disabled={!submissionsEnabled}
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
                 style={{
@@ -247,6 +277,7 @@ export function AccountContent() {
               >
                 <input
                   type="checkbox"
+                  disabled={!submissionsEnabled}
                   checked={consentDataSharing}
                   onChange={(e) => setConsentDataSharing(e.target.checked)}
                 />
@@ -263,6 +294,7 @@ export function AccountContent() {
               >
                 <input
                   type="checkbox"
+                  disabled={!submissionsEnabled}
                   checked={consentPublicActivity}
                   onChange={(e) => setConsentPublicActivity(e.target.checked)}
                 />
@@ -273,6 +305,10 @@ export function AccountContent() {
             <button
               type="submit"
               className="button button--primary"
+              disabled={!submissionsEnabled}
+              aria-describedby={
+                submissionsEnabled ? undefined : "account-beta-notice"
+              }
               style={{ padding: "0.75rem 1.5rem", width: "fit-content" }}
             >
               {labels.saveBtn}

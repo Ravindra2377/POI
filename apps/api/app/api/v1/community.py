@@ -19,6 +19,7 @@ from app.schemas.community import (
     AdminCommunityContentOut,
     CommunityCommentCreate,
     CommunityCommentOut,
+    CommunityParticipationStatusOut,
     CommunityPollOut,
     CommunityReportCreate,
     CommunityReportOut,
@@ -63,6 +64,14 @@ def _reject_production_fallback(detail: str) -> None:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=detail)
 
 
+def _require_community_submissions_enabled() -> None:
+    if not load_settings().community_submissions_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=("Community participation is temporarily closed during the public data beta"),
+        )
+
+
 def _get_or_create_pseudonymous_user(db: Session, username: str) -> UserAccount:
     account = db.query(UserAccount).filter(UserAccount.username == username).first()
     if account is not None:
@@ -84,9 +93,20 @@ def _get_default_polls() -> list[CommunityPollOut]:
     return []
 
 
+@router.get("/participation-status", response_model=CommunityParticipationStatusOut)
+def get_community_participation_status() -> CommunityParticipationStatusOut:
+    """Expose the API-enforced citizen participation state to the public web client."""
+    submissions_enabled = load_settings().community_submissions_enabled
+    return CommunityParticipationStatusOut(
+        submissions_enabled=submissions_enabled,
+        mode="open" if submissions_enabled else "read_only",
+    )
+
+
 @router.post("/users", response_model=UserAccountOut, status_code=status.HTTP_201_CREATED)
 def create_user_account(user_in: UserAccountCreate, db: DbSession) -> Any:
     """Register or update a pseudonymous citizen user account with consent preferences."""
+    _require_community_submissions_enabled()
     if db is not None:
         try:
             db_existing = (
@@ -151,6 +171,7 @@ def get_user_account(username: str, db: DbSession) -> Any:
 @router.post("/reports", response_model=CommunityReportOut, status_code=status.HTTP_201_CREATED)
 def create_community_report(report_in: CommunityReportCreate, db: DbSession) -> Any:
     """Submit a structured citizen evidence report (tagged as Community-reported)."""
+    _require_community_submissions_enabled()
     user_id = uuid.uuid4()
     if username_account := _IN_MEMORY_USERS.get(report_in.username):
         user_id = username_account.id
@@ -278,6 +299,7 @@ def list_community_polls() -> Any:
 @router.post("/polls/{poll_id}/vote", response_model=CommunityPollOut)
 def vote_community_poll(poll_id: uuid.UUID, vote_in: PollVoteCreate) -> Any:
     """Record a non-representative poll vote and return updated breakdown."""
+    _require_community_submissions_enabled()
     polls = _get_default_polls()
     poll = next((p for p in polls if p.id == poll_id), None)
     if not poll:
@@ -305,6 +327,7 @@ def vote_community_poll(poll_id: uuid.UUID, vote_in: PollVoteCreate) -> Any:
 @router.post("/comments", response_model=CommunityCommentOut, status_code=status.HTTP_201_CREATED)
 def create_community_comment(comment_in: CommunityCommentCreate, db: DbSession) -> Any:
     """Post a citizen review or discussion comment."""
+    _require_community_submissions_enabled()
     user_id = uuid.uuid4()
     if username_account := _IN_MEMORY_USERS.get(comment_in.username):
         user_id = username_account.id

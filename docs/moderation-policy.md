@@ -63,6 +63,19 @@ in one database transaction. The public log displays the staff role rather than 
 internal identity. Production submission failures return a service error rather than creating
 process-local records, and citizen-facing lists filter every fallback record to `published`.
 
+## Public data beta participation gate
+
+Production defaults to `COMMUNITY_SUBMISSIONS_ENABLED=false`. While disabled, the API returns HTTP
+403 before processing pseudonymous profile writes, reports (including evidence URLs), comments and
+reviews, or poll votes. Public reads of already-published community content and the moderation audit
+remain available, and authenticated staff can continue reviewing existing content.
+
+The `/community` and `/account` clients read the API participation status, default to closed if that
+request fails, display bilingual read-only notices, and disable all citizen mutation controls. UI
+state is not the security boundary; the API flag is authoritative. Re-enabling the flag is an
+explicit governed pilot operation and requires a production verification of pending-only
+publication, audit creation, abuse controls, staffing, and rollback.
+
 The first administrator is created only from a trusted API shell after migration:
 
 ```bash

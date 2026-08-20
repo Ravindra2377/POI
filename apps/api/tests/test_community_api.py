@@ -37,6 +37,87 @@ def test_community_polls_are_labelled_non_representative() -> None:
         assert "Non-representative Community Pulse" in poll["non_representative_disclaimer"]
 
 
+def test_production_defaults_to_read_only_community_participation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.delenv("COMMUNITY_SUBMISSIONS_ENABLED", raising=False)
+
+    response = client.get("/api/v1/community/participation-status")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "submissions_enabled": False,
+        "mode": "read_only",
+    }
+
+
+@pytest.mark.parametrize(
+    ("path", "payload"),
+    [
+        (
+            "/api/v1/community/users",
+            {
+                "username": "closed_beta_citizen",
+                "display_name": "Closed Beta Citizen",
+            },
+        ),
+        (
+            "/api/v1/community/reports",
+            {
+                "username": "closed_beta_citizen",
+                "entity_type": "scheme",
+                "title_en": "Blocked beta report",
+                "description_en": "Must not be accepted while participation is closed",
+            },
+        ),
+        (
+            "/api/v1/community/comments",
+            {
+                "username": "closed_beta_citizen",
+                "target_type": "scheme",
+                "target_id": "test-scheme",
+                "content_en": "Blocked beta review",
+            },
+        ),
+        (
+            "/api/v1/community/polls/11111111-1111-1111-1111-111111111111/vote",
+            {
+                "username": "closed_beta_citizen",
+                "poll_id": "11111111-1111-1111-1111-111111111111",
+                "option_id": "test-option",
+            },
+        ),
+    ],
+)
+def test_read_only_beta_rejects_every_citizen_write(
+    monkeypatch: pytest.MonkeyPatch,
+    path: str,
+    payload: dict[str, object],
+) -> None:
+    monkeypatch.setenv("COMMUNITY_SUBMISSIONS_ENABLED", "false")
+
+    response = client.post(path, json=payload)
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == (
+        "Community participation is temporarily closed during the public data beta"
+    )
+
+
+def test_read_only_beta_keeps_published_community_reads_available(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("COMMUNITY_SUBMISSIONS_ENABLED", "false")
+
+    for path in (
+        "/api/v1/community/polls",
+        "/api/v1/community/reports",
+        "/api/v1/community/comments",
+    ):
+        assert client.get(path).status_code == 200
+
+
 def test_community_report_enters_moderation_queue() -> None:
     response = client.post(
         "/api/v1/community/reports",
@@ -97,6 +178,7 @@ def test_production_report_submission_never_falls_back_to_memory(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("COMMUNITY_SUBMISSIONS_ENABLED", "true")
     payload = CommunityReportCreate(
         username="anonymous_citizen",
         entity_type="scheme",

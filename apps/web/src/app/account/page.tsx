@@ -4,7 +4,7 @@ import { AccountContent } from "./AccountContent";
 export const metadata: Metadata = {
   title: "Account · Viksit Bharat??",
   description:
-    "Prepared, honest account state. Nothing about you is collected today; consent and review controls are not built.",
+    "Read-only pseudonymous citizen profile surface for the public-data beta.",
 };
 
 export default function AccountPage() {
