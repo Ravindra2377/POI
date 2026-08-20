@@ -11,21 +11,19 @@ polls, eligibility decisions, and production ingestion remain outside this stage
 Stage 2 provenance schema development is in progress; network ingestion remains gated by the
 documented database, recovery, object-storage, and source-access checks.
 
-The website exposes prepared AP Schemes, AP Projects, AP Public Money, AP Procurement and AP
-Officeholder directories at `/schemes`, `/projects`, `/public-money`, `/procurement` and
-`/officeholders`, a coarse bilingual area briefing at `/my-area`, an honest prepared account
-state at `/account`, and a closed prepared community shell at `/community`. They intentionally contain no
-production domain records until source-backed English
-and Telugu records complete review; neither route substitutes demonstration data for official claims.
-Public Money keeps the eleven financial stages distinct, so a published announcement is never
-presented as an expenditure; Procurement keeps tender estimates, contract awards, values and outcomes
-distinct; and Officeholders keeps roles and terms distinct from judgements about a person. My Area
-keeps the briefing coarse by design: it uses only the district the user selects by search, never a
-precise location, and alerts remain an honest deferred state until reviewable accounts and consent
-controls exist. The Account page collects nothing today and previews the planned consent and review
-controls, which are not built. Community participation is closed: no poll result there represents
-India or Andhra Pradesh, and moderation remains a planned principle backed by immutable audit. The
-community charter at `/community/charter` writes the rules of participation before it opens.
+The website exposes reviewed national district and scheme catalogues, Andhra Pradesh-scoped budget,
+officeholder and election data, prepared or gated project/public-money/procurement catalogues, a
+coarse area briefing at `/my-area`, pseudonymous citizen preferences at `/account`, and structured
+community participation at `/community`. Official, calculated, inferred and community-reported
+values remain visibly separate. Public Money keeps the eleven financial stages distinct;
+Procurement keeps tender estimates, awards, values and outcomes distinct; and Officeholders keeps
+roles and terms distinct from judgements about a person.
+
+Community reports and comments enter `pending_review` and are not public until an authenticated
+moderator approves them. Staff use separate admin/moderator accounts at `/admin`; citizen
+pseudonyms cannot become staff authority. Every moderation transition creates an audit record, and
+the public audit log hides internal staff identity. Polls remain non-representative by contract and
+no fabricated fallback polls or vote counts are served. Precise user location is never collected.
 
 ## Prerequisites
 
@@ -135,7 +133,7 @@ recovery. Use `alembic downgrade` only when that revision's downgrade has been t
   network-ingestion district feed, which stores the raw LGD and AP State Portal responses as
   immutable snapshots and records every review as an audit decision.
 - No mandals, villages, constituencies, representatives, projects, or public offices are seeded.
-- No personal-data processing or community features exist.
+- Community participation requires production migration, initial-admin bootstrap, operational moderation staffing, abuse controls, appeals, and legal review before unrestricted opening.
 - The `/ingestion` page reports only feeds whose source is marked `api_endpoint`; it is a public
   status view of the district feed pipeline and does not serve raw snapshot contents or disclose
   reviewer identities.

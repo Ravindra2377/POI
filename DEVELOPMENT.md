@@ -2651,3 +2651,34 @@ tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disp
 - **Component Refactoring:** Updated `SiteHeader`, `SchemesDirectory`, `SchemeDetail`, `ProjectsDirectory`, `ProjectDetail`, `PublicMoneyDirectory`, `PublicMoneyDetail`, `ProcurementDirectory`, `ProcurementDetail`, `OfficeholdersDirectory`, `OfficeholderDetail`, `KnowYourConstituency`, `ConstituencyProfileCard`, `MyArea`, `VerificationDirectory`, and `LegalBasisContent` to consume the universal copy helper. Header navigation links now dynamically update in real time when switching languages.
 - **Verification Evidence:** `npm run format:check` clean, `npm run lint` clean (0 errors), `npm run typecheck` clean, `npm test` **44 test files / 158 tests passed** cleanly with 0 failures.
 
+### Stage 2.32 — Authenticated administrators and moderators (2026-08-20)
+
+- **Objective:** preserve pseudonymous community participation while ensuring that only accountable,
+  authenticated staff can monitor and moderate content. Anonymous citizen profiles remain separate
+  from staff identities and cannot be promoted into administrative authority.
+- **Schema and migration:** added Alembic revision `20260820_0007` with separate
+  `staff_accounts` and `staff_sessions` tables, role and active-state constraints, salted password
+  hashes, failed-login lockout state, expiring/revocable hashed session tokens, and a nullable
+  internal staff foreign key on immutable moderation audit records. New report/comment database
+  defaults are `pending_review`; existing community history is not silently rewritten.
+- **Security boundary:** the trusted-shell `create_admin` command prompts for a strong password
+  without accepting it on the command line. Admins can create temporary-password moderators;
+  moderators cannot create staff. Staff sessions expire after eight hours, repeated failures trigger
+  a 15-minute lock, temporary-password accounts cannot access the moderation queue, and the API
+  derives audit attribution from the authenticated session rather than browser input.
+- **Moderation behavior:** reports and comments enter a non-public review queue. Approve, flag, hide,
+  and restore actions change the actual target and create the corresponding audit row in the same
+  transaction. The public audit log is read-only and exposes the actor role, not the staff email or
+  internal identity. Fabricated audit entries and fabricated fallback polls/vote counts were removed.
+- **Web:** added the no-index `/admin` console for staff sign-in, forced temporary-password change,
+  pending/flagged queue monitoring, audited content transitions, moderator creation by admins, and
+  sign-out. Citizen-facing `/community/moderation-log` is now a read-only transparency surface.
+- **Verification:** Ruff passed; strict mypy passed across 117 source files; API Pytest passed
+  152 tests with 16 PostgreSQL/PostGIS integration tests skipped because no disposable database was
+  configured; web lint and typecheck passed; web Vitest passed 159 tests across 45 files.
+- **Final gates:** `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (159 tests), and `npm run build` passed; API Ruff, strict mypy (117 files), and Pytest (152 passed, 16 integration tests skipped) passed; `alembic heads` reports `20260820_0007`; and `git diff --check` passed.
+- **Remaining risks:** production migration and trusted-shell administrator bootstrap have not been
+  executed in this workspace. MFA, distributed rate limiting, evidence upload quarantine/redaction,
+  appeals workflow, staff disable/reset UI, and governed moderator operations remain required before
+  unrestricted community participation. The existing private object-storage and provider restore
+  gates also remain unresolved.

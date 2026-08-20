@@ -125,12 +125,10 @@ class CommunityCommentOut(BaseModel):
 
 
 class ModerationActionCreate(BaseModel):
-    moderator_id: str
-    action: str  # approve, flag, hide, edit, restore
-    target_type: str  # report, comment, poll_vote
-    target_id: str
-    reason: str
-    new_status: str | None = None
+    action: str = Field(pattern="^(approve|flag|hide|restore)$")
+    target_type: str = Field(pattern="^(report|comment)$")
+    target_id: uuid.UUID
+    reason: str = Field(min_length=10, max_length=2000)
 
 
 class ModerationAuditRecordOut(BaseModel):

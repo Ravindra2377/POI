@@ -6,6 +6,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.auth import CurrentStaff, RequiredDb
 from app.db import DatabaseConfigurationError, get_db
 from app.models.community import (
     CommunityComment,
@@ -43,7 +44,6 @@ def get_optional_db() -> Generator[Session | None, None, None]:
         yield None
 
 
-
 DbSession = Annotated[Any, Depends(get_optional_db)]
 
 
@@ -57,82 +57,7 @@ _IN_MEMORY_MODERATION_LOG: list[ModerationAuditRecordOut] = []
 
 
 def _get_default_polls() -> list[CommunityPollOut]:
-    if not _IN_MEMORY_POLLS:
-        _IN_MEMORY_POLLS.extend(
-            [
-                CommunityPollOut(
-                    id=uuid.UUID("11111111-1111-1111-1111-111111111111"),
-                    title_en="Rythu Bharosa Disbursement Experience",
-                    title_te="రైతు భరోసా నిధుల విడుదల అనుభవం",
-                    description_en=(
-                        "Have you or your family received the latest financial assistance under "
-                        "the Rythu Bharosa scheme in your mandal?"
-                    ),
-                    description_te="మీ మండలంలో రైతు భరోసా పథకం కింద ఇటీవల ఆర్థిక సాయం అందిందా?",
-                    entity_type="scheme",
-                    entity_id="ysr-rythu-bharosa",
-                    options=[
-                        PollOption(
-                            id="opt_full",
-                            label_en="Yes, full amount received",
-                            label_te="అవును, పూర్తి నగదు అందింది",
-                            vote_count=42,
-                        ),
-                        PollOption(
-                            id="opt_partial",
-                            label_en="Partially / Delay experienced",
-                            label_te="పాక్షికంగా / ఆలస్యం అయింది",
-                            vote_count=14,
-                        ),
-                        PollOption(
-                            id="opt_pending",
-                            label_en="Pending eligibility review",
-                            label_te="అర్హత సమీక్ష పెండింగ్‌లో ఉంది",
-                            vote_count=9,
-                        ),
-                    ],
-                    total_votes=65,
-                    is_active=True,
-                    created_at=datetime.now(UTC),
-                ),
-                CommunityPollOut(
-                    id=uuid.UUID("22222222-2222-2222-2222-222222222222"),
-                    title_en="Visakhapatnam Metro Transit Progress",
-                    title_te="విశాఖపట్నం మెట్రో ప్రాజెక్టు పురోగతి",
-                    description_en=(
-                        "How would you rate the current ground activity on the Visakhapatnam "
-                        "Metro Transit Corridor?"
-                    ),
-                    description_te="విశాఖపట్నం మెట్రో కారిడార్ నిర్మాణ పురోగతిని ఎలా అంచనా వేస్తారు?",
-                    entity_type="project",
-                    entity_id="visakhapatnam-metro",
-                    options=[
-                        PollOption(
-                            id="opt_active",
-                            label_en="Active ground work visible",
-                            label_te="పనులు చురుగ్గా సాగుతున్నాయి",
-                            vote_count=28,
-                        ),
-                        PollOption(
-                            id="opt_slow",
-                            label_en="Slow progress / Obstacles",
-                            label_te="నెమ్మదిగా సాగుతున్నాయి",
-                            vote_count=35,
-                        ),
-                        PollOption(
-                            id="opt_none",
-                            label_en="No ground activity",
-                            label_te="పనులు ప్రారంభం కాలేదు",
-                            vote_count=12,
-                        ),
-                    ],
-                    total_votes=75,
-                    is_active=True,
-                    created_at=datetime.now(UTC),
-                ),
-            ]
-        )
-    return _IN_MEMORY_POLLS
+    return []
 
 
 @router.post("/users", response_model=UserAccountOut, status_code=status.HTTP_201_CREATED)
@@ -222,7 +147,7 @@ def create_community_report(report_in: CommunityReportCreate, db: DbSession) -> 
                 description_te=report_in.description_te,
                 classification="community_reported",
                 evidence_urls=report_in.evidence_urls,
-                status="published",
+                status="pending_review",
             )
             db.add(report)
             db.commit()
@@ -259,7 +184,7 @@ def create_community_report(report_in: CommunityReportCreate, db: DbSession) -> 
         description_te=report_in.description_te,
         classification="community_reported",
         evidence_urls=report_in.evidence_urls,
-        status="published",
+        status="pending_review",
         created_at=datetime.now(UTC),
     )
     _IN_MEMORY_REPORTS.insert(0, report_out)
@@ -357,9 +282,7 @@ def create_community_comment(comment_in: CommunityCommentCreate, db: DbSession) 
 
     if db is not None:
         try:
-            db_a = (
-                db.query(UserAccount).filter(UserAccount.username == comment_in.username).first()
-            )
+            db_a = db.query(UserAccount).filter(UserAccount.username == comment_in.username).first()
             if db_a:
                 user_id = db_a.id
             comment = CommunityComment(
@@ -370,7 +293,7 @@ def create_community_comment(comment_in: CommunityCommentCreate, db: DbSession) 
                 rating=comment_in.rating,
                 content_en=comment_in.content_en,
                 content_te=comment_in.content_te,
-                status="published",
+                status="pending_review",
             )
             db.add(comment)
             db.commit()
@@ -399,7 +322,7 @@ def create_community_comment(comment_in: CommunityCommentCreate, db: DbSession) 
         rating=comment_in.rating,
         content_en=comment_in.content_en,
         content_te=comment_in.content_te,
-        status="published",
+        status="pending_review",
         created_at=datetime.now(UTC),
     )
     _IN_MEMORY_COMMENTS.insert(0, comment_out)
@@ -451,48 +374,98 @@ def list_community_comments(
     return filtered
 
 
+@router.get("/moderation-queue")
+def list_moderation_queue(db: RequiredDb, staff: CurrentStaff) -> list[dict[str, Any]]:
+    """Return unpublished community content to authenticated staff only."""
+    if staff.must_change_password:
+        raise HTTPException(
+            status_code=403,
+            detail="Change the temporary password before moderating",
+        )
+    reports = (
+        db.query(CommunityReport, UserAccount.username)
+        .join(UserAccount, CommunityReport.user_id == UserAccount.id)
+        .filter(CommunityReport.status.in_(("pending_review", "flagged")))
+        .order_by(CommunityReport.created_at)
+        .all()
+    )
+    comments = (
+        db.query(CommunityComment, UserAccount.username)
+        .join(UserAccount, CommunityComment.user_id == UserAccount.id)
+        .filter(CommunityComment.status.in_(("pending_review", "flagged")))
+        .order_by(CommunityComment.created_at)
+        .all()
+    )
+    return [
+        {
+            "target_type": "report",
+            "target_id": str(report.id),
+            "username": username,
+            "summary": report.title_en,
+            "status": report.status,
+            "created_at": report.created_at,
+        }
+        for report, username in reports
+    ] + [
+        {
+            "target_type": "comment",
+            "target_id": str(comment.id),
+            "username": username,
+            "summary": comment.content_en,
+            "status": comment.status,
+            "created_at": comment.created_at,
+        }
+        for comment, username in comments
+    ]
+
+
 @router.post(
     "/moderation",
     response_model=ModerationAuditRecordOut,
     status_code=status.HTTP_201_CREATED,
 )
-def execute_moderation_action(mod_in: ModerationActionCreate, db: DbSession) -> Any:
-    """Execute a moderation action and produce an immutable ModerationAuditRecord (Rule #8)."""
-    prev_state = {"status": "published"}
-    new_state = {"status": mod_in.new_status or "flagged"}
+def execute_moderation_action(
+    mod_in: ModerationActionCreate,
+    db: RequiredDb,
+    staff: CurrentStaff,
+) -> Any:
+    """Apply an authenticated moderation transition and append its audit record."""
+    if staff.must_change_password:
+        raise HTTPException(
+            status_code=403, detail="Change the temporary password before moderating"
+        )
 
-    if db is not None:
-        try:
-            audit = ModerationAuditRecord(
-                id=uuid.uuid4(),
-                moderator_id=mod_in.moderator_id,
-                action=mod_in.action,
-                target_type=mod_in.target_type,
-                target_id=mod_in.target_id,
-                reason=mod_in.reason,
-                previous_state=prev_state,
-                new_state=new_state,
-            )
-            db.add(audit)
-            db.commit()
-            db.refresh(audit)
-            return audit
-        except Exception:
-            db.rollback()
+    target: CommunityReport | CommunityComment | None
+    if mod_in.target_type == "report":
+        target = db.query(CommunityReport).filter(CommunityReport.id == mod_in.target_id).first()
+    else:
+        target = db.query(CommunityComment).filter(CommunityComment.id == mod_in.target_id).first()
+    if target is None:
+        raise HTTPException(status_code=404, detail="Moderation target not found")
 
-    audit_out = ModerationAuditRecordOut(
+    next_status = {
+        "approve": "published",
+        "flag": "flagged",
+        "hide": "hidden",
+        "restore": "published",
+    }[mod_in.action]
+    previous_state = {"status": target.status}
+    target.status = next_status
+    audit = ModerationAuditRecord(
         id=uuid.uuid4(),
-        moderator_id=mod_in.moderator_id,
+        moderator_id=f"Platform {staff.role}",
+        staff_account_id=staff.id,
         action=mod_in.action,
         target_type=mod_in.target_type,
-        target_id=mod_in.target_id,
+        target_id=str(mod_in.target_id),
         reason=mod_in.reason,
-        previous_state=prev_state,
-        new_state=new_state,
-        created_at=datetime.now(UTC),
+        previous_state=previous_state,
+        new_state={"status": next_status},
     )
-    _IN_MEMORY_MODERATION_LOG.insert(0, audit_out)
-    return audit_out
+    db.add(audit)
+    db.commit()
+    db.refresh(audit)
+    return audit
 
 
 @router.get("/moderation-log", response_model=list[ModerationAuditRecordOut])

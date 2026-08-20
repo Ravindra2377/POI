@@ -42,7 +42,7 @@ acceptance, do not rely on that alone:
    operators in dependency order, catalogue verification, idempotency, public checks) inside one
    maintenance window. Operators run against `DATABASE_URL` on the API instance or an allowed host.
 2. Trigger the API deployment first. Render runs `alembic upgrade head` as pre-deploy; the new
-   revision must be `20260816_0003` at head.
+   revision must be `20260820_0007` at head.
 3. After the API is healthy, trigger the web deployment.
 4. Run the post-deploy verification matrix below.
 
@@ -53,7 +53,7 @@ only under an explicit operator decision.
 ## Post-deploy verification matrix
 
 - `GET /health` (web) and `GET /health/ready` (API) return HTTP 200.
-- `alembic current` reports head including `20260816_0003`.
+- `alembic current` reports head including `20260820_0007`.
 - Catalogue endpoints return `status: "reviewed"`: states 1; districts 28; schemes 20; budget
   3,175 lines across 2014-2015 through 2026-2027; officeholders 533; election results 531.
 - `published_source_observations` count equals the reviewed published total and excludes private
@@ -83,3 +83,25 @@ Private object storage (raw snapshots currently write to a local `storage/` dire
 restore drill, LGD access review, and the monitoring/budget-owner checklist in
 `operations-and-recovery.md` all remain external gates before raw network ingestion is production
 safe.
+
+## Bootstrap the first administrator
+
+After revision `20260820_0007` is active, open a trusted shell on the API service and run:
+
+```bash
+cd apps/api
+python -m app.commands.create_admin \
+  --email admin@example.org \
+  --display-name "Platform administrator"
+```
+
+Enter the password only at the hidden prompt. The policy requires at least 14 characters and three
+character categories. The command refuses an existing email and records the bootstrap as an audit
+event. Visit `/admin` on the web service to sign in. Create moderators there with temporary
+passwords, deliver those passwords through a separate secure channel, and require each moderator to
+change the password before accessing the queue.
+
+Post-deploy checks must confirm that unauthenticated requests to the moderation queue and action
+endpoint fail, a moderator cannot create staff accounts, an administrator can create a moderator,
+temporary-password accounts cannot moderate, and a moderation transition updates the target and
+creates exactly one audit record.

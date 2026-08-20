@@ -3,8 +3,7 @@
 ## Scope
 
 This policy applies to citizen reports, discussions, polls, evidence, profile presentation, and
-official responses. Community features do not exist in Stage 0; these requirements constrain their
-future implementation.
+official responses. Community submissions use pseudonymous citizen profiles; authenticated staff controls govern publication and moderation.
 
 ## Content labels
 
@@ -43,3 +42,32 @@ platform users" unless a professionally reviewed representative survey design ap
 Define response-time targets, moderator permissions, escalation to legal and safety review, emergency
 evidence takedown, law-enforcement request handling, transparency reporting, reviewer wellbeing, and
 appeal service levels. Obtain Indian legal review for user-generated content and grievance duties.
+
+## Implemented staff boundary
+
+Citizen profiles remain pseudonymous and are never promoted into staff accounts. Administrators and
+moderators use separate authenticated records with salted scrypt password hashes, eight-hour
+revocable sessions, temporary lockout after repeated failed sign-ins, and roles enforced by the API.
+An administrator can create moderators; new moderators must replace their temporary password before
+viewing the queue or acting on content.
+
+New reports and comments enter `pending_review`. Authenticated staff review the private queue at
+`/admin`. Approve, flag, hide, and restore transitions update the target and append the audit record
+in one database transaction. The public log displays the staff role rather than the staff email or
+internal identity.
+
+The first administrator is created only from a trusted API shell after migration:
+
+```bash
+cd apps/api
+python -m app.commands.create_admin \
+  --email admin@example.org \
+  --display-name "Platform administrator"
+```
+
+The command prompts twice for a password and never accepts or prints it as a command-line argument.
+Do not share a citizen pseudonym, administrator password, session token, or temporary moderator
+password in tickets, logs, or `DEVELOPMENT.md`.
+
+MFA, distributed rate limiting, evidence-upload quarantine, appeals, and moderator staffing/service
+levels remain gates before unrestricted community participation.

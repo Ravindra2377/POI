@@ -5,6 +5,8 @@ from app.models.community import (
     CommunityReport,
     ModerationAuditRecord,
     PollVote,
+    StaffAccount,
+    StaffSession,
     UserAccount,
 )
 from app.models.geography import Geography, GeographyAlias, GeographyRelationship
@@ -59,5 +61,7 @@ __all__ = [
     "SourceRecord",
     "SourceSnapshot",
     "SourceReference",
+    "StaffAccount",
+    "StaffSession",
     "UserAccount",
 ]
