@@ -3,10 +3,10 @@ from collections.abc import Generator
 from datetime import UTC, datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.auth import CurrentStaff, RequiredDb
+from app.auth import CurrentAdmin, CurrentStaff, RequiredDb
 from app.db import DatabaseConfigurationError, get_db
 from app.models.community import (
     CommunityComment,
@@ -15,6 +15,7 @@ from app.models.community import (
     UserAccount,
 )
 from app.schemas.community import (
+    AdminCommunityContentOut,
     CommunityCommentCreate,
     CommunityCommentOut,
     CommunityPollOut,
@@ -417,6 +418,57 @@ def list_moderation_queue(db: RequiredDb, staff: CurrentStaff) -> list[dict[str,
         }
         for comment, username in comments
     ]
+
+
+@router.get("/admin/content", response_model=list[AdminCommunityContentOut])
+def list_admin_community_content(
+    admin: CurrentAdmin,
+    db: RequiredDb,
+    content_status: str | None = Query(default=None, alias="status", max_length=32),
+    page_size: int = Query(default=100, ge=1, le=200),
+) -> list[AdminCommunityContentOut]:
+    """Return recent community content of every status to administrators only."""
+    del admin
+    report_query = db.query(CommunityReport, UserAccount.username).join(
+        UserAccount, CommunityReport.user_id == UserAccount.id
+    )
+    comment_query = db.query(CommunityComment, UserAccount.username).join(
+        UserAccount, CommunityComment.user_id == UserAccount.id
+    )
+    if content_status:
+        report_query = report_query.filter(CommunityReport.status == content_status)
+        comment_query = comment_query.filter(CommunityComment.status == content_status)
+
+    reports = report_query.order_by(CommunityReport.created_at.desc()).limit(page_size).all()
+    comments = comment_query.order_by(CommunityComment.created_at.desc()).limit(page_size).all()
+    content = [
+        AdminCommunityContentOut(
+            target_type="report",
+            target_id=report.id,
+            username=username,
+            summary_en=report.title_en,
+            summary_te=report.title_te,
+            detail_en=report.description_en,
+            detail_te=report.description_te,
+            classification="community_reported",
+            status=report.status,
+            created_at=report.created_at,
+        )
+        for report, username in reports
+    ] + [
+        AdminCommunityContentOut(
+            target_type="comment",
+            target_id=comment.id,
+            username=username,
+            summary_en=comment.content_en,
+            summary_te=comment.content_te,
+            classification="community_reported",
+            status=comment.status,
+            created_at=comment.created_at,
+        )
+        for comment, username in comments
+    ]
+    return sorted(content, key=lambda item: item.created_at, reverse=True)[:page_size]
 
 
 @router.post(

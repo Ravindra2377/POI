@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -129,6 +129,21 @@ class ModerationActionCreate(BaseModel):
     target_type: str = Field(pattern="^(report|comment)$")
     target_id: uuid.UUID
     reason: str = Field(min_length=10, max_length=2000)
+
+
+class AdminCommunityContentOut(BaseModel):
+    """Pseudonymous community content visible only to authenticated administrators."""
+
+    target_type: Literal["report", "comment"]
+    target_id: uuid.UUID
+    username: str
+    summary_en: str
+    summary_te: str | None = None
+    detail_en: str | None = None
+    detail_te: str | None = None
+    classification: Literal["community_reported"] = "community_reported"
+    status: str
+    created_at: datetime
 
 
 class ModerationAuditRecordOut(BaseModel):

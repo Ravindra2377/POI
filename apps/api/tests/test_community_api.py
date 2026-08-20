@@ -62,3 +62,8 @@ def test_moderation_requires_staff_database_and_session() -> None:
         },
     )
     assert response.status_code == 503
+
+
+def test_all_status_content_inventory_is_not_public() -> None:
+    response = client.get("/api/v1/community/admin/content")
+    assert response.status_code == 503

@@ -99,6 +99,11 @@ export async function createModerator(data: {
   return response.json();
 }
 
+export async function fetchStaffAccounts(): Promise<StaffAccount[]> {
+  const response = await staffRequest("/staff/accounts");
+  return response.json();
+}
+
 export async function moderateContent(data: {
   action: "approve" | "flag" | "hide" | "restore";
   target_type: "report" | "comment";
@@ -121,7 +126,44 @@ export interface ModerationQueueItem {
   created_at: string;
 }
 
+export interface AdminCommunityContent {
+  target_type: "report" | "comment";
+  target_id: string;
+  username: string;
+  summary_en: string;
+  summary_te?: string | null;
+  detail_en?: string | null;
+  detail_te?: string | null;
+  classification: "community_reported";
+  status: string;
+  created_at: string;
+}
+
+export interface StaffAuditRecord {
+  id: string;
+  moderator_id: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  reason: string;
+  previous_state?: Record<string, unknown> | null;
+  new_state?: Record<string, unknown> | null;
+  created_at: string;
+}
+
 export async function fetchModerationQueue(): Promise<ModerationQueueItem[]> {
   const response = await staffRequest("/community/moderation-queue");
+  return response.json();
+}
+
+export async function fetchAdminCommunityContent(): Promise<
+  AdminCommunityContent[]
+> {
+  const response = await staffRequest("/community/admin/content?page_size=200");
+  return response.json();
+}
+
+export async function fetchStaffAuditLog(): Promise<StaffAuditRecord[]> {
+  const response = await staffRequest("/community/moderation-log");
   return response.json();
 }

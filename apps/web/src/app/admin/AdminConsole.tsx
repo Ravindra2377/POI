@@ -3,16 +3,22 @@
 import { FormEvent, useEffect, useState } from "react";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { AdminOverview } from "./AdminOverview";
 import {
+  AdminCommunityContent,
   changeStaffPassword,
   createModerator,
+  fetchAdminCommunityContent,
   fetchModerationQueue,
+  fetchStaffAccounts,
+  fetchStaffAuditLog,
   loginStaff,
   logoutStaff,
   moderateContent,
   restoreStaffSession,
   ModerationQueueItem,
   StaffAccount,
+  StaffAuditRecord,
 } from "@/lib/staff-api";
 
 const fieldStyle = {
@@ -28,6 +34,10 @@ export function AdminConsole() {
   const [message, setMessage] = useState("");
   const [queue, setQueue] = useState<ModerationQueueItem[]>([]);
   const [error, setError] = useState("");
+  const [content, setContent] = useState<AdminCommunityContent[]>([]);
+  const [staffAccounts, setStaffAccounts] = useState<StaffAccount[]>([]);
+  const [auditLog, setAuditLog] = useState<StaffAuditRecord[]>([]);
+  const [contentStatus, setContentStatus] = useState("all");
 
   useEffect(() => {
     restoreStaffSession().then((account) => {
@@ -41,8 +51,28 @@ export function AdminConsole() {
       fetchModerationQueue()
         .then(setQueue)
         .catch(() => setQueue([]));
+      if (staff.role === "admin") {
+        Promise.all([
+          fetchAdminCommunityContent(),
+          fetchStaffAccounts(),
+          fetchStaffAuditLog(),
+        ])
+          .then(([allContent, accounts, actions]) => {
+            setContent(allContent);
+            setStaffAccounts(accounts);
+            setAuditLog(actions);
+          })
+          .catch(() =>
+            setError("The administrator overview could not be loaded."),
+          );
+      }
     }
   }, [staff]);
+
+  const visibleContent =
+    contentStatus === "all"
+      ? content
+      : content.filter((item) => item.status === contentStatus);
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,6 +132,10 @@ export function AdminConsole() {
       });
       form.reset();
       setQueue(await fetchModerationQueue());
+      if (staff?.role === "admin") {
+        setContent(await fetchAdminCommunityContent());
+        setAuditLog(await fetchStaffAuditLog());
+      }
       setMessage(
         "Content state updated and an immutable audit record was created.",
       );
@@ -123,6 +157,7 @@ export function AdminConsole() {
         temporary_password: String(data.get("temporary_password")),
       });
       form.reset();
+      setStaffAccounts(await fetchStaffAccounts());
       setMessage(
         "Moderator created. Share the temporary password through a secure channel.",
       );
@@ -233,6 +268,16 @@ export function AdminConsole() {
                   Sign out
                 </button>
               </div>
+              {staff.role === "admin" && (
+                <AdminOverview
+                  content={content}
+                  visibleContent={visibleContent}
+                  staffAccounts={staffAccounts}
+                  auditLog={auditLog}
+                  contentStatus={contentStatus}
+                  onContentStatusChange={setContentStatus}
+                />
+              )}
               <section aria-labelledby="moderation-queue-heading">
                 <h2 id="moderation-queue-heading">Pending moderation queue</h2>
                 {queue.length === 0 ? (

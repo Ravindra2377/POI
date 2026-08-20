@@ -21,9 +21,11 @@ roles and terms distinct from judgements about a person.
 
 Community reports and comments enter `pending_review` and are not public until an authenticated
 moderator approves them. Staff use separate admin/moderator accounts at `/admin`; citizen
-pseudonyms cannot become staff authority. Every moderation transition creates an audit record, and
-the public audit log hides internal staff identity. Polls remain non-representative by contract and
-no fabricated fallback polls or vote counts are served. Precise user location is never collected.
+pseudonyms cannot become staff authority. Administrators additionally receive a protected overview
+of all recent content states, the staff directory, and recent audited actions; moderators receive
+the review queue only. Every moderation transition creates an audit record, and the public audit log
+hides internal staff identity. Polls remain non-representative by contract and no fabricated
+fallback polls or vote counts are served. Precise user location is never collected.
 
 ## Prerequisites
 

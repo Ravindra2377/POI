@@ -51,6 +51,12 @@ revocable sessions, temporary lockout after repeated failed sign-ins, and roles 
 An administrator can create moderators; new moderators must replace their temporary password before
 viewing the queue or acting on content.
 
+Administrators can also inspect up to the 200 most recent reports and comments across every status,
+including published and hidden records, view internal staff-account status, and review recent audit
+history. The all-status inventory and staff directory are API-authorized administrator surfaces;
+moderators cannot request them. Content records expose pseudonyms and bilingual content fields but
+never precise citizen locations or private staff identity to citizen-facing pages.
+
 New reports and comments enter `pending_review`. Authenticated staff review the private queue at
 `/admin`. Approve, flag, hide, and restore transitions update the target and append the audit record
 in one database transaction. The public log displays the staff role rather than the staff email or

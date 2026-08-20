@@ -101,6 +101,11 @@ event. Visit `/admin` on the web service to sign in. Create moderators there wit
 passwords, deliver those passwords through a separate secure channel, and require each moderator to
 change the password before accessing the queue.
 
+The administrator overview must load the all-status community-content inventory, staff directory,
+and recent audited actions. Confirm that a moderator session cannot load
+`/api/v1/community/admin/content` or `/api/v1/staff/accounts`; these are administrator-only even
+though moderators can access the pending/flagged queue and perform audited moderation transitions.
+
 Post-deploy checks must confirm that unauthenticated requests to the moderation queue and action
 endpoint fail, a moderator cannot create staff accounts, an administrator can create a moderator,
 temporary-password accounts cannot moderate, and a moderation transition updates the target and
