@@ -11,7 +11,24 @@ vi.mock("next/navigation", () => ({
 beforeEach(() => {
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockImplementation((url: string) => {
+    vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      if (url.includes("/reports") && init?.method === "POST") {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            id: "44444444-4444-4444-4444-444444444444",
+            user_id: "55555555-5555-5555-5555-555555555555",
+            username: "anonymous_citizen",
+            entity_type: "scheme",
+            title_en: "Pending test observation",
+            description_en: "Awaiting moderator review",
+            classification: "community_reported",
+            evidence_urls: [],
+            status: "pending_review",
+            created_at: new Date().toISOString(),
+          }),
+        });
+      }
       if (url.includes("/polls")) {
         return Promise.resolve({
           ok: true,
@@ -98,6 +115,43 @@ describe("CommunityContent", () => {
     expect(
       screen.getByRole("button", { name: "Submit Observation" }),
     ).toBeInTheDocument();
+  });
+
+  it("keeps a newly submitted observation out of the public list", async () => {
+    const user = userEvent.setup();
+    render(
+      <LocaleProvider>
+        <CommunityContent />
+      </LocaleProvider>,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "+ Log Field Observation" }),
+    );
+    await user.type(
+      screen.getByPlaceholderText(
+        "Observation Title (e.g. Delayed Mandal Disbursement)",
+      ),
+      "Pending test observation",
+    );
+    await user.type(
+      screen.getByPlaceholderText(
+        "Describe what you observed on the ground...",
+      ),
+      "Awaiting moderator review",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Submit Observation" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Submitted for moderator review. It will not be public until approved.",
+      ),
+    ).toBeVisible();
+    expect(
+      screen.queryByText("Pending test observation"),
+    ).not.toBeInTheDocument();
   });
 
   it("switches community copy to Telugu", async () => {

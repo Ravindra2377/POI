@@ -60,7 +60,8 @@ never precise citizen locations or private staff identity to citizen-facing page
 New reports and comments enter `pending_review`. Authenticated staff review the private queue at
 `/admin`. Approve, flag, hide, and restore transitions update the target and append the audit record
 in one database transaction. The public log displays the staff role rather than the staff email or
-internal identity.
+internal identity. Production submission failures return a service error rather than creating
+process-local records, and citizen-facing lists filter every fallback record to `published`.
 
 The first administrator is created only from a trusted API shell after migration:
 

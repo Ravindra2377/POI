@@ -34,6 +34,9 @@ const copy = {
     entityTypeLabel: "Entity Category",
     evidenceLabel: "Evidence URL (Optional photo/doc link)",
     submitReportBtn: "Submit Observation",
+    submissionPending:
+      "Submitted for moderator review. It will not be public until approved.",
+    submissionFailed: "Submission failed. Please try again later.",
     closeBtn: "Close",
     commentsHeading: "Community Field Reviews & Experiences",
     commentBtn: "+ Write a Field Review",
@@ -61,6 +64,9 @@ const copy = {
     entityTypeLabel: "విభాగం వర్గం",
     evidenceLabel: "ఆధారం URL (ఐచ్ఛిక ఫోటో/డాక్యుమెంట్ లింక్)",
     submitReportBtn: "పరిశీలనను సమర్పించండి",
+    submissionPending:
+      "మోడరేటర్ సమీక్ష కోసం సమర్పించబడింది. ఆమోదించబడే వరకు ఇది బహిరంగంగా కనిపించదు.",
+    submissionFailed: "సమర్పణ విఫలమైంది. దయచేసి తర్వాత మళ్లీ ప్రయత్నించండి.",
     closeBtn: "మూసివేయి",
     commentsHeading: "కమ్యూనిటీ క్షేత్ర సమీక్షలు & అనుభవాలు",
     commentBtn: "+ క్షేత్ర సమీక్షను రాయండి",
@@ -93,6 +99,7 @@ export function CommunityContent() {
   // Modal States
   const [showReportModal, setShowReportModal] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
+  const [submissionMessage, setSubmissionMessage] = useState("");
 
   // Form inputs
   const [reportTitle, setReportTitle] = useState("");
@@ -127,20 +134,20 @@ export function CommunityContent() {
     e.preventDefault();
     if (!reportTitle || !reportDesc) return;
     try {
-      const newRep = await submitCommunityReport({
+      await submitCommunityReport({
         username: "anonymous_citizen",
         entity_type: reportEntityType,
         title_en: reportTitle,
         description_en: reportDesc,
         evidence_urls: reportEvidence ? [reportEvidence] : [],
       });
-      setReports((prev) => [newRep, ...prev]);
+      setSubmissionMessage(labels.submissionPending);
       setShowReportModal(false);
       setReportTitle("");
       setReportDesc("");
       setReportEvidence("");
     } catch {
-      // ignore
+      setSubmissionMessage(labels.submissionFailed);
     }
   };
 
@@ -148,18 +155,18 @@ export function CommunityContent() {
     e.preventDefault();
     if (!commentContent) return;
     try {
-      const newComm = await submitCommunityComment({
+      await submitCommunityComment({
         username: "anonymous_citizen",
         target_type: commentTargetType,
         target_id: commentTargetId,
         rating: commentRating,
         content_en: commentContent,
       });
-      setComments((prev) => [newComm, ...prev]);
+      setSubmissionMessage(labels.submissionPending);
       setShowCommentModal(false);
       setCommentContent("");
     } catch {
-      // ignore
+      setSubmissionMessage(labels.submissionFailed);
     }
   };
 
@@ -172,6 +179,14 @@ export function CommunityContent() {
           <h1>{labels.title}</h1>
           <p className="lede">{labels.intro}</p>
         </header>
+
+        {submissionMessage && (
+          <section className="shell" aria-label="Submission status">
+            <p className="card" role="status">
+              {submissionMessage}
+            </p>
+          </section>
+        )}
 
         {/* SECTION 1: CIVIC PULSE POLLS */}
         <section className="section shell" aria-labelledby="polls-heading">

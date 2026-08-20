@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth import CurrentAdmin, CurrentStaff, RequiredDb
+from app.config import load_settings
 from app.db import DatabaseConfigurationError, get_db
 from app.models.community import (
     CommunityComment,
@@ -57,6 +58,28 @@ _IN_MEMORY_COMMENTS: list[CommunityCommentOut] = []
 _IN_MEMORY_MODERATION_LOG: list[ModerationAuditRecordOut] = []
 
 
+def _reject_production_fallback(detail: str) -> None:
+    if load_settings().app_env.casefold() == "production":
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=detail)
+
+
+def _get_or_create_pseudonymous_user(db: Session, username: str) -> UserAccount:
+    account = db.query(UserAccount).filter(UserAccount.username == username).first()
+    if account is not None:
+        return account
+    account = UserAccount(
+        id=uuid.uuid4(),
+        username=username,
+        display_name="Anonymous Citizen",
+        consent_data_sharing=False,
+        consent_public_activity=False,
+        preferred_language="en",
+    )
+    db.add(account)
+    db.flush()
+    return account
+
+
 def _get_default_polls() -> list[CommunityPollOut]:
     return []
 
@@ -93,6 +116,9 @@ def create_user_account(user_in: UserAccountCreate, db: DbSession) -> Any:
             return account
         except Exception:
             db.rollback()
+            _reject_production_fallback("Citizen profile persistence is temporarily unavailable")
+
+    _reject_production_fallback("Citizen profile persistence is temporarily unavailable")
 
     account_out = UserAccountOut(
         id=uuid.uuid4(),
@@ -131,11 +157,8 @@ def create_community_report(report_in: CommunityReportCreate, db: DbSession) -> 
 
     if db is not None:
         try:
-            db_acc = (
-                db.query(UserAccount).filter(UserAccount.username == report_in.username).first()
-            )
-            if db_acc:
-                user_id = db_acc.id
+            db_acc = _get_or_create_pseudonymous_user(db, report_in.username)
+            user_id = db_acc.id
             report = CommunityReport(
                 id=uuid.uuid4(),
                 user_id=user_id,
@@ -171,6 +194,9 @@ def create_community_report(report_in: CommunityReportCreate, db: DbSession) -> 
             )
         except Exception:
             db.rollback()
+            _reject_production_fallback("Community report persistence is temporarily unavailable")
+
+    _reject_production_fallback("Community report persistence is temporarily unavailable")
 
     report_out = CommunityReportOut(
         id=uuid.uuid4(),
@@ -231,9 +257,11 @@ def list_community_reports(
                 for rep, uname in results
             ]
         except Exception:
-            pass
+            _reject_production_fallback("Published community reports are temporarily unavailable")
 
-    filtered = _IN_MEMORY_REPORTS
+    _reject_production_fallback("Published community reports are temporarily unavailable")
+
+    filtered = [report for report in _IN_MEMORY_REPORTS if report.status == "published"]
     if entity_type:
         filtered = [r for r in filtered if r.entity_type == entity_type]
     if entity_id:
@@ -283,9 +311,8 @@ def create_community_comment(comment_in: CommunityCommentCreate, db: DbSession) 
 
     if db is not None:
         try:
-            db_a = db.query(UserAccount).filter(UserAccount.username == comment_in.username).first()
-            if db_a:
-                user_id = db_a.id
+            db_a = _get_or_create_pseudonymous_user(db, comment_in.username)
+            user_id = db_a.id
             comment = CommunityComment(
                 id=uuid.uuid4(),
                 user_id=user_id,
@@ -313,6 +340,9 @@ def create_community_comment(comment_in: CommunityCommentCreate, db: DbSession) 
             )
         except Exception:
             db.rollback()
+            _reject_production_fallback("Community comment persistence is temporarily unavailable")
+
+    _reject_production_fallback("Community comment persistence is temporarily unavailable")
 
     comment_out = CommunityCommentOut(
         id=uuid.uuid4(),
@@ -365,9 +395,11 @@ def list_community_comments(
                 for c, uname in results
             ]
         except Exception:
-            pass
+            _reject_production_fallback("Published community comments are temporarily unavailable")
 
-    filtered = _IN_MEMORY_COMMENTS
+    _reject_production_fallback("Published community comments are temporarily unavailable")
+
+    filtered = [comment for comment in _IN_MEMORY_COMMENTS if comment.status == "published"]
     if target_type:
         filtered = [c for c in filtered if c.target_type == target_type]
     if target_id:

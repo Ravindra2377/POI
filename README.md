@@ -25,7 +25,9 @@ pseudonyms cannot become staff authority. Administrators additionally receive a 
 of all recent content states, the staff directory, and recent audited actions; moderators receive
 the review queue only. Every moderation transition creates an audit record, and the public audit log
 hides internal staff identity. Polls remain non-representative by contract and no fabricated
-fallback polls or vote counts are served. Precise user location is never collected.
+fallback polls or vote counts are served. Production community writes fail closed when PostgreSQL is
+unavailable; pending records are never served by public fallback paths. Precise user location is
+never collected.
 
 ## Prerequisites
 

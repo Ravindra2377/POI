@@ -1,6 +1,10 @@
+import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
+from app.api.v1.community import create_community_report
 from app.main import app
+from app.schemas.community import CommunityReportCreate
 
 client = TestClient(app)
 
@@ -49,6 +53,8 @@ def test_community_report_enters_moderation_queue() -> None:
     report = response.json()
     assert report["classification"] == "community_reported"
     assert report["status"] == "pending_review"
+    public_reports = client.get("/api/v1/community/reports").json()
+    assert report["id"] not in {item["id"] for item in public_reports}
 
 
 def test_moderation_requires_staff_database_and_session() -> None:
@@ -67,3 +73,36 @@ def test_moderation_requires_staff_database_and_session() -> None:
 def test_all_status_content_inventory_is_not_public() -> None:
     response = client.get("/api/v1/community/admin/content")
     assert response.status_code == 503
+
+
+def test_pending_comment_is_not_returned_by_public_fallback() -> None:
+    response = client.post(
+        "/api/v1/community/comments",
+        json={
+            "username": "citizen_ravi",
+            "target_type": "scheme",
+            "target_id": "ysr-rythu-bharosa",
+            "rating": 2,
+            "content_en": "Test review awaiting moderation",
+        },
+    )
+    assert response.status_code == 201
+    comment = response.json()
+    assert comment["status"] == "pending_review"
+    public_comments = client.get("/api/v1/community/comments").json()
+    assert comment["id"] not in {item["id"] for item in public_comments}
+
+
+def test_production_report_submission_never_falls_back_to_memory(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("APP_ENV", "production")
+    payload = CommunityReportCreate(
+        username="anonymous_citizen",
+        entity_type="scheme",
+        title_en="Production persistence test",
+        description_en="Must fail closed when PostgreSQL is unavailable",
+    )
+    with pytest.raises(HTTPException) as exc_info:
+        create_community_report(payload, None)
+    assert exc_info.value.status_code == 503

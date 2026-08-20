@@ -109,4 +109,7 @@ though moderators can access the pending/flagged queue and perform audited moder
 Post-deploy checks must confirm that unauthenticated requests to the moderation queue and action
 endpoint fail, a moderator cannot create staff accounts, an administrator can create a moderator,
 temporary-password accounts cannot moderate, and a moderation transition updates the target and
-creates exactly one audit record.
+creates exactly one audit record. Submit a test report and confirm that it is persisted, appears in
+the administrator queue/inventory as `pending_review`, and remains absent from the public community
+list until approval. A production database failure must return 503 and must not create in-memory
+content.
