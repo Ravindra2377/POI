@@ -2859,7 +2859,9 @@ tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disp
   public social profiles, popularity rankings or server-side citizen tracking already exist.
 - **Discovery-first homepage:** replaced the institutional portal hierarchy with a civic-discovery
   hero, direct Discover and Watchlist actions, a prominent evidence/privacy boundary, and a live “My
-  Civic Shelf” panel. The panel reads the existing device-private watchlist and diary only; it sends no
+  Civic Shelf” panel. The shelf is top-aligned with the hero and uses the same paper, green and
+  ink visual system instead of an isolated dark-dashboard treatment. The panel reads the existing
+  device-private watchlist and diary only; it sends no
   new request and displays no fabricated popularity or activity metric.
 - **Visual record shelves:** redesigned the reviewed directories as six responsive, poster-like civic
   category covers for schemes, projects, public money, procurement, officeholders and elections. The

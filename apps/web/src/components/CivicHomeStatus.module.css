@@ -1,11 +1,21 @@
 .panel {
-  align-self: end;
-  background: #111c2c;
-  border: 1px solid #33445a;
+  align-self: start;
+  backdrop-filter: blur(18px);
+  background: rgb(255 255 255 / 88%);
+  border: 1px solid #bad5ca;
   border-radius: 18px;
-  box-shadow: 0 24px 70px rgb(2 8 23 / 28%);
-  color: white;
+  box-shadow: 0 20px 55px rgb(27 66 54 / 14%);
+  color: var(--ink);
+  overflow: hidden;
   padding: clamp(22px, 3vw, 34px);
+  position: relative;
+}
+.panel::before {
+  background: linear-gradient(90deg, #218a67, #6bc39f, #e6a34a);
+  content: "";
+  height: 5px;
+  inset: 0 0 auto;
+  position: absolute;
 }
 .heading {
   align-items: center;
@@ -22,29 +32,33 @@
   text-transform: uppercase;
 }
 .heading p {
-  color: #70d6a3;
+  color: #176b50;
 }
 .heading span {
-  color: #a8b4c5;
+  background: #eaf5f0;
+  border-radius: 999px;
+  color: #42675a;
   letter-spacing: 0.04em;
+  padding: 5px 8px;
 }
 .panel h2 {
+  color: var(--ink);
   font-size: clamp(1.45rem, 2.5vw, 2.15rem);
-  margin-top: 18px;
+  margin-top: 22px;
 }
 .panel dl {
-  border-block: 1px solid #33445a;
+  border-block: 1px solid #cfddd7;
   display: grid;
   grid-template-columns: 1fr 1fr;
   margin: 24px 0 0;
   padding-block: 18px;
 }
 .panel dl > div + div {
-  border-left: 1px solid #33445a;
+  border-left: 1px solid #cfddd7;
   padding-left: 22px;
 }
 .panel dd {
-  color: #ffb45b;
+  color: var(--warm);
   font-size: 2rem;
   font-weight: 850;
   line-height: 1;
@@ -52,7 +66,7 @@
 }
 .panel dt,
 .empty {
-  color: #a8b4c5;
+  color: var(--muted);
   font-size: 0.76rem;
 }
 .panel dt {
@@ -67,15 +81,27 @@
   margin-top: 22px;
 }
 .panel nav a {
-  border: 1px solid #43566f;
+  background: var(--surface);
+  border: 1px solid var(--line-dark);
   border-radius: 8px;
-  color: white;
+  color: var(--ink);
   font-size: 0.82rem;
   font-weight: 750;
   padding: 10px 12px;
   text-decoration: none;
 }
+.panel nav a:first-child {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: white;
+}
 .panel nav a:hover {
-  background: #1b2a3f;
-  border-color: #70d6a3;
+  border-color: #218a67;
+  box-shadow: inset 3px 0 #218a67;
+}
+@media (max-width: 900px) {
+  .panel {
+    max-width: 560px;
+    width: 100%;
+  }
 }
