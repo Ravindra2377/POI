@@ -17,6 +17,9 @@ const copy = {
   en: {
     private: "PRIVATE · THIS DEVICE ONLY",
     watchTitle: "Your development watchlist",
+    watchNav: "Watchlist",
+    diaryNav: "Civic diary",
+    discoverNav: "Discover",
     watchIntro:
       "Follow reviewed records without creating an identity or sending your interests to the server.",
     watchEmpty: "Your watchlist is empty",
@@ -51,6 +54,9 @@ const copy = {
   te: {
     private: "ప్రైవేట్ · ఈ పరికరంలో మాత్రమే",
     watchTitle: "మీ అభివృద్ధి వాచ్‌లిస్ట్",
+    watchNav: "వాచ్‌లిస్ట్",
+    diaryNav: "పౌర డైరీ",
+    discoverNav: "కనుగొనండి",
     watchIntro:
       "గుర్తింపును సృష్టించకుండా లేదా మీ ఆసక్తులను సర్వర్‌కు పంపకుండా సమీక్షించిన రికార్డులను అనుసరించండి.",
     watchEmpty: "మీ వాచ్‌లిస్ట్ ఖాళీగా ఉంది",
@@ -118,6 +124,21 @@ export function CivicTrackingCollection({
         <p className="eyebrow">{labels.private}</p>
         <h1>{title}</h1>
         <p>{intro}</p>
+        <nav className={styles.viewNav} aria-label={title}>
+          <Link
+            href="/lists"
+            aria-current={mode === "watchlist" ? "page" : undefined}
+          >
+            {labels.watchNav} <span>{watchlist.length}</span>
+          </Link>
+          <Link
+            href="/activity"
+            aria-current={mode === "diary" ? "page" : undefined}
+          >
+            {labels.diaryNav} <span>{diary.length}</span>
+          </Link>
+          <Link href="/explore-data">{labels.discoverNav} →</Link>
+        </nav>
       </header>
       {entries.length === 0 ? (
         <section className="card" aria-labelledby={`${mode}-empty-heading`}>

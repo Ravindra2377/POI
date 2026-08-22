@@ -12,20 +12,22 @@ import { translateUiTerm } from "@/lib/copy-helper";
 import type { LanguageCode } from "@/lib/catalog-types";
 
 const primaryNavigation = [
+  { href: "/explore-data", label: "Discover" },
   { href: "/schemes", label: "Schemes" },
-  { href: "/public-money", label: "Public Money" },
   { href: "/projects", label: "Projects" },
-  { href: "/activity", label: "Civic Diary" },
+  { href: "/community", label: "Community" },
   { href: "/lists", label: "Watchlist" },
-  { href: "/government", label: "Government" },
-  { href: "/know-your-constituency", label: "Know Your Constituency" },
-  { href: "/my-area", label: "My Area" },
+  { href: "/activity", label: "Civic Diary" },
 ];
 
 const secondaryNavigation = [
   { href: "/states", label: "All-India States" },
   { href: "/geographies", label: "Districts & Geographies" },
   { href: "/explore-data", label: "Explore Data" },
+  { href: "/public-money", label: "Public Money" },
+  { href: "/government", label: "Government" },
+  { href: "/know-your-constituency", label: "Know Your Constituency" },
+  { href: "/my-area", label: "My Area" },
   { href: "/procurement", label: "Procurement" },
   { href: "/officeholders", label: "Officeholders" },
   { href: "/election-results", label: "Election Results" },
@@ -33,7 +35,6 @@ const secondaryNavigation = [
   { href: "/budget", label: "Budget" },
   { href: "/sources", label: "Sources" },
   { href: "/ingestion", label: "Ingestion" },
-  { href: "/community", label: "Community" },
   { href: "/professional", label: "For Professionals" },
   { href: "/account", label: "Account" },
 ];
@@ -56,7 +57,7 @@ export function SiteHeader() {
         <div className="shell site-header__inner">
           <Link className="wordmark" href="/" aria-label="Viksit Bharat?? home">
             <span>Viksit Bharat??</span>
-            <small>PUBLIC RECORD</small>
+            <small>CIVIC DISCOVERY</small>
           </Link>
           <button
             className="menu-button"

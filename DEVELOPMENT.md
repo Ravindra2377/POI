@@ -2851,3 +2851,33 @@ tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disp
   **173/173 tests across 51 files**. `npm run format:check`, web ESLint and TypeScript checks passed;
   the optimized Next.js production build succeeded and includes `/lists` and `/activity`; and
   `git diff --check` reported no whitespace errors.
+
+### Stage 2.39 — Civic discovery and personal-shelf UI (2026-08-22)
+
+- **Objective:** align the public interface with the product direction of a discovery and diary
+  experience for national development and politics, while avoiding a visual or functional claim that
+  public social profiles, popularity rankings or server-side citizen tracking already exist.
+- **Discovery-first homepage:** replaced the institutional portal hierarchy with a civic-discovery
+  hero, direct Discover and Watchlist actions, a prominent evidence/privacy boundary, and a live “My
+  Civic Shelf” panel. The panel reads the existing device-private watchlist and diary only; it sends no
+  new request and displays no fabricated popularity or activity metric.
+- **Visual record shelves:** redesigned the reviewed directories as six responsive, poster-like civic
+  category covers for schemes, projects, public money, procurement, officeholders and elections. The
+  covers link to real directories and describe record classes rather than inventing production record
+  titles, ratings or trend positions.
+- **Product navigation:** simplified the primary navigation around Discover, Schemes, Projects,
+  Community, Watchlist and Civic Diary; retained the complete public-data and professional routes in
+  the secondary menu; and changed the wordmark descriptor from “Public Record” to “Civic Discovery.”
+  Watchlist and Diary pages now include cross-navigation, live local counts and a return to discovery.
+- **Responsive and accessible behavior:** the hero changes from two columns to one below 900px; the
+  record shelf changes from six to three and then two columns; controls retain visible focus handling;
+  the civic shelf uses semantic definition-list markup; current Watchlist/Diary views use
+  `aria-current`; and no image-dependent meaning was introduced.
+- **Localisation and security boundary:** new device-private shelf content and tracking navigation are
+  available in English and Telugu, including a Telugu Discover label. Other locales continue to use
+  the existing translation fallback. No schema, API, citizen account, professional account, staff
+  permission or moderation change was made.
+- **Verification evidence:** focused civic shelf, navigation, watchlist, diary, localisation and
+  public-utility tests passed **12/12**. The complete deterministic web suite passed **175/175 tests
+  across 52 files**. `npm run format:check`, web ESLint and TypeScript checks passed; the optimized
+  Next.js production build succeeded; and `git diff --check` passed.

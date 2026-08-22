@@ -3,6 +3,10 @@ import type { LanguageCode } from "./catalog-types";
 // Common UI term dictionary for all supported Indian languages
 const UI_TRANSLATIONS: Record<string, Partial<Record<LanguageCode, string>>> = {
   // Navigation & Page Titles
+  Discover: {
+    hi: "खोजें",
+    te: "కనుగొనండి",
+  },
   Schemes: {
     hi: "योजनाएं",
     te: "పథకాలు",

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CivicHomeStatus } from "@/components/CivicHomeStatus";
 import { CivicPosterGridSection } from "@/components/CivicPosterGridSection";
 import { CoverageFacts } from "@/components/CoverageFacts";
 import { DevelopmentSocialIntro } from "@/components/DevelopmentSocialIntro";
@@ -6,6 +7,7 @@ import { LatestRecordUpdates } from "@/components/LatestRecordUpdates";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { UniversalRecordSearch } from "@/components/UniversalRecordSearch";
+import styles from "./home.module.css";
 
 const quickLinks = [
   {
@@ -50,33 +52,38 @@ export default function Home() {
     <>
       <SiteHeader />
       <main id="main-content">
-        <section className="home-intro shell">
-          <p className="eyebrow">INDIA&apos;S DEVELOPMENT, CONNECTED</p>
-          <h1>Follow India&apos;s development. Check the public record.</h1>
-          <p className="lede">
-            Follow reviewed schemes, projects, public money, procurement,
-            elections and officeholders—from the Union government to a state and
-            district. Reviewed district records are live for all 36 States and
-            Union Territories.
-          </p>
-          <p className="satirical-context">
-            Because development is a claim until the public can inspect the
-            record.
-          </p>
-          <div className="launch-cta" role="group" aria-label="Launch feature">
-            <Link
-              className="button button--primary"
-              href="/know-your-constituency"
-            >
-              Know Your Constituency <span aria-hidden="true">→</span>
-            </Link>
-            <p>
-              Find your district, your seat and your MLA from reviewed,
-              source-linked records.
-            </p>
+        <section className={styles.hero}>
+          <div className={`shell ${styles.heroGrid}`}>
+            <div className={styles.heroCopy}>
+              <p className="eyebrow">INDIA&apos;S CIVIC DISCOVERY NETWORK</p>
+              <h1>Track the work. Keep the receipts.</h1>
+              <p className="lede">
+                Discover source-linked schemes, projects, public money,
+                procurement, elections and officeholders. Follow reviewed
+                records and build a private diary of the India you are watching.
+              </p>
+              <p className={styles.boundary}>
+                Official records stay official. Community experience stays
+                labelled. Your watchlist stays on this device.
+              </p>
+              <div className={styles.heroActions}>
+                <Link className="button button--primary" href="/explore-data">
+                  Discover records <span aria-hidden="true">→</span>
+                </Link>
+                <Link className={styles.textLink} href="/lists">
+                  View my watchlist
+                </Link>
+              </div>
+            </div>
+            <CivicHomeStatus />
           </div>
-          <UniversalRecordSearch />
-          <nav className="quick-links" aria-label="Quick record links">
+          <div className={`shell ${styles.searchWrap}`}>
+            <UniversalRecordSearch />
+          </div>
+          <nav
+            className={`shell ${styles.quickLinks}`}
+            aria-label="Quick record links"
+          >
             {quickLinks.map((item) => (
               <Link href={item.href} key={item.label}>
                 <span>{item.label}</span>
@@ -85,8 +92,8 @@ export default function Home() {
             ))}
           </nav>
         </section>
-        <DevelopmentSocialIntro />
         <CivicPosterGridSection />
+        <DevelopmentSocialIntro />
         <CoverageFacts />
         <section className="section shell" aria-labelledby="latest-heading">
           <div className="section-heading section-heading--split">
