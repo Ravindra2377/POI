@@ -9,6 +9,7 @@ from app.api.v1.government import router as government_router
 from app.api.v1.ingestion import router as ingestion_router
 from app.api.v1.officeholders import router as officeholders_router
 from app.api.v1.procurement import router as procurement_router
+from app.api.v1.professional import router as professional_router
 from app.api.v1.projects import router as projects_router
 from app.api.v1.schemes import router as schemes_router
 from app.api.v1.staff import router as staff_router
@@ -28,3 +29,4 @@ router.include_router(community_router)
 router.include_router(states_router)
 router.include_router(staff_router)
 router.include_router(comparisons_router)
+router.include_router(professional_router)

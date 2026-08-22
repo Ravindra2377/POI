@@ -2732,3 +2732,89 @@ tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disp
   acceptance matrix. Unrestricted participation additionally requires unique pseudonymous browser
   identities, concurrency-safe profile creation, anti-spam controls, MFA and staff recovery,
   evidence quarantine/redaction, appeals/escalation, legal review, and paginated admin inventory.
+
+### Stage 2.36 — Trust-preserving professional research pilot surface (2026-08-22)
+
+- **Objective:** turn the documented business strategy into a first sellable surface without
+  placing civic records behind a paywall, claiming that unbuilt subscription features exist, or
+  creating a new personal-data collection and spam boundary.
+- **Professional route:** added the dynamic `/professional` route for newsrooms, researchers,
+  nonprofits, CSR teams and other public-interest organisations. It presents three explicitly
+  indicative and manually scoped offers: a ₹999/month professional pilot, an organisation pilot
+  starting at ₹7,500/month, and custom research quoted only after source and coverage review. The
+  page distinguishes currently offered research work from self-service subscriptions, payment,
+  accounts, entitlements and API products that are not built.
+- **Commercial independence:** the public page commits that essential civic records and source
+  links remain free; client payment cannot buy removal, favourable ranking, unlabelled sponsorship,
+  moderation influence or privileged facts; citizen identities, activity and precise locations are
+  not sold; and client-funded work must remain labelled. These rules preserve the existing official,
+  calculated, inferred and community-reported evidence boundaries.
+- **Bilingual and discoverable UI:** all professional-offering content is available in English and
+  Telugu, with English fallback for other locales. The global navigation dictionary includes the
+  new professional label across the existing major-language translations. The route is linked from
+  the secondary header menu and footer and uses responsive three-column-to-single-column layouts.
+- **Fail-closed enquiry boundary:** `PARTNERSHIPS_EMAIL` is a server-side web configuration value
+  that produces a prefilled public `mailto:` link only when it contains a valid email address. When
+  it is missing or invalid, the route honestly states that enquiries are closed. No form submission,
+  lead database, cookie, payment processor, professional account, or API/schema migration was added.
+  Deployment documentation warns operators to use a monitored organisational inbox because its
+  address becomes public.
+- **Verification evidence:** focused professional tests passed **4/4**; full web discovery reports
+  **165 tests across 48 files**, and the bounded full-suite run completed without failures.
+  `npm run format:check`, `npm run lint`, and `npm run typecheck` passed; `npm run build`
+  succeeded and lists `/professional` as a dynamic route. API Ruff passed, strict mypy exited clean,
+  and Pytest passed **161 tests** with **16 PostgreSQL/PostGIS integration tests skipped** because no
+  disposable test database was configured.
+- **Remaining commercial work:** there is intentionally no checkout, invoicing, tax handling,
+  contractual terms, service-level commitment, client account system, saved brief, alert delivery,
+  entitlement enforcement or production API product. Pricing and deliverables must remain pilot
+  terms until customer interviews validate them; legal and tax review is required before automated
+  payments or recurring subscriptions are introduced.
+
+### Stage 2.37 — Isolated professional customer accounts and administrator-controlled access (2026-08-22)
+
+- **Objective and identity boundary:** replaced the initial public-inbox pilot handoff with a real
+  professional account foundation while preserving three separate trust domains. Anonymous citizen
+  profiles remain pseudonymous, staff continue to authenticate only through the restricted staff
+  system, and professional customers use a new account/session model with no relationship to citizen
+  profiles and no staff permissions. Administrator access does not include customer impersonation or
+  visibility into citizen identity.
+- **Schema and audit contract:** added Alembic revision `20260822_0008` with isolated professional
+  accounts, hashed sessions, hashed single-use email-verification tokens and professional-account
+  audit records. Accounts record requested and granted plans separately, plus explicit manual billing
+  states (`not_started`, `payment_pending`, `paid`, `past_due`, `cancelled`, or `complimentary`). Raw
+  passwords and session/verification tokens are never stored. The migration is additive and does not
+  modify official, calculated, inferred or community-reported records.
+- **Fail-closed customer lifecycle:** added registration status, registration, email verification,
+  sign-in, current-account and sign-out endpoints. Production registration defaults closed and also
+  requires configured SMTP delivery. Verification links expire after 30 minutes and are single-use;
+  verified registrations await administrator review. Password policy, five-attempt temporary lockout,
+  24-hour sessions and session revocation are enforced server-side. Every protected request rechecks
+  verified email, active status, a granted plan and paid/complimentary billing state.
+- **Administrator full control:** the existing `/admin` session now loads every professional account
+  and its recent audit history. Administrators can grant or remove a plan, record manual billing state,
+  activate, suspend or reject access, and must provide an audited reason. Activation is rejected unless
+  the email is verified, a plan is granted and billing is paid or complimentary; every change revokes
+  existing customer sessions. Moderators and customers cannot call these administrator endpoints.
+- **Bilingual customer UI and commercial boundary:** added `/professional/account` with English and
+  Telugu registration, verification, sign-in and account-status views. The route states that public
+  records stay free and that the platform does not yet collect card or bank details. The professional
+  offering now sends customers through this separate account flow instead of a public `mailto:` link.
+- **Deployment contract:** removed the obsolete partnership-inbox variable and documented
+  `PROFESSIONAL_REGISTRATION_ENABLED`, `PUBLIC_WEB_URL` and SMTP settings in `render.yaml`, the README
+  and the production runbook. Registration remains `false` in the production Blueprint. CORS now
+  explicitly permits the audited administrator `PATCH` request. The documented migration head is
+  `20260822_0008`.
+- **Verification evidence:** `npm run format:check`, web ESLint and TypeScript checks passed. Focused
+  account/admin tests passed **8/8** and the bounded single-worker web suite passed **169/169 across 50
+  files**; a parallel run exposed one unrelated geography timing failure that passed **5/5** in
+  isolation before the clean single-worker run. The production Next.js build succeeded and includes
+  `/professional` and `/professional/account`. API Ruff and strict mypy passed; Pytest passed **166
+  tests** with **16 PostgreSQL/PostGIS integrations skipped** because no disposable test database was
+  configured. `git diff --check` passed after removing unrelated formatter churn.
+- **Remaining commercial and security gates:** no payment processor, webhook verification, invoice,
+  GST/tax workflow, refund handling, password reset, customer MFA, distributed rate limiting or paid
+  feature entitlement endpoints exist yet. SMTP delivery and the migration still require production
+  configuration and an Aiven backup/restore-tested deployment. Keep professional registration closed
+  until those controls, legal terms and operator recovery procedures are ready; manual billing status
+  is an administrative record, not proof that the platform processed a payment.

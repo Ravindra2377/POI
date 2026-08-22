@@ -1,0 +1,145 @@
+.boundary {
+  background: var(--green-bg);
+  border-left: 4px solid var(--green);
+  display: grid;
+  gap: 5px;
+  margin-top: 28px;
+  max-width: 900px;
+  padding: 16px 20px;
+}
+.boundary strong {
+  color: var(--green);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+.boundary p,
+.audienceGrid p,
+.contact p,
+.unavailable p {
+  color: var(--ink-soft);
+  margin: 0;
+}
+.audienceGrid,
+.offerGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.audienceGrid > li,
+.offerGrid > li {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  min-width: 0;
+  padding: 22px;
+}
+.audienceGrid h3,
+.offerGrid h3 {
+  font-size: 1.08rem;
+  margin: 0 0 10px;
+}
+.audienceGrid p {
+  font-size: 0.86rem;
+}
+.offerGrid > li {
+  display: flex;
+  flex-direction: column;
+}
+.offerGrid > li > span {
+  color: var(--blue);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin-bottom: 9px;
+  text-transform: uppercase;
+}
+.offerGrid > li > strong {
+  color: var(--ink);
+  font-size: 1.35rem;
+  margin-bottom: 18px;
+}
+.offerGrid ul {
+  border-top: 1px solid var(--line);
+  list-style: none;
+  margin: 0;
+  padding: 10px 0 0;
+}
+.offerGrid ul li {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  padding: 7px 0 7px 20px;
+  position: relative;
+}
+.offerGrid ul li::before {
+  color: var(--green);
+  content: "✓";
+  font-weight: 800;
+  left: 0;
+  position: absolute;
+}
+.trustLayout {
+  align-items: start;
+  display: grid;
+  gap: 60px;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+.trustLayout > ul {
+  border-top: 1px solid var(--line-dark);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.trustLayout > ul li {
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 14px 8px 14px 28px;
+  position: relative;
+}
+.trustLayout > ul li::before {
+  color: var(--blue);
+  content: "—";
+  font-weight: 800;
+  left: 4px;
+  position: absolute;
+}
+.contact > div {
+  max-width: 900px;
+}
+.contact h2 {
+  margin-bottom: 12px;
+}
+.contact > div > p:not(.eyebrow) {
+  max-width: 720px;
+}
+.contact a {
+  display: inline-block;
+  margin-top: 22px;
+  text-decoration: none;
+}
+.unavailable {
+  border: 1px dashed var(--line-dark);
+  display: grid;
+  gap: 5px;
+  margin-top: 22px;
+  max-width: 620px;
+  padding: 16px 18px;
+}
+.unavailable strong {
+  font-size: 0.85rem;
+}
+.unavailable p {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 800px) {
+  .audienceGrid,
+  .offerGrid,
+  .trustLayout {
+    grid-template-columns: 1fr;
+  }
+  .trustLayout {
+    gap: 28px;
+  }
+}

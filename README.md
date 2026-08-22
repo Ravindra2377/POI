@@ -110,6 +110,9 @@ Create a new Render Blueprint from the repository, then provide these prompted v
 
 - `NEXT_PUBLIC_API_URL`: the public HTTPS URL Render assigns to `ap-civic-api`
 - `NEXT_PUBLIC_SITE_URL`: the public HTTPS URL Render assigns to `ap-civic-web`
+- `PUBLIC_WEB_URL`: the public HTTPS URL of `ap-civic-web`, used only to build professional email-verification links
+- `PROFESSIONAL_REGISTRATION_ENABLED`: keep `false` until SMTP, rate limiting, terms, and operator review are ready
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, and `SMTP_USE_TLS`: transactional email settings; never commit credentials
 - `CORS_ORIGINS`: the public HTTPS origin Render assigns to `ap-civic-web`
 - `DATABASE_URL`: the rotated Aiven PostgreSQL service URI with TLS required
 
@@ -120,6 +123,13 @@ The service health check uses `/health/ready`; `/health/live` remains a process-
 
 `COMMUNITY_SUBMISSIONS_ENABLED=false` is declared in `render.yaml` and is the launch default. Do
 not enable it until the community security and operating gates in the moderation policy pass.
+
+The `/professional` route publishes indicative, manually scoped research-pilot offers while
+keeping public civic records free. `/professional/account` provides a separate verified customer
+identity and manual entitlement workflow; it never grants citizen or staff authority. Production
+registration fails closed unless the explicit registration flag and verification email are both
+configured. The platform records manual paid or complimentary status but does not yet collect card
+or bank details, issue invoices, or claim automated subscription billing.
 
 For a failed migration, preserve the database, inspect `alembic current` and Render's pre-deploy
 logs, and fix forward with a reviewed revision. Restore a managed backup before any destructive

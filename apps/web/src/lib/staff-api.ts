@@ -1,3 +1,8 @@
+import type {
+  ProfessionalAccount,
+  ProfessionalAuditRecord,
+} from "@/lib/professional-api";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const TOKEN_KEY = "viksit_staff_session";
 
@@ -165,5 +170,36 @@ export async function fetchAdminCommunityContent(): Promise<
 
 export async function fetchStaffAuditLog(): Promise<StaffAuditRecord[]> {
   const response = await staffRequest("/community/moderation-log");
+  return response.json();
+}
+
+export async function fetchProfessionalAccounts(): Promise<
+  ProfessionalAccount[]
+> {
+  const response = await staffRequest("/professional/admin/accounts");
+  return response.json();
+}
+
+export async function fetchProfessionalAccountAudit(): Promise<
+  ProfessionalAuditRecord[]
+> {
+  const response = await staffRequest("/professional/admin/audit");
+  return response.json();
+}
+
+export async function updateProfessionalAccount(
+  accountId: string,
+  data: Pick<
+    ProfessionalAccount,
+    "status" | "access_plan" | "billing_status"
+  > & { reason: string },
+): Promise<ProfessionalAccount> {
+  const response = await staffRequest(
+    `/professional/admin/accounts/${accountId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    },
+  );
   return response.json();
 }

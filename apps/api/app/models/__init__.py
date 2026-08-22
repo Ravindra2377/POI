@@ -22,6 +22,12 @@ from app.models.government import (
     Representative,
     RepresentativeTerm,
 )
+from app.models.professional import (
+    ProfessionalAccount,
+    ProfessionalAccountAuditRecord,
+    ProfessionalEmailVerification,
+    ProfessionalSession,
+)
 from app.models.provenance import (
     Correction,
     ExtractionRun,
@@ -51,6 +57,10 @@ __all__ = [
     "OfficeJurisdiction",
     "OfficialRole",
     "PollVote",
+    "ProfessionalAccount",
+    "ProfessionalAccountAuditRecord",
+    "ProfessionalEmailVerification",
+    "ProfessionalSession",
     "PublicOffice",
     "PublicOfficeAlias",
     "Representative",

@@ -34,6 +34,7 @@ const secondaryNavigation = [
   { href: "/sources", label: "Sources" },
   { href: "/ingestion", label: "Ingestion" },
   { href: "/community", label: "Community" },
+  { href: "/professional", label: "For Professionals" },
   { href: "/account", label: "Account" },
 ];
 

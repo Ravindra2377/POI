@@ -11,6 +11,7 @@ export function PageFooter() {
         <nav aria-label="Footer navigation">
           <Link href="/sources">Methodology</Link>
           <Link href="/sources#coverage">Coverage</Link>
+          <Link href="/professional">For professionals</Link>
           <Link href="/government-explorer">Andhra Pradesh data</Link>
         </nav>
         <div className="site-footer__legal">

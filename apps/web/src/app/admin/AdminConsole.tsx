@@ -4,12 +4,15 @@ import { FormEvent, useEffect, useState } from "react";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { AdminOverview } from "./AdminOverview";
+import { ProfessionalAccountsAdmin } from "./ProfessionalAccountsAdmin";
 import {
   AdminCommunityContent,
   changeStaffPassword,
   createModerator,
   fetchAdminCommunityContent,
   fetchModerationQueue,
+  fetchProfessionalAccountAudit,
+  fetchProfessionalAccounts,
   fetchStaffAccounts,
   fetchStaffAuditLog,
   loginStaff,
@@ -19,7 +22,12 @@ import {
   ModerationQueueItem,
   StaffAccount,
   StaffAuditRecord,
+  updateProfessionalAccount,
 } from "@/lib/staff-api";
+import type {
+  ProfessionalAccount,
+  ProfessionalAuditRecord,
+} from "@/lib/professional-api";
 
 const fieldStyle = {
   width: "100%",
@@ -37,6 +45,12 @@ export function AdminConsole() {
   const [content, setContent] = useState<AdminCommunityContent[]>([]);
   const [staffAccounts, setStaffAccounts] = useState<StaffAccount[]>([]);
   const [auditLog, setAuditLog] = useState<StaffAuditRecord[]>([]);
+  const [professionalAccounts, setProfessionalAccounts] = useState<
+    ProfessionalAccount[]
+  >([]);
+  const [professionalAudit, setProfessionalAudit] = useState<
+    ProfessionalAuditRecord[]
+  >([]);
   const [contentStatus, setContentStatus] = useState("all");
 
   useEffect(() => {
@@ -56,12 +70,24 @@ export function AdminConsole() {
           fetchAdminCommunityContent(),
           fetchStaffAccounts(),
           fetchStaffAuditLog(),
+          fetchProfessionalAccounts(),
+          fetchProfessionalAccountAudit(),
         ])
-          .then(([allContent, accounts, actions]) => {
-            setContent(allContent);
-            setStaffAccounts(accounts);
-            setAuditLog(actions);
-          })
+          .then(
+            ([
+              allContent,
+              accounts,
+              actions,
+              customerAccounts,
+              customerAudit,
+            ]) => {
+              setContent(allContent);
+              setStaffAccounts(accounts);
+              setAuditLog(actions);
+              setProfessionalAccounts(customerAccounts);
+              setProfessionalAudit(customerAudit);
+            },
+          )
           .catch(() =>
             setError("The administrator overview could not be loaded."),
           );
@@ -168,6 +194,24 @@ export function AdminConsole() {
     }
   }
 
+  async function manageProfessionalAccount(
+    accountId: string,
+    update: Parameters<typeof updateProfessionalAccount>[1],
+  ) {
+    setError("");
+    setMessage("");
+    await updateProfessionalAccount(accountId, update);
+    const [accounts, actions] = await Promise.all([
+      fetchProfessionalAccounts(),
+      fetchProfessionalAccountAudit(),
+    ]);
+    setProfessionalAccounts(accounts);
+    setProfessionalAudit(actions);
+    setMessage(
+      "Professional access updated, customer sessions revoked and an audit record created.",
+    );
+  }
+
   return (
     <>
       <SiteHeader />
@@ -269,14 +313,21 @@ export function AdminConsole() {
                 </button>
               </div>
               {staff.role === "admin" && (
-                <AdminOverview
-                  content={content}
-                  visibleContent={visibleContent}
-                  staffAccounts={staffAccounts}
-                  auditLog={auditLog}
-                  contentStatus={contentStatus}
-                  onContentStatusChange={setContentStatus}
-                />
+                <>
+                  <AdminOverview
+                    content={content}
+                    visibleContent={visibleContent}
+                    staffAccounts={staffAccounts}
+                    auditLog={auditLog}
+                    contentStatus={contentStatus}
+                    onContentStatusChange={setContentStatus}
+                  />
+                  <ProfessionalAccountsAdmin
+                    accounts={professionalAccounts}
+                    auditLog={professionalAudit}
+                    onUpdate={manageProfessionalAccount}
+                  />
+                </>
               )}
               <section aria-labelledby="moderation-queue-heading">
                 <h2 id="moderation-queue-heading">Pending moderation queue</h2>

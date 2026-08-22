@@ -22,15 +22,20 @@ not replace the release gates in `operations-and-recovery.md` — it assumes the
 
 ## Environment variables (set per environment in the dashboard)
 
-These are `sync: false` in `render.yaml`, so they must be created manually:
+These production values include dashboard secrets and Blueprint-declared safe defaults:
 
-| Service      | Key                             | Value                                                                                                                                                                                                                 |
-| ------------ | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ap-civic-web | `NEXT_PUBLIC_API_URL`           | Public base URL of the API service (e.g. `https://ap-civic-api.onrender.com`)                                                                                                                                         |
-| ap-civic-web | `NEXT_PUBLIC_SITE_URL`          | Public base URL of the web service (e.g. `https://ap-civic-web.onrender.com`); feeds `metadataBase` so generated `og:image` URLs are absolute. If unset, `RENDER_EXTERNAL_URL` is used, then `http://localhost:3000`. |
-| ap-civic-api | `DATABASE_URL`                  | Rotated Aiven PostgreSQL service URI; retain `sslmode=require` and never commit or print it                                                                                                                           |
-| ap-civic-api | `CORS_ORIGINS`                  | Comma-separated origins allowed by the API, including the web service public URL                                                                                                                                      |
-| ap-civic-api | `COMMUNITY_SUBMISSIONS_ENABLED` | `false` for the public-data beta; changing this is a governed participation launch operation                                                                                                                          |
+| Service      | Key                                 | Value                                                                                                                                                                                                                 |
+| ------------ | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ap-civic-web | `NEXT_PUBLIC_API_URL`               | Public base URL of the API service (e.g. `https://ap-civic-api.onrender.com`)                                                                                                                                         |
+| ap-civic-web | `NEXT_PUBLIC_SITE_URL`              | Public base URL of the web service (e.g. `https://ap-civic-web.onrender.com`); feeds `metadataBase` so generated `og:image` URLs are absolute. If unset, `RENDER_EXTERNAL_URL` is used, then `http://localhost:3000`. |
+| ap-civic-api | `DATABASE_URL`                      | Rotated Aiven PostgreSQL service URI; retain `sslmode=require` and never commit or print it                                                                                                                           |
+| ap-civic-api | `CORS_ORIGINS`                      | Comma-separated origins allowed by the API, including the web service public URL                                                                                                                                      |
+| ap-civic-api | `COMMUNITY_SUBMISSIONS_ENABLED`     | `false` for the public-data beta; changing this is a governed participation launch operation                                                                                                                          |
+| ap-civic-api | `PROFESSIONAL_REGISTRATION_ENABLED` | Keep `false` until the professional registration security and operating gates pass                                                                                                                                    |
+| ap-civic-api | `PUBLIC_WEB_URL`                    | Public web origin used to construct email-verification links; use HTTPS in production                                                                                                                                 |
+| ap-civic-api | `SMTP_HOST`, `SMTP_PORT`            | Transactional email server and port for single-use verification links                                                                                                                                                 |
+| ap-civic-api | `SMTP_USERNAME`, `SMTP_PASSWORD`    | SMTP credentials; keep them secret and rotate through the provider                                                                                                                                                    |
+| ap-civic-api | `SMTP_FROM_EMAIL`, `SMTP_USE_TLS`   | Monitored sender address and TLS mode; production TLS must remain enabled                                                                                                                                             |
 
 `APP_ENV=production` and the closed participation default are declared in the Blueprint. Runtime
 `RENDER_EXTERNAL_URL` is set by Render for the web service.
@@ -44,7 +49,7 @@ acceptance, do not rely on that alone:
    operators in dependency order, catalogue verification, idempotency, public checks) inside one
    maintenance window. Operators run against `DATABASE_URL` on the API instance or an allowed host.
 2. Trigger the API deployment first. On the free service, the start command runs
-   `alembic upgrade head` before Uvicorn; the new revision must be `20260820_0007` at head.
+   `alembic upgrade head` before Uvicorn; the new revision must be `20260822_0008` at head.
 3. After the API is healthy, trigger the web deployment.
 4. Run the post-deploy verification matrix below.
 
