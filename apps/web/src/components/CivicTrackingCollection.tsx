@@ -16,31 +16,31 @@ import styles from "./CivicTrackingCollection.module.css";
 const copy = {
   en: {
     private: "PRIVATE · THIS DEVICE ONLY",
-    watchTitle: "Your development watchlist",
-    watchNav: "Watchlist",
-    diaryNav: "Civic diary",
+    watchTitle: "My files",
+    watchNav: "My files",
+    diaryNav: "Activity",
     discoverNav: "Discover",
     watchIntro:
       "Follow reviewed records without creating an identity or sending your interests to the server.",
-    watchEmpty: "Your watchlist is empty",
+    watchEmpty: "No files followed yet",
     watchEmptyText:
       "Open a reviewed scheme, project, public-money, procurement, officeholder or election record and select Follow this record.",
-    diaryTitle: "Your civic diary",
+    diaryTitle: "Your activity",
     diaryIntro:
-      "A private history of records followed or removed on this browser. It is not a public activity feed or political-preference profile.",
-    diaryEmpty: "No local diary activity yet",
+      "A private activity history of records followed or removed on this browser. It is not a public feed or political-preference profile.",
+    diaryEmpty: "No local activity yet",
     diaryEmptyText:
-      "Following a reviewed record creates the first device-private diary entry.",
+      "Following a reviewed record creates the first device-private activity entry.",
     followed: "Followed",
     removed: "Removed",
-    remove: "Remove from watchlist",
+    remove: "Remove from my files",
     view: "Open reviewed record",
-    clear: "Clear private diary",
+    clear: "Clear private activity",
     explore: "Explore reviewed records",
     community: "View approved community observations",
     communityBoundary: "COMMUNITY-REPORTED · MODERATED",
     communityText:
-      "Public experiences remain separate from this private diary and appear only after moderation.",
+      "Public experiences remain separate from this private activity history and appear only after moderation.",
     kind: {
       scheme: "Scheme",
       project: "Project",
@@ -53,31 +53,31 @@ const copy = {
   },
   te: {
     private: "ప్రైవేట్ · ఈ పరికరంలో మాత్రమే",
-    watchTitle: "మీ అభివృద్ధి వాచ్‌లిస్ట్",
-    watchNav: "వాచ్‌లిస్ట్",
-    diaryNav: "పౌర డైరీ",
+    watchTitle: "నా ఫైళ్లు",
+    watchNav: "నా ఫైళ్లు",
+    diaryNav: "కార్యాచరణ",
     discoverNav: "కనుగొనండి",
     watchIntro:
       "గుర్తింపును సృష్టించకుండా లేదా మీ ఆసక్తులను సర్వర్‌కు పంపకుండా సమీక్షించిన రికార్డులను అనుసరించండి.",
-    watchEmpty: "మీ వాచ్‌లిస్ట్ ఖాళీగా ఉంది",
+    watchEmpty: "మీరు ఇంకా ఫైళ్లను అనుసరించలేదు",
     watchEmptyText:
       "సమీక్షించిన పథకం, ప్రాజెక్టు, ప్రజా ధనం, కొనుగోలు, అధికారి లేదా ఎన్నికల రికార్డును తెరిచి ఈ రికార్డును అనుసరించండి ఎంచుకోండి.",
-    diaryTitle: "మీ పౌర డైరీ",
+    diaryTitle: "మీ కార్యాచరణ",
     diaryIntro:
       "ఈ బ్రౌజర్‌లో అనుసరించిన లేదా తొలగించిన రికార్డుల ప్రైవేట్ చరిత్ర. ఇది పబ్లిక్ కార్యకలాప ఫీడ్ లేదా రాజకీయ అభిరుచి ప్రొఫైల్ కాదు.",
-    diaryEmpty: "స్థానిక డైరీ కార్యకలాపం ఇంకా లేదు",
+    diaryEmpty: "స్థానిక కార్యాచరణ ఇంకా లేదు",
     diaryEmptyText:
-      "సమీక్షించిన రికార్డును అనుసరించడం మొదటి పరికర-ప్రైవేట్ డైరీ నమోదును సృష్టిస్తుంది.",
+      "సమీక్షించిన రికార్డును అనుసరించడం మొదటి పరికర-ప్రైవేట్ కార్యాచరణ నమోదును సృష్టిస్తుంది.",
     followed: "అనుసరించారు",
     removed: "తొలగించారు",
-    remove: "వాచ్‌లిస్ట్ నుండి తొలగించండి",
+    remove: "నా ఫైళ్ల నుండి తొలగించండి",
     view: "సమీక్షించిన రికార్డును తెరవండి",
-    clear: "ప్రైవేట్ డైరీని తొలగించండి",
+    clear: "ప్రైవేట్ కార్యాచరణను తొలగించండి",
     explore: "సమీక్షించిన రికార్డులను అన్వేషించండి",
     community: "ఆమోదించిన కమ్యూనిటీ పరిశీలనలను చూడండి",
     communityBoundary: "కమ్యూనిటీ నివేదిక · మోడరేట్ చేయబడింది",
     communityText:
-      "ప్రజా అనుభవాలు ఈ ప్రైవేట్ డైరీ నుండి వేరుగా ఉంటాయి మరియు మోడరేషన్ తర్వాత మాత్రమే కనిపిస్తాయి.",
+      "ప్రజా అనుభవాలు ఈ ప్రైవేట్ కార్యాచరణ చరిత్ర నుండి వేరుగా ఉంటాయి మరియు మోడరేషన్ తర్వాత మాత్రమే కనిపిస్తాయి.",
     kind: {
       scheme: "పథకం",
       project: "ప్రాజెక్టు",

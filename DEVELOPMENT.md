@@ -1,4 +1,4 @@
-# Viksit Bharat?? — Development Record
+# FileKholo — Development Record
 
 **Product:** India-wide public intelligence and civic participation platform, launching with Andhra Pradesh
 **Initial analysis date:** 11 August 2026
@@ -2883,3 +2883,31 @@ tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disp
   public-utility tests passed **12/12**. The complete deterministic web suite passed **175/175 tests
   across 52 files**. `npm run format:check`, web ESLint and TypeScript checks passed; the optimized
   Next.js production build succeeded; and `git diff --check` passed.
+
+### Stage 2.40 — FileKholo public rebrand (2026-08-22)
+
+- **Objective:** replace the previous public identity with `FileKholo`, a concise transparency brand
+  centred on opening source-linked public records and following government work without implying
+  government affiliation or treating community reports as official evidence.
+- **Public identity:** changed the site wordmark, accessible home label, footer, default and route
+  metadata, legal-platform description, constituency social-card text and alt text, API title and root
+  response, API package description, and current README identity to `FileKholo`. The homepage now
+  leads with “Kaam hua? File kholo.” and the neutral supporting descriptor “Public Records.”
+- **Product vocabulary:** renamed the public Watchlist and Civic Diary navigation to `My Files` and
+  `Activity`; aligned the homepage private panel, record-follow controls, collection pages, metadata,
+  empty states and English/Telugu copy with those names. The existing device-private tracking model,
+  route paths and legacy browser-storage key remain unchanged so the rename does not erase local
+  collections or expand the privacy boundary.
+- **Evidence and security boundaries:** no schema, migration, source record, data classification,
+  community visibility, staff permission, authentication or moderation behavior changed. Historical
+  development entries and existing Render service URLs retain their original values as operational
+  evidence rather than being rewritten as if the new brand had existed previously.
+- **Verification evidence:** focused branding, navigation, bilingual collection and accessibility
+  tests passed **17/17**. The complete Vitest suite passed; `npm run format:check`, web ESLint and
+  TypeScript checks passed; and the optimized Next.js production build succeeded. API Ruff and strict
+  mypy passed. API Pytest passed **166 tests** with **16 PostgreSQL/PostGIS integrations skipped**
+  because no disposable integration database was configured.
+- **Remaining launch work:** the code and rendered metadata use the new brand, but the production
+  domain, Render service names/URLs, deployment environment values and external social handles are
+  operator-controlled and still require coordinated cutover. Trademark and formal brand clearance
+  remain external legal checks, not conclusions established by this code change.

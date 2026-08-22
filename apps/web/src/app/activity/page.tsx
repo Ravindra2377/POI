@@ -5,9 +5,9 @@ import { SiteHeader } from "@/components/SiteHeader";
 import styles from "./activity.module.css";
 
 export const metadata: Metadata = {
-  title: "Private Civic Diary · Viksit Bharat??",
+  title: "Private Activity · FileKholo",
   description:
-    "A device-private history of reviewed development and political records followed on this browser.",
+    "A device-private activity history of reviewed development and political records followed on this browser.",
 };
 
 export default function CivicActivityPage() {

@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { LegalBasisContent } from "./LegalBasisContent";
 
 export const metadata: Metadata = {
-  title: "Legal & Constitutional Basis · Viksit Bharat??",
+  title: "Legal & Constitutional Basis · FileKholo",
   description:
     "The constitutional rights, statutory framework and responsibilities that guide this independent civic public-record platform.",
 };

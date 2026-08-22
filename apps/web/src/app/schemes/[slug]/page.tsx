@@ -4,7 +4,7 @@ import { ALL_INDIA_ISO } from "@/lib/states";
 import { SchemeDetail } from "../SchemeDetail";
 
 export const metadata: Metadata = {
-  title: "Scheme Record · Viksit Bharat??",
+  title: "Scheme Record · FileKholo",
   description:
     "Inspect a reviewed State/UT scheme record with bilingual claims and official sources.",
 };

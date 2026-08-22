@@ -14,11 +14,11 @@ const siteUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Viksit Bharat??",
+    default: "FileKholo",
     template: "%s",
   },
   description:
-    "An independent India-wide civic platform for inspecting sourced government records, with Andhra Pradesh as the first reviewed dataset.",
+    "Open source-linked public records and follow national development across India, with Andhra Pradesh as the first fully reviewed dataset.",
 };
 
 export default function RootLayout({

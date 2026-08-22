@@ -3,7 +3,7 @@ import { preparedProjectBySlug } from "@/lib/projects";
 import { ProjectDetail } from "../ProjectDetail";
 
 export const metadata: Metadata = {
-  title: "AP Project Record · Viksit Bharat??",
+  title: "AP Project Record · FileKholo",
   description:
     "Inspect a reviewed Andhra Pradesh project record with responsibility, timeline and official sources.",
 };

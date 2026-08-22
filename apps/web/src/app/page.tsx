@@ -55,23 +55,24 @@ export default function Home() {
         <section className={styles.hero}>
           <div className={`shell ${styles.heroGrid}`}>
             <div className={styles.heroCopy}>
-              <p className="eyebrow">INDIA&apos;S CIVIC DISCOVERY NETWORK</p>
-              <h1>Track the work. Keep the receipts.</h1>
+              <p className="eyebrow">INDIA&apos;S PUBLIC RECORD NETWORK</p>
+              <h1>Kaam hua? File kholo.</h1>
               <p className="lede">
                 Discover source-linked schemes, projects, public money,
                 procurement, elections and officeholders. Follow reviewed
-                records and build a private diary of the India you are watching.
+                records and keep a private activity history of the India you are
+                watching.
               </p>
               <p className={styles.boundary}>
                 Official records stay official. Community experience stays
-                labelled. Your watchlist stays on this device.
+                labelled. Your files stay on this device.
               </p>
               <div className={styles.heroActions}>
                 <Link className="button button--primary" href="/explore-data">
                   Discover records <span aria-hidden="true">→</span>
                 </Link>
                 <Link className={styles.textLink} href="/lists">
-                  View my watchlist
+                  View my files
                 </Link>
               </div>
             </div>

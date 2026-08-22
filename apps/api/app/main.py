@@ -23,8 +23,10 @@ def get_readiness_checker() -> ReadinessChecker:
 def create_app() -> FastAPI:
     settings = load_settings()
     application = FastAPI(
-        title="Viksit Bharat?? API",
-        description="Public API foundation for Andhra Pradesh civic intelligence.",
+        title="FileKholo API",
+        description=(
+            "Public API for source-linked Indian government records and civic intelligence."
+        ),
         version="0.2.0",
     )
     application.add_middleware(
@@ -69,7 +71,7 @@ app = create_app()
 
 @app.get("/", include_in_schema=False)
 def root() -> dict[str, str]:
-    return {"name": "Viksit Bharat?? API", "documentation": "/docs"}
+    return {"name": "FileKholo API", "documentation": "/docs"}
 
 
 @app.get("/health", response_model=LiveHealth, tags=["operations"])

@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { ExploreData } from "./ExploreData";
 
 export const metadata: Metadata = {
-  title: "Explore Data · Viksit Bharat??",
+  title: "Explore Data · FileKholo",
   description:
     "Browse India-wide coverage structure and reviewed district records for all 36 States and Union Territories.",
 };

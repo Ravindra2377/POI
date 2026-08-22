@@ -12,23 +12,23 @@ describe("development tracking experience", () => {
     render(<CivicListsPage />);
     expect(
       await screen.findByRole("heading", {
-        name: "Your development watchlist",
+        name: "My files",
       }),
     ).toBeVisible();
     expect(
-      screen.getByRole("heading", { name: "Your watchlist is empty" }),
+      screen.getByRole("heading", { name: "No files followed yet" }),
     ).toBeVisible();
     expect(screen.getByText(/interests to the server/i)).toBeVisible();
   });
 
-  it("renders an honest device-private civic diary", async () => {
+  it("renders an honest device-private activity history", async () => {
     render(<CivicActivityPage />);
     expect(
-      await screen.findByRole("heading", { name: "Your civic diary" }),
+      await screen.findByRole("heading", { name: "Your activity" }),
     ).toBeVisible();
     expect(
-      screen.getByRole("heading", { name: "No local diary activity yet" }),
+      screen.getByRole("heading", { name: "No local activity yet" }),
     ).toBeVisible();
-    expect(screen.getByText(/not a public activity feed/i)).toBeVisible();
+    expect(screen.getByText(/not a public feed/i)).toBeVisible();
   });
 });

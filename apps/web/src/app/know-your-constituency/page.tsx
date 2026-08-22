@@ -19,12 +19,12 @@ export async function generateMetadata({
   const seat = Array.isArray(params.seat) ? params.seat[0] : params.seat;
   if (!district) {
     return {
-      title: "Know Your Constituency · Viksit Bharat??",
+      title: "Know Your Constituency · FileKholo",
       description: defaultDescription,
     };
   }
   const metadata: Metadata = {
-    title: `Know Your Constituency · ${district} · Viksit Bharat??`,
+    title: `Know Your Constituency · ${district} · FileKholo`,
     description: `Your MLA, party and seat status for ${district}, from reviewed, source-linked Andhra Pradesh Assembly records.`,
   };
   if (seat) {

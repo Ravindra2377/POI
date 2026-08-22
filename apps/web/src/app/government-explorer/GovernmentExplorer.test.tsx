@@ -55,9 +55,7 @@ describe("GovernmentExplorer", () => {
       </LocaleProvider>,
     );
 
-    expect(
-      screen.getByRole("link", { name: "Viksit Bharat?? home" }),
-    ).toBeVisible();
+    expect(screen.getByRole("link", { name: "FileKholo home" })).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent(
       "Loading reviewed public records",
     );

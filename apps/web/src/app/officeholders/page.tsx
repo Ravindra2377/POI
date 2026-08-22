@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { OfficeholdersDirectory } from "./OfficeholdersDirectory";
 
 export const metadata: Metadata = {
-  title: "Officeholders · Viksit Bharat??",
+  title: "Officeholders · FileKholo",
   description:
     "Inspect reviewed Andhra Pradesh roles and terms without treating an office as a verdict on a person.",
 };

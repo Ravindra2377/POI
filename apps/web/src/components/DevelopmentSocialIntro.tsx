@@ -6,32 +6,32 @@ import styles from "./DevelopmentSocialIntro.module.css";
 
 const copy = {
   en: {
-    eyebrow: "YOUR DEVELOPMENT DIARY",
+    eyebrow: "YOUR FILES",
     title: "Follow the work of government—not just the news cycle.",
     intro:
-      "Build a private watchlist of reviewed schemes, projects, public money, procurement, officeholders and election records. Your interests stay on this device.",
+      "Build a private collection of reviewed schemes, projects, public money, procurement, officeholders and election records. Your interests stay on this device.",
     steps: [
       ["Discover", "Browse source-linked public records."],
       ["Follow", "Save records you want to revisit."],
-      ["Keep a diary", "See your own follow and removal history."],
+      ["Review activity", "See your own follow and removal history."],
       ["Add context", "Read approved community experiences separately."],
     ],
     explore: "Start exploring",
-    watchlist: "Open my watchlist",
+    watchlist: "Open my files",
   },
   te: {
-    eyebrow: "మీ అభివృద్ధి డైరీ",
+    eyebrow: "మీ ఫైళ్లు",
     title: "వార్తా చక్రాన్ని మాత్రమే కాకుండా ప్రభుత్వ పనిని అనుసరించండి.",
     intro:
-      "సమీక్షించిన పథకాలు, ప్రాజెక్టులు, ప్రజా ధనం, కొనుగోళ్లు, అధికారులు మరియు ఎన్నికల రికార్డుల ప్రైవేట్ వాచ్‌లిస్ట్‌ను రూపొందించండి. మీ ఆసక్తులు ఈ పరికరంలోనే ఉంటాయి.",
+      "సమీక్షించిన పథకాలు, ప్రాజెక్టులు, ప్రజా ధనం, కొనుగోళ్లు, అధికారులు మరియు ఎన్నికల రికార్డుల ప్రైవేట్ ఫైళ్ల సేకరణను రూపొందించండి. మీ ఆసక్తులు ఈ పరికరంలోనే ఉంటాయి.",
     steps: [
       ["కనుగొనండి", "మూలాలతో అనుసంధానించిన ప్రజా రికార్డులను చూడండి."],
       ["అనుసరించండి", "మళ్లీ చూడాలనుకునే రికార్డులను భద్రపరచండి."],
-      ["డైరీ ఉంచండి", "మీ అనుసరణ మరియు తొలగింపు చరిత్రను చూడండి."],
+      ["కార్యాచరణను చూడండి", "మీ అనుసరణ మరియు తొలగింపు చరిత్రను చూడండి."],
       ["సందర్భాన్ని చూడండి", "ఆమోదించిన కమ్యూనిటీ అనుభవాలను విడిగా చదవండి."],
     ],
     explore: "అన్వేషించడం ప్రారంభించండి",
-    watchlist: "నా వాచ్‌లిస్ట్‌ను తెరవండి",
+    watchlist: "నా ఫైళ్లు తెరవండి",
   },
 } as const;
 

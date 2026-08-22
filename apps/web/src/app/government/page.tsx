@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { GovernmentDirectory } from "./GovernmentDirectory";
 
 export const metadata: Metadata = {
-  title: "Government Directory · Viksit Bharat??",
+  title: "Government Directory · FileKholo",
   description:
     "Browse source-linked government bodies, offices and time-bound representatives.",
 };

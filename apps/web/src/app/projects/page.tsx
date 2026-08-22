@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ProjectsDirectory } from "./ProjectsDirectory";
 
 export const metadata: Metadata = {
-  title: "AP Projects · Viksit Bharat??",
+  title: "AP Projects · FileKholo",
   description:
     "Browse reviewed, bilingual and source-backed Andhra Pradesh public project records.",
 };

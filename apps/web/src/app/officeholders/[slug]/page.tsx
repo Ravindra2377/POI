@@ -3,7 +3,7 @@ import { preparedOfficeholderBySlug } from "@/lib/officeholders";
 import { OfficeholderDetail } from "../OfficeholderDetail";
 
 export const metadata: Metadata = {
-  title: "Officeholder Record · Viksit Bharat??",
+  title: "Officeholder Record · FileKholo",
   description:
     "Inspect a reviewed Andhra Pradesh role or term with dates, office and official sources.",
 };

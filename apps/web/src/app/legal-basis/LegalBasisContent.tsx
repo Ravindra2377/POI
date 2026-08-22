@@ -195,8 +195,8 @@ export function LegalBasisContent() {
         </h1>
         <p className="lede">
           {isTelugu
-            ? "Viksit Bharat?? స్వతంత్ర పౌర వేదిక. ఇది ప్రభుత్వ రికార్డులను కనుగొనడం, మూలాధారాలతో చూపడం, ప్రజలు పరిశీలించడంలో సహాయపడేలా భారత చట్టాల పరిధిలో పనిచేయడానికి రూపొందించబడింది."
-            : "Viksit Bharat?? is an independent civic platform designed to operate within Indian law while helping people find, source and inspect government records."}
+            ? "FileKholo స్వతంత్ర పౌర వేదిక. ఇది ప్రభుత్వ రికార్డులను కనుగొనడం, మూలాధారాలతో చూపడం, ప్రజలు పరిశీలించడంలో సహాయపడేలా భారత చట్టాల పరిధిలో పనిచేయడానికి రూపొందించబడింది."
+            : "FileKholo is an independent civic platform designed to operate within Indian law while helping people find, source and inspect government records."}
         </p>
         <aside className="legal-disclaimer" aria-label="Legal disclaimer">
           <strong>{isTelugu ? "ముఖ్య గమనిక" : "Important"}</strong>

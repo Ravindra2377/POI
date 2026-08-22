@@ -74,9 +74,7 @@ describe("IngestionContent", () => {
         /Raw snapshot contents are never served by the public API/,
       ),
     ).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: "Viksit Bharat?? home" }),
-    ).toBeVisible();
+    expect(screen.getByRole("link", { name: "FileKholo home" })).toBeVisible();
   });
 
   it("supports Telugu rendering and hides reviewer identities", async () => {

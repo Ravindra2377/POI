@@ -3,7 +3,7 @@ import { preparedProcurementBySlug } from "@/lib/procurement";
 import { ProcurementDetail } from "../ProcurementDetail";
 
 export const metadata: Metadata = {
-  title: "Procurement Record · Viksit Bharat??",
+  title: "Procurement Record · FileKholo",
   description:
     "Inspect a reviewed Andhra Pradesh tender or contract observation with stage, contractor and official sources.",
 };

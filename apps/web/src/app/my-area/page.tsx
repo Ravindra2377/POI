@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { MyArea } from "./MyArea";
 
 export const metadata: Metadata = {
-  title: "My Area · Viksit Bharat??",
+  title: "My Area · FileKholo",
   description:
     "A coarse, source-first briefing for a selected Andhra Pradesh district. No precise location is collected.",
 };

@@ -12,7 +12,7 @@ const record = {
 };
 
 describe("civic homepage shelf", () => {
-  it("shows device-private watchlist and diary counts", async () => {
+  it("shows device-private file and activity counts", async () => {
     followCivicRecord(record);
     render(
       <LocaleProvider>
@@ -21,14 +21,15 @@ describe("civic homepage shelf", () => {
     );
 
     expect(await screen.findAllByText("1", { selector: "dd" })).toHaveLength(2);
-    expect(screen.getByText("records followed")).toBeVisible();
-    expect(screen.getByText("diary moments")).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: /Open watchlist/ }),
-    ).toHaveAttribute("href", "/lists");
+    expect(screen.getByText("files followed")).toBeVisible();
+    expect(screen.getByText("activity entries")).toBeVisible();
+    expect(screen.getByRole("link", { name: /Open my files/ })).toHaveAttribute(
+      "href",
+      "/lists",
+    );
   });
 
-  it("localises the private shelf for Telugu", async () => {
+  it("localises the private files panel for Telugu", async () => {
     localStorage.setItem("viksit_selected_locale", "te");
     render(
       <LocaleProvider>
@@ -39,7 +40,7 @@ describe("civic homepage shelf", () => {
     expect(await screen.findByText("ఈ పరికరంలో ప్రైవేట్")).toBeVisible();
     expect(
       screen.getByRole("heading", {
-        name: "మీరు ఆపిన చోటు నుంచి కొనసాగించండి.",
+        name: "మీరు అనుసరిస్తున్న ఫైళ్లు ఒకే చోట.",
       }),
     ).toBeVisible();
   });

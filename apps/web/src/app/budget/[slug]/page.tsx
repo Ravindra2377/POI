@@ -3,7 +3,7 @@ import { preparedBudgetLineBySlug } from "@/lib/budget";
 import { BudgetDetail } from "../BudgetDetail";
 
 export const metadata: Metadata = {
-  title: "Budget Line Record · Viksit Bharat??",
+  title: "Budget Line Record · FileKholo",
   description:
     "Inspect a reviewed Andhra Pradesh budget major head with budget estimate, amount columns and official sources.",
 };

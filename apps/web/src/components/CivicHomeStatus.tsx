@@ -11,24 +11,24 @@ import styles from "./CivicHomeStatus.module.css";
 
 const copy = {
   en: {
-    eyebrow: "MY CIVIC SHELF",
-    title: "Pick up where you left off.",
+    eyebrow: "MY FILES",
+    title: "Your followed records, in one place.",
     private: "Private on this device",
-    records: "records followed",
-    moments: "diary moments",
-    watchlist: "Open watchlist",
-    diary: "Open civic diary",
-    empty: "Follow a reviewed record to start your shelf.",
+    records: "files followed",
+    moments: "activity entries",
+    watchlist: "Open my files",
+    diary: "Open activity",
+    empty: "Follow a reviewed record to add your first file.",
   },
   te: {
-    eyebrow: "నా పౌర షెల్ఫ్",
-    title: "మీరు ఆపిన చోటు నుంచి కొనసాగించండి.",
+    eyebrow: "నా ఫైళ్లు",
+    title: "మీరు అనుసరిస్తున్న ఫైళ్లు ఒకే చోట.",
     private: "ఈ పరికరంలో ప్రైవేట్",
-    records: "అనుసరిస్తున్న రికార్డులు",
-    moments: "డైరీ నమోదులు",
-    watchlist: "వాచ్‌లిస్ట్ తెరవండి",
-    diary: "పౌర డైరీ తెరవండి",
-    empty: "మీ షెల్ఫ్‌ను ప్రారంభించడానికి సమీక్షించిన రికార్డును అనుసరించండి.",
+    records: "అనుసరిస్తున్న ఫైళ్లు",
+    moments: "కార్యాచరణ నమోదులు",
+    watchlist: "నా ఫైళ్లు తెరవండి",
+    diary: "కార్యాచరణ తెరవండి",
+    empty: "మీ మొదటి ఫైల్‌ను జోడించడానికి సమీక్షించిన రికార్డును అనుసరించండి.",
   },
 } as const;
 

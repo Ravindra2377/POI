@@ -17,13 +17,13 @@ const copy = {
     follow: "Follow this record",
     following: "Following",
     private: "Saved only on this device",
-    watchlist: "View development watchlist",
+    watchlist: "View my files",
   },
   te: {
     follow: "ఈ రికార్డును అనుసరించండి",
     following: "అనుసరిస్తున్నారు",
     private: "ఈ పరికరంలో మాత్రమే భద్రపరచబడింది",
-    watchlist: "అభివృద్ధి వాచ్‌లిస్ట్‌ను చూడండి",
+    watchlist: "నా ఫైళ్లను చూడండి",
   },
 } as const;
 

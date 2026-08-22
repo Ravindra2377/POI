@@ -16,8 +16,8 @@ const primaryNavigation = [
   { href: "/schemes", label: "Schemes" },
   { href: "/projects", label: "Projects" },
   { href: "/community", label: "Community" },
-  { href: "/lists", label: "Watchlist" },
-  { href: "/activity", label: "Civic Diary" },
+  { href: "/lists", label: "My Files" },
+  { href: "/activity", label: "Activity" },
 ];
 
 const secondaryNavigation = [
@@ -55,9 +55,9 @@ export function SiteHeader() {
       <CoverageNotice />
       <header className="site-header">
         <div className="shell site-header__inner">
-          <Link className="wordmark" href="/" aria-label="Viksit Bharat?? home">
-            <span>Viksit Bharat??</span>
-            <small>CIVIC DISCOVERY</small>
+          <Link className="wordmark" href="/" aria-label="FileKholo home">
+            <span>FileKholo</span>
+            <small>PUBLIC RECORDS</small>
           </Link>
           <button
             className="menu-button"

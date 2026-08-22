@@ -3,7 +3,7 @@ import type { ElectionResultRecord } from "@/lib/election-results";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-export const ogSeatAlt = "Know Your Constituency · Viksit Bharat";
+export const ogSeatAlt = "Know Your Constituency · FileKholo";
 
 export async function loadSeatRecord(
   seatSlug: string | undefined,

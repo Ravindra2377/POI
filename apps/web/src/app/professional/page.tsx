@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { ProfessionalOffering } from "./ProfessionalOffering";
 
 export const metadata: Metadata = {
-  title: "Professional services · Viksit Bharat??",
+  title: "Professional services · FileKholo",
   description:
     "Source-linked research pilots for journalists, researchers, nonprofits and public-interest teams, while public civic records remain free.",
 };

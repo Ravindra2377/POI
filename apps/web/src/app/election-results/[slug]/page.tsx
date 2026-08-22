@@ -3,7 +3,7 @@ import { preparedElectionResultBySlug } from "@/lib/election-results";
 import { ElectionResultsDetail } from "../ElectionResultsDetail";
 
 export const metadata: Metadata = {
-  title: "Election Result Record · Viksit Bharat??",
+  title: "Election Result Record · FileKholo",
   description:
     "Inspect a reviewed Andhra Pradesh election result with constituency, party and official sources.",
 };

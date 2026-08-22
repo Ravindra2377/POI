@@ -5,8 +5,8 @@ export function PageFooter() {
     <footer className="site-footer">
       <div className="shell site-footer__inner">
         <div>
-          <strong>Viksit Bharat??</strong>
-          <p>Independent civic infrastructure for inspecting public records.</p>
+          <strong>FileKholo</strong>
+          <p>Open the record. Follow the work.</p>
         </div>
         <nav aria-label="Footer navigation">
           <Link href="/sources">Methodology</Link>

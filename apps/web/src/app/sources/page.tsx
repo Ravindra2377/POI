@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SourcesDirectory } from "./SourcesDirectory";
 
 export const metadata: Metadata = {
-  title: "Sources and Methodology · Viksit Bharat??",
+  title: "Sources and Methodology · FileKholo",
   description:
     "Understand evidence classes, current coverage and source-linked Stage 1 records.",
 };

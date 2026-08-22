@@ -43,7 +43,7 @@ describe("device-private civic tracking", () => {
     expect(readCivicTracking().watchlist).toHaveLength(0);
   });
 
-  it("follows a reviewed record and exposes it in the watchlist", async () => {
+  it("follows a reviewed record and exposes it in My Files", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
       <LocaleProvider>
@@ -63,7 +63,7 @@ describe("device-private civic tracking", () => {
       </LocaleProvider>,
     );
     const collection = await screen.findByRole("region", {
-      name: "Your development watchlist",
+      name: "My files",
     });
     expect(within(collection).getByText(record.title)).toBeVisible();
     expect(

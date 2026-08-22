@@ -3,7 +3,7 @@ import { preparedMoneyBySlug } from "@/lib/public-money";
 import { PublicMoneyDetail } from "../PublicMoneyDetail";
 
 export const metadata: Metadata = {
-  title: "Public Money Record · Viksit Bharat??",
+  title: "Public Money Record · FileKholo",
   description:
     "Inspect a reviewed Andhra Pradesh public-money observation with stage, amount and official sources.",
 };

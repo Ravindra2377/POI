@@ -58,7 +58,7 @@ export function ogCard({
             textTransform: "uppercase",
           }}
         >
-          Viksit Bharat · Andhra Pradesh
+          FileKholo · Andhra Pradesh
         </div>
         <div
           style={{

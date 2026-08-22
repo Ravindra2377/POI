@@ -1,6 +1,8 @@
-# Viksit Bharat??
+# FileKholo
 
-An India-wide public intelligence and civic participation platform, launching with Andhra Pradesh.
+An India-wide public-record intelligence and civic participation platform, launching with Andhra Pradesh.
+FileKholo helps people open source-linked records, follow public work, and keep evidence classes
+visibly separate.
 The product connects official records, platform calculations, and structured community experience
 while keeping those evidence classes visibly and technically separate.
 
