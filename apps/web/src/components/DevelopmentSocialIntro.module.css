@@ -1,0 +1,53 @@
+.layout {
+  align-items: start;
+  display: grid;
+  gap: 64px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.layout > div > p:not(.eyebrow) {
+  color: var(--muted);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.actions a {
+  text-decoration: none;
+}
+.steps {
+  border-top: 1px solid var(--line-dark);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.steps li {
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 34px 1fr;
+  padding: 14px 0;
+}
+.steps li > span {
+  align-items: center;
+  background: var(--blue);
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 800;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+.steps p {
+  color: var(--muted);
+  margin: 3px 0 0;
+}
+@media (max-width: 800px) {
+  .layout {
+    gap: 32px;
+    grid-template-columns: 1fr;
+  }
+}

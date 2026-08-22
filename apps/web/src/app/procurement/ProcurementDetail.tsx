@@ -5,6 +5,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import { getCopyLabels } from "@/lib/copy-helper";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { RecordWatchControl } from "@/components/RecordWatchControl";
 import {
   formatContractValue,
   localizedProcurementText,
@@ -97,6 +98,16 @@ export function ProcurementDetail({
                 {labels.prepared}: {requestedSlug}
               </p>
             </>
+          )}
+          {record && (
+            <RecordWatchControl
+              record={{
+                id: "procurement:" + record.slug,
+                kind: "procurement",
+                title: localizedProcurementText(record.title.value, locale),
+                href: "/procurement/" + record.slug,
+              }}
+            />
           )}
         </header>
         {record && (

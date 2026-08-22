@@ -45,9 +45,9 @@ const UI_TRANSLATIONS: Record<string, Partial<Record<LanguageCode, string>>> = {
     ur: "منصوبے",
     as: "প্ৰকল্পসমূহ",
   },
-  "Activity Stream": {
+  "Civic Diary": {
     hi: "गतिविधि धारा",
-    te: "కార్యకలాపాల ప్రవాహం",
+    te: "పౌర డైరీ",
     ta: "செயல்பாட்டுப் ஓட்டம்",
     kn: "ಚಟುವಟಿಕೆ ಪ್ರವಾಹ",
     bn: "কার্যক্রম স্ট্রীম",
@@ -58,9 +58,9 @@ const UI_TRANSLATIONS: Record<string, Partial<Record<LanguageCode, string>>> = {
     pa: "ਗਤੀਵਿਧੀ ਸਟ੍ਰੀਮ",
     ur: "سرگرمی کی ندی",
   },
-  "Civic Lists": {
+  Watchlist: {
     hi: "नागरिक सूचियां",
-    te: "పౌర జాబితాలు",
+    te: "వాచ్‌లిస్ట్",
     ta: "குடிமக்கள் பட்டியல்கள்",
     kn: "ನಾಗರಿಕ ಪಟ್ಟಿಗಳು",
     bn: "নাগরিক তালিকা",

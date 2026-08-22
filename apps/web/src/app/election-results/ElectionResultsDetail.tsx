@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { RecordWatchControl } from "@/components/RecordWatchControl";
 import {
   localizedElectionResultText,
   type ElectionResultRecord,
@@ -128,6 +129,19 @@ export function ElectionResultsDetail({
                 {labels.prepared}: {requestedSlug}
               </p>
             </>
+          )}
+          {record && (
+            <RecordWatchControl
+              record={{
+                id: "election-result:" + record.slug,
+                kind: "election_result",
+                title: localizedElectionResultText(
+                  record.member_name.value,
+                  locale,
+                ),
+                href: "/election-results/" + record.slug,
+              }}
+            />
           )}
         </header>
         {record && (

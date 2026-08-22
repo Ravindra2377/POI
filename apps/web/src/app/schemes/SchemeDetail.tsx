@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { RecordWatchControl } from "@/components/RecordWatchControl";
 import { useLocale } from "@/components/LocaleProvider";
 import { getCopyLabels } from "@/lib/copy-helper";
 import { useSelectedState } from "@/components/StateProvider";
@@ -94,6 +95,20 @@ export function SchemeDetail({
                 {labels.prepared}: {requestedSlug}
               </p>
             </>
+          )}
+          {scheme && (
+            <RecordWatchControl
+              record={{
+                id: "scheme:" + scheme.slug,
+                kind: "scheme",
+                title: localized(scheme.name.value, locale),
+                href:
+                  "/schemes/" +
+                  scheme.slug +
+                  "?state=" +
+                  encodeURIComponent(selectedState.iso_code),
+              }}
+            />
           )}
         </header>
 

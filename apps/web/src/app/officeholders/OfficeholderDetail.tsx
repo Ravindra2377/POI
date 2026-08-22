@@ -5,6 +5,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import { getCopyLabels } from "@/lib/copy-helper";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { RecordWatchControl } from "@/components/RecordWatchControl";
 import {
   localizedOfficeholderText,
   type OfficeholderRecord,
@@ -89,6 +90,16 @@ export function OfficeholderDetail({
                 {labels.prepared}: {requestedSlug}
               </p>
             </>
+          )}
+          {record && (
+            <RecordWatchControl
+              record={{
+                id: "officeholder:" + record.slug,
+                kind: "officeholder",
+                title: localizedOfficeholderText(record.title.value, locale),
+                href: "/officeholders/" + record.slug,
+              }}
+            />
           )}
         </header>
         {record && (

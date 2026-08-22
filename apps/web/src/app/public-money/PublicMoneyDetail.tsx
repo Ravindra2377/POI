@@ -5,6 +5,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import { getCopyLabels } from "@/lib/copy-helper";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { RecordWatchControl } from "@/components/RecordWatchControl";
 import {
   formatMoneyAmount,
   localizedMoneyText,
@@ -92,6 +93,16 @@ export function PublicMoneyDetail({
                 {labels.prepared}: {requestedSlug}
               </p>
             </>
+          )}
+          {record && (
+            <RecordWatchControl
+              record={{
+                id: "public-money:" + record.slug,
+                kind: "public_money",
+                title: localizedMoneyText(record.title.value, locale),
+                href: "/public-money/" + record.slug,
+              }}
+            />
           )}
         </header>
         {record && (

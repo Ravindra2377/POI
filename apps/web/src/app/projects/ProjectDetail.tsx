@@ -5,6 +5,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import { getCopyLabels } from "@/lib/copy-helper";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { RecordWatchControl } from "@/components/RecordWatchControl";
 import { localizedProjectText, type ProjectRecord } from "@/lib/projects";
 import { OfficialProjectClaim } from "./OfficialProjectClaim";
 import { ProjectTimeline } from "./ProjectTimeline";
@@ -93,6 +94,16 @@ export function ProjectDetail({
                 {labels.prepared}: {requestedSlug}
               </p>
             </>
+          )}
+          {project && (
+            <RecordWatchControl
+              record={{
+                id: "project:" + project.slug,
+                kind: "project",
+                title: localizedProjectText(project.name.value, locale),
+                href: "/projects/" + project.slug,
+              }}
+            />
           )}
         </header>
         {project && (

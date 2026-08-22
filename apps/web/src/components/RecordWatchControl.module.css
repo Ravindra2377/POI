@@ -1,0 +1,21 @@
+.control {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+.control > span,
+.control > a {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.control > a {
+  color: var(--blue);
+  font-weight: 700;
+}
+.active {
+  background: var(--green-bg);
+  border: 1px solid var(--green);
+  color: var(--green);
+}

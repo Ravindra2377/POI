@@ -2818,3 +2818,36 @@ tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disp
   configuration and an Aiven backup/restore-tested deployment. Keep professional registration closed
   until those controls, legal terms and operator recovery procedures are ready; manual billing status
   is an administrative record, not proof that the platform processed a payment.
+
+### Stage 2.38 — Device-private civic watchlist and development diary (2026-08-22)
+
+- **Objective:** establish the first honest “Letterboxd for national development and politics” product
+  loop: people can discover reviewed civic records, follow what matters to them, and retain a personal
+  history without turning political interests into a server-side identity or popularity claim.
+- **Private tracking boundary:** added a versioned browser-storage model for a development watchlist
+  and civic diary. It stores only a validated record kind, stable identifier, display title, internal
+  route and timestamp. Links must be same-site paths; malformed data is discarded; the watchlist and
+  diary are capped at 200 and 300 entries; and blocked or full browser storage fails closed. No email,
+  IP address, precise location, citizen identifier or political-preference event is sent to the API.
+- **Reviewed-record integration:** bilingual Follow/Following controls now appear on real scheme,
+  project, budget, public-money, procurement, officeholder and election-result detail views. The
+  controls are rendered only when the corresponding reviewed record exists, so the feature does not
+  fabricate production records or blur official, calculated, inferred and community-reported data.
+- **Personal collection experience:** replaced the placeholder `/lists` and `/activity` surfaces with
+  a private development watchlist and chronological civic diary. Users can reopen reviewed records,
+  remove watchlist entries and clear diary history. The pages explicitly state that data remains on
+  the current device and that approved community observations remain a separately labelled,
+  moderated source class.
+- **Product framing and localisation:** the homepage now introduces a discover, follow, diary and
+  contextualise loop for national development records, and the primary navigation names the new
+  Watchlist and Civic Diary destinations. All newly introduced user-facing tracking controls and
+  explanations are provided in English and Telugu, with English fallback for other locales.
+- **Security and social limitation:** this is deliberately not a public follower graph, user profile,
+  rating system, recommendation engine or trending leaderboard. Public profiles, shared lists,
+  reactions and cross-device synchronisation remain out of scope until unique pseudonymous accounts,
+  consent controls, abuse prevention, moderation and privacy-safe aggregation are production-ready.
+- **Verification evidence:** focused storage, safety, bilingual UI and collection tests passed **6/6**;
+  focused reviewed-record page tests passed **53/53**, and the complete single-worker web suite passed
+  **173/173 tests across 51 files**. `npm run format:check`, web ESLint and TypeScript checks passed;
+  the optimized Next.js production build succeeded and includes `/lists` and `/activity`; and
+  `git diff --check` reported no whitespace errors.

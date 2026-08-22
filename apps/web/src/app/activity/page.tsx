@@ -1,38 +1,23 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import { CivicTrackingCollection } from "@/components/CivicTrackingCollection";
+import { PageFooter } from "@/components/PageFooter";
+import { SiteHeader } from "@/components/SiteHeader";
 import styles from "./activity.module.css";
+
+export const metadata: Metadata = {
+  title: "Private Civic Diary · Viksit Bharat??",
+  description:
+    "A device-private history of reviewed development and political records followed on this browser.",
+};
 
 export default function CivicActivityPage() {
   return (
     <>
-      <header className={styles.pageHeader}>
-        <div className="shell">
-          <p className="eyebrow">READ-ONLY PUBLIC DATA BETA</p>
-          <h1 className={styles.heroTitle}>Civic Activity Stream</h1>
-          <p className={styles.heroSubtitle}>
-            Reviewed official updates and approved community observations will
-            appear here only after their source and publication checks pass.
-          </p>
-        </div>
-      </header>
-
-      <main className={`${styles.mainSection} shell`}>
-        <section className="card" aria-labelledby="activity-empty-heading">
-          <h2 id="activity-empty-heading">
-            No reviewed activity entries are published yet
-          </h2>
-          <p>
-            The previous demonstration feed has been removed from the production
-            path. Citizen submissions are temporarily closed, and this page does
-            not fabricate official or community activity.
-          </p>
-          <Link
-            href="/community/moderation-log"
-            className="button button--secondary"
-          >
-            View moderation transparency →
-          </Link>
-        </section>
+      <SiteHeader />
+      <main id="main-content" className={`${styles.mainSection} shell`}>
+        <CivicTrackingCollection mode="diary" />
       </main>
+      <PageFooter />
     </>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CivicPosterGridSection } from "@/components/CivicPosterGridSection";
 import { CoverageFacts } from "@/components/CoverageFacts";
+import { DevelopmentSocialIntro } from "@/components/DevelopmentSocialIntro";
 import { LatestRecordUpdates } from "@/components/LatestRecordUpdates";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -50,13 +51,13 @@ export default function Home() {
       <SiteHeader />
       <main id="main-content">
         <section className="home-intro shell">
-          <p className="eyebrow">INDIA&apos;S PUBLIC INFORMATION, CONNECTED</p>
-          <h1>Government records. One place to check.</h1>
+          <p className="eyebrow">INDIA&apos;S DEVELOPMENT, CONNECTED</p>
+          <h1>Follow India&apos;s development. Check the public record.</h1>
           <p className="lede">
-            Search schemes, projects, spending, departments and responsible
-            officeholders—from the Union government to a state and district.
-            Reviewed district records are live for all 36 States and Union
-            Territories.
+            Follow reviewed schemes, projects, public money, procurement,
+            elections and officeholders—from the Union government to a state and
+            district. Reviewed district records are live for all 36 States and
+            Union Territories.
           </p>
           <p className="satirical-context">
             Because development is a claim until the public can inspect the
@@ -84,6 +85,7 @@ export default function Home() {
             ))}
           </nav>
         </section>
+        <DevelopmentSocialIntro />
         <CivicPosterGridSection />
         <CoverageFacts />
         <section className="section shell" aria-labelledby="latest-heading">

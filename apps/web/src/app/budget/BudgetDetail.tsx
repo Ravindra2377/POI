@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
 import { PageFooter } from "@/components/PageFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { RecordWatchControl } from "@/components/RecordWatchControl";
 import {
   formatRupees,
   localizedBudgetText,
@@ -97,6 +98,16 @@ export function BudgetDetail({
                 {labels.prepared}: {requestedSlug}
               </p>
             </>
+          )}
+          {line && (
+            <RecordWatchControl
+              record={{
+                id: "budget:" + line.slug,
+                kind: "budget",
+                title: localizedBudgetText(line.name.value, locale),
+                href: "/budget/" + line.slug,
+              }}
+            />
           )}
         </header>
         {line && (
