@@ -2741,7 +2741,7 @@ tests` — **96 passed** with `TEST_DATABASE_URL` set. Live run against the disp
 - **Professional route:** added the dynamic `/professional` route for newsrooms, researchers,
   nonprofits, CSR teams and other public-interest organisations. It presents three explicitly
   indicative and manually scoped offers: a ₹999/month professional pilot, an organisation pilot
-  starting at ₹7,500/month, and custom research quoted only after source and coverage review. The
+  priced at ₹3,999/month, and custom research quoted only after source and coverage review. The
   page distinguishes currently offered research work from self-service subscriptions, payment,
   accounts, entitlements and API products that are not built.
 - **Commercial independence:** the public page commits that essential civic records and source

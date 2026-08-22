@@ -46,7 +46,7 @@ const copy = {
       },
       {
         title: "Organisation pilot",
-        price: "From ₹7,500 / month",
+        price: "₹3,999 / month",
         label: "Scoped before activation",
         features: [
           "Shared district, scheme or public-money research brief",
@@ -124,7 +124,7 @@ const copy = {
       },
       {
         title: "సంస్థ పైలట్",
-        price: "నెలకు ₹7,500 నుండి",
+        price: "నెలకు ₹3,999",
         label: "ప్రారంభానికి ముందు పరిధి నిర్ణయం",
         features: [
           "పంచుకోగల జిల్లా, పథకం లేదా ప్రజా ధన పరిశోధన వివరణ",

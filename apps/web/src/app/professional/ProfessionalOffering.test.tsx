@@ -27,7 +27,7 @@ describe("ProfessionalOffering", () => {
       screen.getByRole("complementary", { name: "No public-data paywall" }),
     ).toBeVisible();
     expect(screen.getByText("₹999 / month")).toBeVisible();
-    expect(screen.getByText("From ₹7,500 / month")).toBeVisible();
+    expect(screen.getByText("₹3,999 / month")).toBeVisible();
     expect(screen.getByText(/not self-service subscriptions/)).toBeVisible();
     expect(screen.getByText(/No sale of citizen identities/)).toBeVisible();
     expect(
